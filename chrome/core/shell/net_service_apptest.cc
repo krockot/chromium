@@ -29,7 +29,7 @@
 class TestCoreApplicationHostClient;
 class TestApplicationLoader;
 
-class CoreBrowserTest : public InProcessBrowserTest {
+class CoreAppTest : public InProcessBrowserTest {
  public:
   virtual void RunApplication() = 0;
 
@@ -58,7 +58,7 @@ class CoreBrowserTest : public InProcessBrowserTest {
 
 class TestApplicationDelegate : public core::ApplicationDelegate {
  public:
-  TestApplicationDelegate(CoreBrowserTest* test) : test_(test) {}
+  TestApplicationDelegate(CoreAppTest* test) : test_(test) {}
   ~TestApplicationDelegate() override {}
 
   void InitializeApplication(
@@ -78,12 +78,12 @@ class TestApplicationDelegate : public core::ApplicationDelegate {
   }
 
  private:
-  CoreBrowserTest* test_;
+  CoreAppTest* test_;
 };
 
 class TestApplicationLoader : public core::ApplicationLoader {
  public:
-  TestApplicationLoader(CoreBrowserTest* test) : test_(test) {}
+  TestApplicationLoader(CoreAppTest* test) : test_(test) {}
 
  private:
   void TestEntryPoint(MojoHandle application_request_handle) {
@@ -109,12 +109,12 @@ class TestApplicationLoader : public core::ApplicationLoader {
                    base::Unretained(this)))));
   }
 
-  CoreBrowserTest* test_;
+  CoreAppTest* test_;
 };
 
 class TestCoreApplicationHostClient : public ChromeCoreApplicationHostClient {
  public:
-  TestCoreApplicationHostClient(CoreBrowserTest* test) : test_(test) {}
+  TestCoreApplicationHostClient(CoreAppTest* test) : test_(test) {}
 
  private:
   // ChromeCoreApplicationHostClient:
@@ -126,16 +126,16 @@ class TestCoreApplicationHostClient : public ChromeCoreApplicationHostClient {
             new TestApplicationLoader(test_)));
   }
 
-  CoreBrowserTest* test_;
+  CoreAppTest* test_;
 };
 
-void CoreBrowserTest::WaitForAppExit() {
+void CoreAppTest::WaitForAppExit() {
   base::RunLoop run_loop;
   quit_closure_ = run_loop.QuitClosure();
   run_loop.Run();
 }
 
-void CoreBrowserTest::Initialize(
+void CoreAppTest::Initialize(
     mojo::Shell* shell,
     const std::vector<std::string>& args) {
   shell_ = shell;
@@ -144,15 +144,15 @@ void CoreBrowserTest::Initialize(
   quit_closure_.Run();
 }
 
-void CoreBrowserTest::AcceptConnection(
+void CoreAppTest::AcceptConnection(
     const GURL& requestor_url,
     scoped_ptr<core::ApplicationConnection> connection,
     const GURL& resolved_url) {
 }
 
-void CoreBrowserTest::Quit() {}
+void CoreAppTest::Quit() {}
 
-void CoreBrowserTest::SetUp() {
+void CoreAppTest::SetUp() {
   test_application_host_client_.reset(new TestCoreApplicationHostClient(this));
   core::CoreClient::SetApplicationHostClientForTest(
       test_application_host_client_.get());
@@ -201,7 +201,7 @@ class HostResolverRequestClient
   base::Closure completion_callback_;
 };
 
-class NetServiceAppTest : public CoreBrowserTest {
+class NetServiceAppTest : public CoreAppTest {
  protected:
   net::interfaces::HostResolverRequestInfoPtr NewHostResolverRequest(
       const std::string& hostname) {
