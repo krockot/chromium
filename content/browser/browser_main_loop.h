@@ -29,6 +29,12 @@ class TraceEventSystemStatsMonitor;
 }  // namespace trace_event
 }  // namespace base
 
+#if defined(ENABLE_CHROME_CORE)
+namespace core {
+class Shell;
+}  // namespace core
+#endif
+
 namespace media {
 class AudioManager;
 class MidiManager;
@@ -202,6 +208,9 @@ class CONTENT_EXPORT BrowserMainLoop {
   scoped_ptr<ResourceDispatcherHostImpl> resource_dispatcher_host_;
   scoped_ptr<SpeechRecognitionManagerImpl> speech_recognition_manager_;
   scoped_ptr<TimeZoneMonitor> time_zone_monitor_;
+#if defined(ENABLE_CHROME_CORE)
+  scoped_ptr<core::Shell> shell_;
+#endif
 
   // Members initialized in |RunMainMessageLoopParts()| ------------------------
   scoped_ptr<BrowserProcessSubThread> db_thread_;

@@ -136,6 +136,10 @@
 #include "ui/gfx/x/x11_types.h"
 #endif
 
+#if defined(ENABLE_CHROME_CORE)
+#include "core/public/shell/shell.h"
+#endif
+
 // One of the linux specific headers defines this as a macro.
 #ifdef DestroyAll
 #undef DestroyAll
@@ -1025,6 +1029,10 @@ int BrowserMainLoop::BrowserThreadsStarted() {
 #if !defined(OS_IOS)
   indexed_db_thread_.reset(new base::Thread("IndexedDB"));
   indexed_db_thread_->Start();
+#endif
+
+#if defined(ENABLE_CHROME_CORE)
+  shell_ = core::Shell::Create();
 #endif
 
 #if !defined(OS_IOS)

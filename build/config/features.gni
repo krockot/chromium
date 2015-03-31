@@ -74,6 +74,9 @@ declare_args() {
   enable_one_click_signin = is_win || is_mac || (is_linux && !is_chromeos)
 
   enable_remoting = !is_ios && !is_android
+
+  # Enables the experimental Chrome Core architecture.
+  enable_chrome_core = false
 }
 
 # Additional dependent variables -----------------------------------------------

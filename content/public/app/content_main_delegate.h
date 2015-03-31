@@ -13,6 +13,12 @@
 template <typename>
 class ScopedVector;
 
+#if defined(ENABLE_CHROME_CORE)
+namespace core {
+class CoreClient;
+}
+#endif
+
 namespace content {
 
 class ContentBrowserClient;
@@ -91,6 +97,11 @@ class CONTENT_EXPORT ContentMainDelegate {
   virtual ContentPluginClient* CreateContentPluginClient();
   virtual ContentRendererClient* CreateContentRendererClient();
   virtual ContentUtilityClient* CreateContentUtilityClient();
+
+#if defined(ENABLE_CHROME_CORE)
+  // Called once per process to allow the embedder to customize the core module.
+  virtual core::CoreClient* CreateCoreClient();
+#endif
 };
 
 }  // namespace content

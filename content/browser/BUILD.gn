@@ -455,4 +455,8 @@ source_set("browser") {
   if (enable_media_mojo_renderer) {
     deps += [ "//media/mojo/services:renderer_service" ]
   }
+
+  if (enable_chrome_core) {
+    deps += [ "//core/public/shell" ]
+  }
 }

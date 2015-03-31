@@ -228,6 +228,9 @@ config("feature_flags") {
   if (enable_pre_sync_backup) {
     defines += [ "ENABLE_PRE_SYNC_BACKUP" ]
   }
+  if (enable_chrome_core) {
+    defines += [ "ENABLE_CHROME_CORE" ]
+  }
 }
 
 # Debug/release ----------------------------------------------------------------

@@ -1,0 +1,11 @@
+include_rules = [
+  "+applications/network_service/public",
+
+  "+chrome/browser",
+  "+chrome/test",
+
+  "+core/public/application",
+  "+core/public/common",
+  "+core/public/shell",
+]
+

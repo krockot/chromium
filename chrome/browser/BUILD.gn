@@ -767,6 +767,9 @@ static_library("browser") {
               "//chrome")
     }
   }
+  if (enable_chrome_core) {
+    deps += [ "//chrome/core/shell" ]
+  }
 }
 
 if (is_android) {

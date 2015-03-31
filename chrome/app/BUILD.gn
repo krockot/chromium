@@ -314,6 +314,10 @@ source_set("test_support") {
     "//ui/base",
   ]
 
+  if (enable_chrome_core) {
+    deps += [ "//chrome/core/common" ]
+  }
+
   if (is_mac) {
     sources += [ "chrome_main_mac.mm" ]
   }

@@ -86,4 +86,11 @@ ContentUtilityClient* ContentMainDelegate::CreateContentUtilityClient() {
 #endif
 }
 
+#if defined(ENABLE_CHROME_CORE)
+core::CoreClient* ContentMainDelegate::CreateCoreClient() {
+  NOTIMPLEMENTED() << "Chrome Core is not supported for this target.";
+  return nullptr;
+}
+#endif
+
 }  // namespace content

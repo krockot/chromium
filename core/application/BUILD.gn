@@ -1,0 +1,29 @@
+# Copyright 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+assert(enable_chrome_core)
+
+source_set("application") {
+  visibility = [
+    "//core/public/application",
+  ]
+
+  sources = [
+    "application_impl.cc",
+    "application_impl.h",
+  ]
+
+  deps = [
+    "//core/common",
+    "//mojo/common",
+    "//url",
+  ]
+
+  public_deps = [
+    "//base",
+    "//core/public/common",
+    "//third_party/mojo/src/mojo/public/cpp/bindings",
+    "//third_party/mojo/src/mojo/public/interfaces/application",
+  ]
+}

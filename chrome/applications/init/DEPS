@@ -1,0 +1,4 @@
+include_rules = [
+  "+core/public/application",
+  "+third_party/mojo/src/mojo/public/cpp/bindings",
+]

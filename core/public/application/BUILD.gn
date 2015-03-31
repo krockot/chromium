@@ -1,0 +1,27 @@
+# Copyright 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+assert(enable_chrome_core)
+
+source_set("application") {
+  sources = [
+    "application.h",
+    "application_delegate.h",
+    "application_runner.cc",
+    "application_runner.h",
+    "macros.h",
+  ]
+
+  deps = [
+    "//core/application",
+  ]
+
+  public_deps = [
+    "//base",
+    "//core/public/common",
+    "//third_party/mojo/src/mojo/public/interfaces/application",
+  ]
+
+  allow_circular_includes_from = [ "//core/application" ]
+}

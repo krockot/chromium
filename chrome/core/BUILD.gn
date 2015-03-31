@@ -1,0 +1,29 @@
+# Copyright 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+assert(enable_chrome_core)
+
+# Transitional testing target for core tests which rely on the chrome+content
+# browser test framework.
+source_set("browser_tests") {
+  testonly = true
+
+  sources = [
+    "shell/net_service_apptest.cc",
+  ]
+
+  defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
+
+  deps = [
+    "//chrome/browser",
+    "//chrome/core/shell",
+    "//chrome/test:test_support",
+    "//core/public/application",
+    "//core/public/common",
+    "//core/public/shell",
+    "//net",
+    "//net:net_browser_services",
+    "//third_party/mojo/src/mojo/public/cpp/bindings",
+  ]
+}

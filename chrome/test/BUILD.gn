@@ -1016,6 +1016,9 @@ if (!is_android) {
     if (use_x11) {
       deps += [ "//tools/xdisplaycheck" ]
     }
+    if (enable_chrome_core) {
+      deps += [ "//chrome/core:browser_tests" ]
+    }
   }
 
   test("sync_integration_tests") {

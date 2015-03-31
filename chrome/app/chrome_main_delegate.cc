@@ -121,6 +121,13 @@
 #include "pdf/pdf.h"
 #endif
 
+#if defined(ENABLE_CHROME_CORE)
+#include "chrome/core/common/chrome_core_client.h"
+
+base::LazyInstance<ChromeCoreClient> g_chrome_core_client =
+    LAZY_INSTANCE_INITIALIZER;
+#endif
+
 #if !defined(CHROME_MULTIPLE_DLL_BROWSER)
 #include "chrome/child/pdf_child_init.h"
 
@@ -951,6 +958,12 @@ ChromeMainDelegate::CreateContentUtilityClient() {
   return g_chrome_content_utility_client.Pointer();
 #endif
 }
+
+#if defined(ENABLE_CHROME_CORE)
+core::CoreClient* ChromeMainDelegate::CreateCoreClient() {
+  return g_chrome_core_client.Pointer();
+}
+#endif
 
 bool ChromeMainDelegate::ShouldEnableProfilerRecording() {
   switch (chrome::VersionInfo::GetChannel()) {

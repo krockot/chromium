@@ -54,6 +54,10 @@
 #include "gin/public/isolate_holder.h"
 #endif
 
+#if defined(ENABLE_CHROME_CORE)
+#include "core/public/common/core_client.h"
+#endif
+
 #if defined(USE_TCMALLOC)
 #include "third_party/tcmalloc/chromium/src/gperftools/malloc_extension.h"
 #if defined(TYPE_PROFILING)
@@ -249,6 +253,10 @@ class ContentClientInitializer {
         content_client->utility_ = &g_empty_content_utility_client.Get();
     }
 #endif  // !OS_IOS && !CHROME_MULTIPLE_DLL_BROWSER
+
+#if defined(ENABLE_CHROME_CORE)
+    core::CoreClient::Set(delegate->CreateCoreClient());
+#endif
   }
 };
 

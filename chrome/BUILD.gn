@@ -105,6 +105,12 @@ if (!is_android) {
         "//content/public/app:both",
       ]
 
+      if (enable_chrome_core) {
+        deps += [
+          "//chrome/core/common",
+        ]
+      }
+
       # Needed for chrome_main.cc initialization of libraries.
       configs += [ "//build/config/linux:pangocairo" ]
 
@@ -182,6 +188,11 @@ shared_library("main_dll") {
       "//third_party/wtl",
       "//ui/views",
     ]
+    if (enable_chrome_core) {
+      deps += [
+        "//chrome/core/common",
+      ]
+    }
     if (enable_configuration_policy) {
       deps += [ "//components/policy" ]
     }
@@ -705,6 +716,12 @@ if (is_android) {
       "//components/enhanced_bookmarks",
       "//content/public/app:both",
     ]
+
+    if (enable_chrome_core) {
+      deps += [
+        "//chrome/core/common",
+      ]
+    }
   }
 }
 

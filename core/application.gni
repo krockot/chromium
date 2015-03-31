@@ -1,0 +1,51 @@
+# Copyright 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+assert(enable_chrome_core)
+
+import("//third_party/mojo/src/mojo/public/mojo_application.gni")
+
+template("application") {
+  sources_target_name = target_name + "_sources"
+
+  source_set(sources_target_name) {
+    if (defined(invoker.configs)) {
+      configs += invoker.configs
+    }
+
+    defines = [ "CORE_APPLICATION_IMPL" ]
+
+    sources = [
+      #"//core/application/application_main.cc",
+    ]
+    if (defined(invoker.sources)) {
+      sources += invoker.sources
+    }
+
+    deps = []
+    if (defined(invoker.deps)) {
+      deps += invoker.deps
+    }
+    deps += [
+      "//core/public/application",
+    ]
+  }
+
+  mojo_native_application(target_name) {
+    testonly = false
+
+    if (defined(invoker.output_name)) {
+      output_name = invoker.output_name
+    }
+
+    deps = [
+      ":$sources_target_name",
+      "//mojo/environment:chromium",
+    ]
+
+    if (defined(invoker.testonly)) {
+      testonly = invoker.testonly
+    }
+  }
+}
