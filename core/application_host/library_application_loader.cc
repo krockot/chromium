@@ -87,8 +87,8 @@ void LibraryApplicationLoader::PendingLoad::Complete(
   if (main_function.is_null())
     callback_.Run(CreateFailureResult(application_request_.Pass()));
   else
-    callback_.Run(CreateSuccessResult(application_request_.Pass(),
-                                      main_function));
+    callback_.Run(
+        CreateSuccessResult(application_request_.Pass(), main_function));
 }
 
 scoped_ptr<ApplicationLoader> ApplicationLoader::CreateForLibrary(
@@ -114,8 +114,8 @@ void LibraryApplicationLoader::Load(
     const LoadCallback& callback) {
   if (library_.is_valid()) {
     DCHECK(!main_function_.is_null());
-    callback.Run(CreateSuccessResult(application_request.Pass(),
-                                     main_function_));
+    callback.Run(
+        CreateSuccessResult(application_request.Pass(), main_function_));
     return;
   }
 

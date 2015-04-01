@@ -34,8 +34,8 @@ ApplicationLoader::Result::PassRequest() {
 scoped_ptr<ApplicationLoader::Result> ApplicationLoader::CreateSuccessResult(
     mojo::InterfaceRequest<mojo::Application> application_request,
     const EntryPoint::MainFunction& main_function) {
-  return make_scoped_ptr(new Result(make_scoped_ptr(new EntryPoint(
-      application_request.Pass(), main_function))));
+  return make_scoped_ptr(new Result(make_scoped_ptr(
+      new EntryPoint(application_request.Pass(), main_function))));
 }
 
 scoped_ptr<ApplicationLoader::Result> ApplicationLoader::CreateFailureResult(

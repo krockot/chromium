@@ -103,10 +103,10 @@ class TestApplicationLoader : public core::ApplicationLoader {
   void Load(
       mojo::InterfaceRequest<mojo::Application> application_request,
       const LoadCallback& callback) override {
-    callback.Run(CreateSuccessResult(
-        application_request.Pass(),
-        base::Bind(&TestApplicationLoader::TestEntryPoint,
-                   base::Unretained(this))));
+    callback.Run(
+        CreateSuccessResult(application_request.Pass(),
+                            base::Bind(&TestApplicationLoader::TestEntryPoint,
+                                       base::Unretained(this))));
   }
 
   CoreAppTest* test_;
