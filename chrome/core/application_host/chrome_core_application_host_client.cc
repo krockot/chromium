@@ -7,13 +7,7 @@
 #include "content/public/browser/browser_thread.h"
 #include "core/public/application_host/application_loader.h"
 #include "core/public/application_host/application_registry.h"
-
-namespace {
-
-const char kAppInit[] = "init";
-const char kAppNet[] = "net";
-
-}  // namespace
+#include "url/gurl.h"
 
 ChromeCoreApplicationHostClient::ChromeCoreApplicationHostClient() {
 }
@@ -24,10 +18,12 @@ ChromeCoreApplicationHostClient::~ChromeCoreApplicationHostClient() {
 void ChromeCoreApplicationHostClient::RegisterApplications(
     core::ApplicationRegistry* registry) {
   registry->RegisterApplication(
-      kAppInit, core::ApplicationLoader::CreateForLibrary("chrome_init.mojo"));
+      GURL("system:init"),
+      core::ApplicationLoader::CreateForLibrary("chrome_init.mojo"));
 
   registry->RegisterApplication(
-      kAppNet, core::ApplicationLoader::CreateForLibrary("net_service.mojo"));
+      GURL("system:net_service"),
+      core::ApplicationLoader::CreateForLibrary("net_service.mojo"));
 }
 
 scoped_refptr<base::TaskRunner>

@@ -9,6 +9,8 @@
 
 #include "third_party/mojo/src/mojo/public/interfaces/application/application.mojom.h"
 
+class GURL;
+
 namespace core {
 
 class ApplicationHost {
@@ -16,7 +18,7 @@ class ApplicationHost {
   virtual ~ApplicationHost() {}
 
   virtual void LaunchApplication(
-      const std::string& path,
+      const GURL& url,
       mojo::InterfaceRequest<mojo::Application> request) = 0;
 };
 

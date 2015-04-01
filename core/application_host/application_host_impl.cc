@@ -13,6 +13,7 @@
 #include "core/public/application_host/core_application_host_client.h"
 #include "core/public/application_host/entry_point.h"
 #include "mojo/common/message_pump_mojo.h"
+#include "url/gurl.h"
 
 namespace core {
 
@@ -26,7 +27,7 @@ void RunEntryPoint(scoped_ptr<EntryPoint> entry_point) {
 
 class ApplicationHostImpl::ApplicationContainer {
  public:
-  ApplicationContainer(ApplicationHostImpl* host, const std::string& name);
+  ApplicationContainer(ApplicationHostImpl* host, const GURL& url);
   ~ApplicationContainer();
 
   void Run(scoped_ptr<EntryPoint> entry_point);
@@ -43,8 +44,8 @@ class ApplicationHostImpl::ApplicationContainer {
 
 ApplicationHostImpl::ApplicationContainer::ApplicationContainer(
     ApplicationHostImpl* host,
-    const std::string& name)
-    : host_(host), application_thread_(name), weak_factory_(this) {
+    const GURL& url)
+    : host_(host), application_thread_(url.spec()), weak_factory_(this) {
 }
 
 ApplicationHostImpl::ApplicationContainer::~ApplicationContainer() {
@@ -75,27 +76,27 @@ ApplicationHostImpl::~ApplicationHostImpl() {
 }
 
 void ApplicationHostImpl::LaunchApplication(
-    const std::string& path,
+    const GURL& url,
     mojo::InterfaceRequest<mojo::Application> request) {
-  ApplicationLoader* loader = registry_->GetApplicationLoader(path);
+  ApplicationLoader* loader = registry_->GetApplicationLoader(url);
   if (!loader) {
-    LOG(ERROR) << "Unable to launch unregistered application: " << path;
+    LOG(ERROR) << "Unable to launch unregistered application: " << url.spec();
     return;
   }
 
   loader->Load(request.Pass(),
                base::Bind(&ApplicationHostImpl::OnApplicationLoaded,
-                          weak_factory_.GetWeakPtr(), path));
+                          weak_factory_.GetWeakPtr(), url));
 }
 
 void ApplicationHostImpl::OnApplicationLoaded(
-    const std::string& path,
+    const GURL& url,
     scoped_ptr<ApplicationLoader::Result> result) {
   if (result->Failed()) {
-    LOG(ERROR) << "Failed to load application: " << path;
+    LOG(ERROR) << "Failed to load application: " << url.spec();
     return;
   }
-  ApplicationContainer* container = new ApplicationContainer(this, path);
+  ApplicationContainer* container = new ApplicationContainer(this, url);
   running_applications_.insert(container);
   container->Run(result->PassEntryPoint());
 }

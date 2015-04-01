@@ -78,47 +78,27 @@ class TestApplicationDelegate : public core::ApplicationDelegate {
   CoreAppTest* test_;
 };
 
-class TestApplicationLoader : public core::ApplicationLoader {
- public:
-  TestApplicationLoader(CoreAppTest* test) : test_(test) {}
-
- private:
-  void TestEntryPoint(MojoHandle application_request_handle) {
-    mojo::InterfaceRequest<mojo::Application> application_request =
-        mojo::MakeRequest<mojo::Application>(mojo::MakeScopedHandle(
-            mojo::MessagePipeHandle(application_request_handle)));
-    scoped_ptr<core::Application> application =
-        core::Application::Create(make_scoped_ptr<core::ApplicationDelegate>(
-                                      new TestApplicationDelegate(test_)),
-                                  application_request.Pass());
-    base::RunLoop run_loop;
-    run_loop.Run();
-    test_->quit_closure_.Run();
-  }
-
-  // core::ApplicationLoader:
-  void Load(mojo::InterfaceRequest<mojo::Application> application_request,
-            const LoadCallback& callback) override {
-    callback.Run(
-        CreateSuccessResult(application_request.Pass(),
-                            base::Bind(&TestApplicationLoader::TestEntryPoint,
-                                       base::Unretained(this))));
-  }
-
-  CoreAppTest* test_;
-};
-
 class TestCoreApplicationHostClient : public ChromeCoreApplicationHostClient {
  public:
   TestCoreApplicationHostClient(CoreAppTest* test) : test_(test) {}
 
  private:
+  static scoped_ptr<core::ApplicationDelegate> CreateTestDelegate(
+      CoreAppTest* test) {
+    return scoped_ptr<core::ApplicationDelegate>(
+        new TestApplicationDelegate(test));
+  }
+
+  static core::ApplicationFactory CreateTestDelegateFactory(CoreAppTest* test) {
+    return base::Bind(&TestCoreApplicationHostClient::CreateTestDelegate, test);
+  }
+
   // ChromeCoreApplicationHostClient:
   void RegisterApplications(core::ApplicationRegistry* registry) override {
     ChromeCoreApplicationHostClient::RegisterApplications(registry);
-    registry->RegisterApplication("test",
-                                  make_scoped_ptr<core::ApplicationLoader>(
-                                      new TestApplicationLoader(test_)));
+    registry->RegisterApplication(GURL("system:test"),
+                                  core::ApplicationLoader::CreateForFactory(
+                                      CreateTestDelegateFactory(test_)));
   }
 
   CoreAppTest* test_;
@@ -215,7 +195,7 @@ class NetServiceAppTest : public CoreAppTest {
 
 CORE_APP_TEST_F(NetServiceAppTest, TestHostResolver) {
   scoped_ptr<core::ApplicationConnection> net =
-      core::ApplicationConnection::Create(shell(), GURL("system:net"));
+      core::ApplicationConnection::Create(shell(), GURL("system:net_service"));
   net::interfaces::HostResolverPtr resolver =
       net->ConnectToService<net::interfaces::HostResolver>();
 

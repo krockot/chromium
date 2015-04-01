@@ -11,16 +11,18 @@
 #include "core/public/application_host/application_loader.h"
 #include "third_party/mojo/src/mojo/public/interfaces/application/application.mojom.h"
 
+class GURL;
+
 namespace core {
 
 class ApplicationRegistry {
  public:
   virtual ~ApplicationRegistry() {}
 
-  virtual void RegisterApplication(const std::string& path,
+  virtual void RegisterApplication(const GURL& url,
                                    scoped_ptr<ApplicationLoader> loader) = 0;
 
-  virtual ApplicationLoader* GetApplicationLoader(const std::string& path) = 0;
+  virtual ApplicationLoader* GetApplicationLoader(const GURL& url) = 0;
 };
 
 }  // namespace core

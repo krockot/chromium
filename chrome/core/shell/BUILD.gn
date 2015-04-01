@@ -9,6 +9,8 @@ source_set("shell") {
   ]
 
   deps = [
+    "//applications/net_service",
+    "//chrome/applications/init",
     "//core/public/common",
     "//net:net_browser_services",
     "//third_party/mojo/src/mojo/public/interfaces/application",

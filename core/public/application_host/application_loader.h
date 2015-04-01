@@ -8,6 +8,7 @@
 #include "base/callback_forward.h"
 #include "base/memory/scoped_ptr.h"
 #include "base/task_runner.h"
+#include "core/public/application/application_delegate.h"
 #include "core/public/application_host/entry_point.h"
 #include "third_party/mojo/src/mojo/public/cpp/bindings/interface_request.h"
 #include "third_party/mojo/src/mojo/public/interfaces/application/application.mojom.h"
@@ -50,6 +51,11 @@ class ApplicationLoader {
   // Constructs an ApplicationLoader which loads from a dynamic library.
   static scoped_ptr<ApplicationLoader> CreateForLibrary(
       const std::string& name);
+
+  // Constructs an ApplicationLoader which loads an app statically using an
+  // ApplicationDelegate factory.
+  static scoped_ptr<ApplicationLoader> CreateForFactory(
+      const ApplicationFactory& factory);
 
   // These are for convenient construction of Result objects for success or
   // failure.

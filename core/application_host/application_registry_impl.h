@@ -15,10 +15,10 @@ class ApplicationRegistryImpl : public ApplicationRegistry {
   ApplicationRegistryImpl();
   ~ApplicationRegistryImpl() override;
 
-  void RegisterApplication(const std::string& path,
+  void RegisterApplication(const GURL& url,
                            scoped_ptr<ApplicationLoader> loader) override;
 
-  ApplicationLoader* GetApplicationLoader(const std::string& path) override;
+  ApplicationLoader* GetApplicationLoader(const GURL& url) override;
 
  private:
   base::hash_map<std::string, ApplicationLoader*> loaders_;

@@ -25,14 +25,14 @@ class ApplicationHostImpl : public ApplicationHost {
   ~ApplicationHostImpl() override;
 
   void LaunchApplication(
-      const std::string& path,
+      const GURL& url,
       mojo::InterfaceRequest<mojo::Application> request) override;
 
  private:
   class ApplicationContainer;
   friend class ApplicationContainer;
 
-  void OnApplicationLoaded(const std::string& path,
+  void OnApplicationLoaded(const GURL& url,
                            scoped_ptr<ApplicationLoader::Result> result);
 
   void DestroyApplicationContainer(ApplicationContainer* container);

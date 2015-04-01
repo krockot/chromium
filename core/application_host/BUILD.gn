@@ -12,6 +12,8 @@ source_set("application_host") {
     "application_registry_impl.h",
     "library_application_loader.cc",
     "library_application_loader.h",
+    "static_application_loader.cc",
+    "static_application_loader.h",
   ]
 
   deps = []

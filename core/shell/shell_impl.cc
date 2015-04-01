@@ -17,8 +17,6 @@ namespace core {
 
 namespace {
 
-const char kSchemeCore[] = "system";
-
 // TODO(core): Kill this global ref to Shell.
 static Shell* g_shell;
 
@@ -31,7 +29,7 @@ Shell* Shell::Get() {
 class ShellImpl::ApplicationInstance : public mojo::ErrorHandler,
                                        public mojo::Shell {
  public:
-  ApplicationInstance(ShellImpl* shell, const std::string& name);
+  ApplicationInstance(ShellImpl* shell, const GURL& url);
   ~ApplicationInstance() override;
 
   void Initialize();
@@ -49,21 +47,17 @@ class ShellImpl::ApplicationInstance : public mojo::ErrorHandler,
   void OnConnectionError() override;
 
   ShellImpl* shell_;
-  std::string name_;
   GURL url_;
   mojo::Binding<mojo::Shell> binding_;
   mojo::ApplicationPtr proxy_;
 };
 
 ShellImpl::ApplicationInstance::ApplicationInstance(ShellImpl* shell,
-                                                    const std::string& name)
-    : shell_(shell),
-      name_(name),
-      url_(GURL(base::StringPrintf("%s:%s", kSchemeCore, name_.c_str()))),
-      binding_(this) {
+                                                    const GURL& url)
+    : shell_(shell), url_(url), binding_(this) {
   binding_.set_error_handler(this);
   shell_->in_process_application_host_->LaunchApplication(
-      name, mojo::GetProxy(&proxy_));
+      url_, mojo::GetProxy(&proxy_));
   mojo::ScopedMessagePipeHandle handle(proxy_.PassMessagePipe());
   proxy_.Bind(handle.Pass());
 }
@@ -79,7 +73,7 @@ void ShellImpl::ApplicationInstance::Initialize() {
 }
 
 void ShellImpl::ApplicationInstance::OnConnectionError() {
-  shell_->DestroyApplicationInstance(name_);
+  shell_->DestroyApplicationInstance(url_.spec());
 }
 
 void ShellImpl::ApplicationInstance::ConnectToApplication(
@@ -104,16 +98,9 @@ ShellImpl::~ShellImpl() {
 }
 
 void ShellImpl::Launch(const GURL& url) {
-  if (!url.SchemeIs(kSchemeCore)) {
-    LOG(ERROR) << "Ignoring unsupported application URL scheme: "
-               << url.scheme();
-    return;
-  }
-
-  std::string name = url.path();
-  DCHECK(running_applications_.find(name) == running_applications_.end());
-  ApplicationInstance* instance = new ApplicationInstance(this, name);
-  running_applications_[name] = instance;
+  DCHECK(running_applications_.find(url.spec()) == running_applications_.end());
+  ApplicationInstance* instance = new ApplicationInstance(this, url);
+  running_applications_[url.spec()] = instance;
   instance->Initialize();
 }
 
@@ -121,20 +108,14 @@ void ShellImpl::Connect(const GURL& to_url,
                         mojo::InterfaceRequest<mojo::ServiceProvider> services,
                         mojo::ServiceProviderPtr exposed_services,
                         const GURL& from_url) {
-  if (!to_url.SchemeIs(kSchemeCore)) {
-    LOG(ERROR) << "Ignoring unsupported application URL scheme: "
-               << to_url.scheme();
-    return;
-  }
-
-  std::string name = to_url.path();
-  auto iter = running_applications_.find(name);
+  auto iter = running_applications_.find(to_url.spec());
   if (iter == running_applications_.end()) {
-    VLOG(1) << "Target application " << name << " not running. Launching now.";
+    VLOG(1) << "Target application " << to_url.spec()
+            << " not running. Launching now.";
     Launch(to_url);
   }
 
-  iter = running_applications_.find(name);
+  iter = running_applications_.find(to_url.spec());
   if (iter == running_applications_.end()) {
     LOG(ERROR) << "Unable to launch target application: " << to_url.spec();
     return;
@@ -146,8 +127,8 @@ void ShellImpl::Connect(const GURL& to_url,
       exposed_services.Pass(), mojo::String::From(to_url.spec()));
 }
 
-void ShellImpl::DestroyApplicationInstance(const std::string& name) {
-  auto iter = running_applications_.find(name);
+void ShellImpl::DestroyApplicationInstance(const std::string& url_spec) {
+  auto iter = running_applications_.find(url_spec);
   DCHECK(iter != running_applications_.end());
   running_applications_.erase(iter);
   delete iter->second;

@@ -5,6 +5,8 @@
 #include "core/application_host/application_registry_impl.h"
 
 #include "base/logging.h"
+#include "base/stl_util.h"
+#include "url/gurl.h"
 
 namespace core {
 
@@ -12,19 +14,20 @@ ApplicationRegistryImpl::ApplicationRegistryImpl() {
 }
 
 ApplicationRegistryImpl::~ApplicationRegistryImpl() {
+  STLDeleteContainerPairSecondPointers(loaders_.begin(), loaders_.end());
 }
 
 void ApplicationRegistryImpl::RegisterApplication(
-    const std::string& path,
+    const GURL& url,
     scoped_ptr<ApplicationLoader> loader) {
-  auto result = loaders_.insert(std::make_pair<std::string, ApplicationLoader*>(
-      std::string(path), loader.release()));
-  DCHECK(result.second) << "Registered duplicate application: " << path;
+  auto result = loaders_.insert(
+      std::make_pair(std::string(url.spec()), loader.release()));
+  DCHECK(result.second) << "Registered duplicate application: " << url.spec();
 }
 
 ApplicationLoader* ApplicationRegistryImpl::GetApplicationLoader(
-    const std::string& path) {
-  auto iter = loaders_.find(path);
+    const GURL& url) {
+  auto iter = loaders_.find(url.spec());
   if (iter == loaders_.end()) {
     return nullptr;
   }

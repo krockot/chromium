@@ -30,7 +30,7 @@ class ShellImpl : public Shell {
                mojo::InterfaceRequest<mojo::ServiceProvider> services,
                mojo::ServiceProviderPtr exposed_services,
                const GURL& from_url);
-  void DestroyApplicationInstance(const std::string& name);
+  void DestroyApplicationInstance(const std::string& url_spec);
 
   scoped_ptr<ApplicationHost> in_process_application_host_;
 
