@@ -22,9 +22,8 @@ class LibraryApplicationLoader : public ApplicationLoader {
   ~LibraryApplicationLoader() override;
 
   // ApplicationLoader:
-  void Load(
-      mojo::InterfaceRequest<mojo::Application> application_request,
-      const LoadCallback& callback) override;
+  void Load(mojo::InterfaceRequest<mojo::Application> application_request,
+            const LoadCallback& callback) override;
 
  private:
   class PendingLoad;

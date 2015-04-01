@@ -14,15 +14,13 @@ Init::Init() {
 Init::~Init() {
 }
 
-void Init::InitializeApplication(
-    mojo::Shell* shell,
-    const std::vector<std::string>& args) {
+void Init::InitializeApplication(mojo::Shell* shell,
+                                 const std::vector<std::string>& args) {
 }
 
-void Init::AcceptConnection(
-    const GURL& requestor_url,
-    scoped_ptr<core::ApplicationConnection> connection,
-    const GURL& resolved_url) {
+void Init::AcceptConnection(const GURL& requestor_url,
+                            scoped_ptr<core::ApplicationConnection> connection,
+                            const GURL& resolved_url) {
 }
 
 void Init::Quit() {

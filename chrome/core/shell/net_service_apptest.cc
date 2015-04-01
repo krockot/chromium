@@ -61,9 +61,8 @@ class TestApplicationDelegate : public core::ApplicationDelegate {
   TestApplicationDelegate(CoreAppTest* test) : test_(test) {}
   ~TestApplicationDelegate() override {}
 
-  void InitializeApplication(
-      mojo::Shell* shell,
-      const std::vector<std::string>& args) override {
+  void InitializeApplication(mojo::Shell* shell,
+                             const std::vector<std::string>& args) override {
     test_->Initialize(shell, args);
   }
 
@@ -73,9 +72,7 @@ class TestApplicationDelegate : public core::ApplicationDelegate {
     test_->AcceptConnection(requestor_url, connection.Pass(), resolved_url);
   }
 
-  void Quit() override {
-    test_->Quit();
-  }
+  void Quit() override { test_->Quit(); }
 
  private:
   CoreAppTest* test_;
@@ -90,19 +87,18 @@ class TestApplicationLoader : public core::ApplicationLoader {
     mojo::InterfaceRequest<mojo::Application> application_request =
         mojo::MakeRequest<mojo::Application>(mojo::MakeScopedHandle(
             mojo::MessagePipeHandle(application_request_handle)));
-    scoped_ptr<core::Application> application = core::Application::Create(
-        make_scoped_ptr<core::ApplicationDelegate>(
-            new TestApplicationDelegate(test_)),
-        application_request.Pass());
+    scoped_ptr<core::Application> application =
+        core::Application::Create(make_scoped_ptr<core::ApplicationDelegate>(
+                                      new TestApplicationDelegate(test_)),
+                                  application_request.Pass());
     base::RunLoop run_loop;
     run_loop.Run();
     test_->quit_closure_.Run();
   }
 
   // core::ApplicationLoader:
-  void Load(
-      mojo::InterfaceRequest<mojo::Application> application_request,
-      const LoadCallback& callback) override {
+  void Load(mojo::InterfaceRequest<mojo::Application> application_request,
+            const LoadCallback& callback) override {
     callback.Run(
         CreateSuccessResult(application_request.Pass(),
                             base::Bind(&TestApplicationLoader::TestEntryPoint,
@@ -120,10 +116,9 @@ class TestCoreApplicationHostClient : public ChromeCoreApplicationHostClient {
   // ChromeCoreApplicationHostClient:
   void RegisterApplications(core::ApplicationRegistry* registry) override {
     ChromeCoreApplicationHostClient::RegisterApplications(registry);
-    registry->RegisterApplication(
-        "test",
-        make_scoped_ptr<core::ApplicationLoader>(
-            new TestApplicationLoader(test_)));
+    registry->RegisterApplication("test",
+                                  make_scoped_ptr<core::ApplicationLoader>(
+                                      new TestApplicationLoader(test_)));
   }
 
   CoreAppTest* test_;
@@ -135,9 +130,8 @@ void CoreAppTest::WaitForAppExit() {
   run_loop.Run();
 }
 
-void CoreAppTest::Initialize(
-    mojo::Shell* shell,
-    const std::vector<std::string>& args) {
+void CoreAppTest::Initialize(mojo::Shell* shell,
+                             const std::vector<std::string>& args) {
   shell_ = shell;
   args_ = args;
   RunApplication();
@@ -150,7 +144,8 @@ void CoreAppTest::AcceptConnection(
     const GURL& resolved_url) {
 }
 
-void CoreAppTest::Quit() {}
+void CoreAppTest::Quit() {
+}
 
 void CoreAppTest::SetUp() {
   test_application_host_client_.reset(new TestCoreApplicationHostClient(this));
@@ -162,18 +157,18 @@ void CoreAppTest::SetUp() {
 // TODO(core): Build a better way (i.e., hook into the embedder's default root
 // app once that's a thing) to bootstrap the test app launch. Then we can
 // eliminate core::Shell::Get().
-#define CORE_APP_TEST_F(test_fixture, test_name) \
-    class test_fixture##_CoreAppTestWrapper : public test_fixture { \
-     private: \
-      void RunApplication() override; \
-    }; \
-    IN_PROC_BROWSER_TEST_( \
-        test_fixture, test_name, test_fixture##_CoreAppTestWrapper, \
-        ::testing::internal::GetTypeId<test_fixture##_CoreAppTestWrapper>()) { \
-      core::Shell::Get()->Launch(GURL("system:test")); \
-      WaitForAppExit(); \
-    } \
-    void test_fixture##_CoreAppTestWrapper::RunApplication()
+#define CORE_APP_TEST_F(test_fixture, test_name)                             \
+  class test_fixture##_CoreAppTestWrapper : public test_fixture {            \
+   private:                                                                  \
+    void RunApplication() override;                                          \
+  };                                                                         \
+  IN_PROC_BROWSER_TEST_(                                                     \
+      test_fixture, test_name, test_fixture##_CoreAppTestWrapper,            \
+      ::testing::internal::GetTypeId<test_fixture##_CoreAppTestWrapper>()) { \
+    core::Shell::Get()->Launch(GURL("system:test"));                         \
+    WaitForAppExit();                                                        \
+  }                                                                          \
+  void test_fixture##_CoreAppTestWrapper::RunApplication()
 
 // End of library code
 ////////////////////////////////////////////////////////////////////////////
@@ -228,7 +223,6 @@ CORE_APP_TEST_F(NetServiceAppTest, TestHostResolver) {
   net::interfaces::HostResolverRequestClientPtr client_proxy;
   scoped_ptr<HostResolverRequestClient> client(new HostResolverRequestClient(
       mojo::GetProxy(&client_proxy), run_loop.QuitClosure()));
-  resolver->Resolve(NewHostResolverRequest("google.com"),
-                    client_proxy.Pass());
+  resolver->Resolve(NewHostResolverRequest("google.com"), client_proxy.Pass());
   run_loop.Run();
 }

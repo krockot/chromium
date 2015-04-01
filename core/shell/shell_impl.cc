@@ -19,7 +19,7 @@ namespace {
 
 const char kSchemeCore[] = "system";
 
-  // TODO(core): Kill this global ref to Shell.
+// TODO(core): Kill this global ref to Shell.
 static Shell* g_shell;
 
 }  // namespace
@@ -28,9 +28,8 @@ Shell* Shell::Get() {
   return g_shell;
 }
 
-class ShellImpl::ApplicationInstance :
-    public mojo::ErrorHandler,
-    public mojo::Shell {
+class ShellImpl::ApplicationInstance : public mojo::ErrorHandler,
+                                       public mojo::Shell {
  public:
   ApplicationInstance(ShellImpl* shell, const std::string& name);
   ~ApplicationInstance() override;
@@ -56,9 +55,8 @@ class ShellImpl::ApplicationInstance :
   mojo::ApplicationPtr proxy_;
 };
 
-ShellImpl::ApplicationInstance::ApplicationInstance(
-    ShellImpl* shell,
-    const std::string& name)
+ShellImpl::ApplicationInstance::ApplicationInstance(ShellImpl* shell,
+                                                    const std::string& name)
     : shell_(shell),
       name_(name),
       url_(GURL(base::StringPrintf("%s:%s", kSchemeCore, name_.c_str()))),
@@ -88,8 +86,8 @@ void ShellImpl::ApplicationInstance::ConnectToApplication(
     const mojo::String& application_url,
     mojo::InterfaceRequest<mojo::ServiceProvider> services,
     mojo::ServiceProviderPtr exposed_services) {
-  shell_->Connect(GURL(application_url.To<std::string>()),
-                  services.Pass(), exposed_services.Pass(), url_);
+  shell_->Connect(GURL(application_url.To<std::string>()), services.Pass(),
+                  exposed_services.Pass(), url_);
 }
 
 scoped_ptr<Shell> Shell::Create() {
@@ -97,8 +95,7 @@ scoped_ptr<Shell> Shell::Create() {
   return scoped_ptr<Shell>(g_shell);
 }
 
-ShellImpl::ShellImpl()
-    : in_process_application_host_(new ApplicationHostImpl) {
+ShellImpl::ShellImpl() : in_process_application_host_(new ApplicationHostImpl) {
 }
 
 ShellImpl::~ShellImpl() {
@@ -144,10 +141,9 @@ void ShellImpl::Connect(const GURL& to_url,
   }
 
   ApplicationInstance* instance = iter->second;
-  instance->application()->AcceptConnection(mojo::String::From(from_url.spec()),
-                                            services.Pass(),
-                                            exposed_services.Pass(),
-                                            mojo::String::From(to_url.spec()));
+  instance->application()->AcceptConnection(
+      mojo::String::From(from_url.spec()), services.Pass(),
+      exposed_services.Pass(), mojo::String::From(to_url.spec()));
 }
 
 void ShellImpl::DestroyApplicationInstance(const std::string& name) {

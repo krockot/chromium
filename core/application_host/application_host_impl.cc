@@ -65,8 +65,7 @@ void ApplicationHostImpl::ApplicationContainer::OnApplicationQuit() {
 }
 
 ApplicationHostImpl::ApplicationHostImpl()
-    : registry_(new ApplicationRegistryImpl),
-      weak_factory_(this) {
+    : registry_(new ApplicationRegistryImpl), weak_factory_(this) {
   core::CoreApplicationHostClient::Get()->RegisterApplications(registry_.get());
 }
 

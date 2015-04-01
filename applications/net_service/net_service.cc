@@ -23,9 +23,8 @@ NetService::NetService()
 NetService::~NetService() {
 }
 
-void NetService::InitializeApplication(
-    mojo::Shell* shell,
-    const std::vector<std::string>& args) {
+void NetService::InitializeApplication(mojo::Shell* shell,
+                                       const std::vector<std::string>& args) {
 }
 
 void NetService::AcceptConnection(
@@ -47,8 +46,8 @@ void NetService::InitializeConnection(
   ActiveConnection& active_connection = result.first->second;
 
   active_connection.connection->ExposeService(
-      base::Bind(&NetService::CreateHostResolverService,
-                 base::Unretained(this), base::Unretained(&active_connection)));
+      base::Bind(&NetService::CreateHostResolverService, base::Unretained(this),
+                 base::Unretained(&active_connection)));
 }
 
 void NetService::CreateHostResolverService(

@@ -29,8 +29,9 @@ base::FilePath GetLibraryPath(const std::string& library_name) {
       base::StringPrintf("lib%s_library.so", library_name.c_str()));
 }
 
-using ResponseCallback = base::Callback<
-    void(base::NativeLibrary, const base::NativeLibraryLoadError&)>;
+using ResponseCallback =
+    base::Callback<void(base::NativeLibrary,
+                        const base::NativeLibraryLoadError&)>;
 
 void Respond(const ResponseCallback& callback,
              base::NativeLibrary library,
@@ -43,14 +44,13 @@ void LoadApplicationLibrary(
     const std::string& library_name,
     const ResponseCallback& callback) {
   base::NativeLibraryLoadError error;
-  base::NativeLibrary library = base::LoadNativeLibrary(
-      GetLibraryPath(library_name), &error);
+  base::NativeLibrary library =
+      base::LoadNativeLibrary(GetLibraryPath(library_name), &error);
   response_task_runner->PostTask(
       FROM_HERE, base::Bind(&Respond, callback, library, error));
 }
 
-void RunMainFunction(RawMainFunctionType main_function,
-                     MojoHandle handle) {
+void RunMainFunction(RawMainFunctionType main_function, MojoHandle handle) {
   main_function(handle);
 }
 
@@ -99,8 +99,7 @@ scoped_ptr<ApplicationLoader> ApplicationLoader::CreateForLibrary(
 
 LibraryApplicationLoader::LibraryApplicationLoader(
     const std::string& library_name)
-    : library_name_(library_name),
-      weak_factory_(this) {
+    : library_name_(library_name), weak_factory_(this) {
 }
 
 LibraryApplicationLoader::~LibraryApplicationLoader() {
@@ -119,17 +118,17 @@ void LibraryApplicationLoader::Load(
     return;
   }
 
-  pending_loads_.push_back(new PendingLoad(application_request.Pass(),
-                                           callback));
+  pending_loads_.push_back(
+      new PendingLoad(application_request.Pass(), callback));
   // If this isn't the only pending load, there's already one in progress.
   if (pending_loads_.size() > 1)
     return;
 
   core::CoreApplicationHostClient::Get()
-      ->GetTaskRunnerForLibraryLoad()->PostTask(
+      ->GetTaskRunnerForLibraryLoad()
+      ->PostTask(
           FROM_HERE,
-          base::Bind(&LoadApplicationLibrary,
-                     base::MessageLoopProxy::current(),
+          base::Bind(&LoadApplicationLibrary, base::MessageLoopProxy::current(),
                      library_name_,
                      base::Bind(&LibraryApplicationLoader::OnLibraryLoaded,
                                 weak_factory_.GetWeakPtr())));
@@ -183,7 +182,7 @@ void LibraryApplicationLoader::FinalizeLibraryLoad(
   size_t expected_size = mojo_set_system_thunks_fn(&system_thunks);
   if (expected_size > sizeof(MojoSystemThunks)) {
     LOG(ERROR) << "Invalid application library. Expected MojoSystemThunks size "
-                << expected_size;
+               << expected_size;
     CompletePendingLoads();
     return;
   }

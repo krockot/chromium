@@ -21,8 +21,7 @@ scoped_ptr<Application> Application::Create(
 ApplicationImpl::ApplicationImpl(
     scoped_ptr<ApplicationDelegate> delegate,
     mojo::InterfaceRequest<mojo::Application> request)
-    : delegate_(delegate.Pass()),
-      binding_(this, request.Pass()) {
+    : delegate_(delegate.Pass()), binding_(this, request.Pass()) {
   binding_.set_error_handler(this);
 }
 

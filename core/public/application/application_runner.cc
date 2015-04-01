@@ -35,8 +35,8 @@ ApplicationRunner::RunState::RunState() {
   base::debug::EnableInProcessStackDumping();
 #endif
 
-  message_loop_.reset(new base::MessageLoop(
-      mojo::common::MessagePumpMojo::Create()));
+  message_loop_.reset(
+      new base::MessageLoop(mojo::common::MessagePumpMojo::Create()));
 }
 
 ApplicationRunner::RunState::~RunState() {
@@ -48,9 +48,8 @@ ApplicationRunner::ApplicationRunner() : run_state_(new RunState()) {
 ApplicationRunner::~ApplicationRunner() {
 }
 
-MojoResult ApplicationRunner::Run(
-    scoped_ptr<ApplicationDelegate> delegate,
-    MojoHandle application_request_handle) {
+MojoResult ApplicationRunner::Run(scoped_ptr<ApplicationDelegate> delegate,
+                                  MojoHandle application_request_handle) {
   {
     scoped_ptr<Application> application = Application::Create(
         delegate.Pass(),

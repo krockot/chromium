@@ -17,9 +17,8 @@ ApplicationRegistryImpl::~ApplicationRegistryImpl() {
 void ApplicationRegistryImpl::RegisterApplication(
     const std::string& path,
     scoped_ptr<ApplicationLoader> loader) {
-  auto result = loaders_.insert(
-      std::make_pair<std::string, ApplicationLoader*>(
-          std::string(path), loader.release()));
+  auto result = loaders_.insert(std::make_pair<std::string, ApplicationLoader*>(
+      std::string(path), loader.release()));
   DCHECK(result.second) << "Registered duplicate application: " << path;
 }
 

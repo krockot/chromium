@@ -26,9 +26,8 @@ class ApplicationConnection {
   using ServiceFactory =
       base::Callback<void(mojo::InterfaceRequest<Interface>)>;
 
-  static scoped_ptr<ApplicationConnection> Create(
-      mojo::Shell* shell,
-      const GURL& url);
+  static scoped_ptr<ApplicationConnection> Create(mojo::Shell* shell,
+                                                  const GURL& url);
 
   virtual ~ApplicationConnection() {}
 

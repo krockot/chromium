@@ -24,12 +24,10 @@ ChromeCoreApplicationHostClient::~ChromeCoreApplicationHostClient() {
 void ChromeCoreApplicationHostClient::RegisterApplications(
     core::ApplicationRegistry* registry) {
   registry->RegisterApplication(
-      kAppInit,
-      core::ApplicationLoader::CreateForLibrary("chrome_init"));
+      kAppInit, core::ApplicationLoader::CreateForLibrary("chrome_init"));
 
   registry->RegisterApplication(
-      kAppNet,
-      core::ApplicationLoader::CreateForLibrary("net_service"));
+      kAppNet, core::ApplicationLoader::CreateForLibrary("net_service"));
 }
 
 scoped_refptr<base::TaskRunner>

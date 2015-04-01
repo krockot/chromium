@@ -17,14 +17,14 @@
 #include "core/public/application/application_runner.h"
 #include "third_party/mojo/src/mojo/public/c/system/types.h"
 
-#define APPLICATION_MAIN(delegate_type) \
-    extern "C" MojoResult APPLICATION_MAIN_EXPORT \
-    MojoMain(MojoHandle application_request_handle) { \
-      core::ApplicationRunner runner; \
-      return runner.Run(\
-          make_scoped_ptr<core::ApplicationDelegate>(new delegate_type), \
-          application_request_handle); \
-    }
+#define APPLICATION_MAIN(delegate_type)                                \
+  extern "C" MojoResult APPLICATION_MAIN_EXPORT                        \
+  MojoMain(MojoHandle application_request_handle) {                    \
+    core::ApplicationRunner runner;                                    \
+    return runner.Run(                                                 \
+        make_scoped_ptr<core::ApplicationDelegate>(new delegate_type), \
+        application_request_handle);                                   \
+  }
 
 #endif  // defined(CORE_APPLICATION_IMPL)
 
