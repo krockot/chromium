@@ -24,9 +24,7 @@ const char kMainFunctionName[] = "MojoMain";
 const char kMojoSetSystemThunksFunctionName[] = "MojoSetSystemThunks";
 
 base::FilePath GetLibraryPath(const std::string& library_name) {
-  // TODO(core): Handle other runtime environments...
-  return base::FilePath(
-      base::StringPrintf("lib%s_library.so", library_name.c_str()));
+  return base::FilePath(library_name);
 }
 
 using ResponseCallback =
