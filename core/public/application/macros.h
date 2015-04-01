@@ -19,7 +19,7 @@
 
 #define APPLICATION_MAIN(delegate_type) \
     extern "C" MojoResult APPLICATION_MAIN_EXPORT \
-    CoreApplicationMain(MojoHandle application_request_handle) { \
+    MojoMain(MojoHandle application_request_handle) { \
       core::ApplicationRunner runner; \
       return runner.Run(\
           make_scoped_ptr<core::ApplicationDelegate>(new delegate_type), \

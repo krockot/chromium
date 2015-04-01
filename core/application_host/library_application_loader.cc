@@ -21,7 +21,7 @@ namespace {
 
 typedef MojoResult (*RawMainFunctionType)(MojoHandle);
 
-const char kMainFunctionName[] = "CoreApplicationMain";
+const char kMainFunctionName[] = "MojoMain";
 const char kMojoSetSystemThunksFunctionName[] = "MojoSetSystemThunks";
 
 base::FilePath GetLibraryPath(const std::string& library_name) {
