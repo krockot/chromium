@@ -10,8 +10,8 @@
 #include "base/memory/scoped_vector.h"
 #include "base/memory/weak_ptr.h"
 #include "base/scoped_native_library.h"
-#include "core/application_host/entry_point.h"
 #include "core/public/application_host/application_loader.h"
+#include "core/public/application_host/entry_point.h"
 #include "third_party/mojo/src/mojo/public/c/system/types.h"
 
 namespace core {

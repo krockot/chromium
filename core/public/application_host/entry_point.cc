@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "core/application_host/entry_point.h"
+#include "core/public/application_host/entry_point.h"
 
 #include "base/logging.h"
 
@@ -23,7 +23,7 @@ void EntryPoint::Run() {
   DCHECK(!has_run_);
   DCHECK(application_request_.is_pending());
   has_run_ = true;
-  // Let it goooo, let it GOOOO!
+  // Let it goooo, let it GOOOO! We trust the application to take ownership.
   MojoHandle handle = application_request_.PassMessagePipe().release().value();
   main_function_.Run(handle);
 }

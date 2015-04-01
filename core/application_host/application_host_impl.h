@@ -10,6 +10,7 @@
 #include "base/memory/scoped_ptr.h"
 #include "base/memory/weak_ptr.h"
 #include "core/public/application_host/application_host.h"
+#include "core/public/application_host/application_loader.h"
 #include "core/public/interfaces/application_host_service.mojom.h"
 
 namespace core {
@@ -32,7 +33,7 @@ class ApplicationHostImpl : public ApplicationHost {
   friend class ApplicationContainer;
 
   void OnApplicationLoaded(const std::string& path,
-                           scoped_ptr<EntryPoint> entry_point);
+                           scoped_ptr<ApplicationLoader::Result> result);
 
   void DestroyApplicationContainer(ApplicationContainer* container);
 

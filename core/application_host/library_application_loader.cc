@@ -11,7 +11,6 @@
 #include "base/memory/scoped_ptr.h"
 #include "base/message_loop/message_loop_proxy.h"
 #include "base/strings/stringprintf.h"
-#include "core/application_host/entry_point.h"
 #include "core/public/application_host/core_application_host_client.h"
 #include "third_party/mojo/src/mojo/public/platform/native/system_thunks.h"
 
@@ -86,10 +85,10 @@ LibraryApplicationLoader::PendingLoad::~PendingLoad() {
 void LibraryApplicationLoader::PendingLoad::Complete(
     EntryPoint::MainFunction main_function) {
   if (main_function.is_null())
-    callback_.Run(nullptr);
+    callback_.Run(CreateFailureResult(application_request_.Pass()));
   else
-    callback_.Run(make_scoped_ptr(new EntryPoint(
-        application_request_.Pass(), main_function)));
+    callback_.Run(CreateSuccessResult(application_request_.Pass(),
+                                      main_function));
 }
 
 scoped_ptr<ApplicationLoader> ApplicationLoader::CreateForLibrary(
@@ -115,8 +114,8 @@ void LibraryApplicationLoader::Load(
     const LoadCallback& callback) {
   if (library_.is_valid()) {
     DCHECK(!main_function_.is_null());
-    callback.Run(make_scoped_ptr(new EntryPoint(
-        application_request.Pass(), main_function_)));
+    callback.Run(CreateSuccessResult(application_request.Pass(),
+                                     main_function_));
     return;
   }
 

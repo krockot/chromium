@@ -10,8 +10,6 @@ source_set("application_host") {
     "application_host_impl.h",
     "application_registry_impl.cc",
     "application_registry_impl.h",
-    "entry_point.cc",
-    "entry_point.h",
     "library_application_loader.cc",
     "library_application_loader.h",
   ]

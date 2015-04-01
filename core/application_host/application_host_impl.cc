@@ -9,9 +9,9 @@
 #include "base/stl_util.h"
 #include "base/threading/thread.h"
 #include "core/application_host/application_registry_impl.h"
-#include "core/application_host/entry_point.h"
 #include "core/public/application/application.h"
 #include "core/public/application_host/core_application_host_client.h"
+#include "core/public/application_host/entry_point.h"
 #include "mojo/common/message_pump_mojo.h"
 
 namespace core {
@@ -91,14 +91,14 @@ void ApplicationHostImpl::LaunchApplication(
 
 void ApplicationHostImpl::OnApplicationLoaded(
     const std::string& path,
-    scoped_ptr<EntryPoint> entry_point) {
-  if (!entry_point) {
+    scoped_ptr<ApplicationLoader::Result> result) {
+  if (result->Failed()) {
     LOG(ERROR) << "Failed to load application: " << path;
     return;
   }
   ApplicationContainer* container = new ApplicationContainer(this, path);
   running_applications_.insert(container);
-  container->Run(entry_point.Pass());
+  container->Run(result->PassEntryPoint());
 }
 
 void ApplicationHostImpl::DestroyApplicationContainer(

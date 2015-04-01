@@ -8,11 +8,11 @@
 #include "base/run_loop.h"
 #include "chrome/core/application_host/chrome_core_application_host_client.h"
 #include "chrome/test/base/in_process_browser_test.h"
-#include "core/application_host/entry_point.h"
 #include "core/public/application/application.h"
 #include "core/public/application/application_delegate.h"
 #include "core/public/application_host/application_loader.h"
 #include "core/public/application_host/application_registry.h"
+#include "core/public/application_host/entry_point.h"
 #include "core/public/common/application_connection.h"
 #include "core/public/common/core_client.h"
 #include "core/public/shell/shell.h"
@@ -103,10 +103,10 @@ class TestApplicationLoader : public core::ApplicationLoader {
   void Load(
       mojo::InterfaceRequest<mojo::Application> application_request,
       const LoadCallback& callback) override {
-    callback.Run(make_scoped_ptr(new core::EntryPoint(
+    callback.Run(CreateSuccessResult(
         application_request.Pass(),
         base::Bind(&TestApplicationLoader::TestEntryPoint,
-                   base::Unretained(this)))));
+                   base::Unretained(this))));
   }
 
   CoreAppTest* test_;
