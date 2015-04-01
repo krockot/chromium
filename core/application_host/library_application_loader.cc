@@ -67,8 +67,7 @@ class LibraryApplicationLoader::PendingLoad {
               const LoadCallback& callback);
   ~PendingLoad();
 
-  void Fail();
-  void Succeed(EntryPoint::MainFunction main_function);
+  void Complete(EntryPoint::MainFunction main_function);
 
  private:
   mojo::InterfaceRequest<mojo::Application> application_request_;
@@ -84,14 +83,13 @@ LibraryApplicationLoader::PendingLoad::PendingLoad(
 LibraryApplicationLoader::PendingLoad::~PendingLoad() {
 }
 
-void LibraryApplicationLoader::PendingLoad::Fail() {
-  callback_.Run(nullptr);
-}
-
-void LibraryApplicationLoader::PendingLoad::Succeed(
+void LibraryApplicationLoader::PendingLoad::Complete(
     EntryPoint::MainFunction main_function) {
-  callback_.Run(make_scoped_ptr(new EntryPoint(
-      application_request_.Pass(), main_function)));
+  if (main_function.is_null())
+    callback_.Run(nullptr);
+  else
+    callback_.Run(make_scoped_ptr(new EntryPoint(
+        application_request_.Pass(), main_function)));
 }
 
 scoped_ptr<ApplicationLoader> ApplicationLoader::CreateForLibrary(
@@ -141,13 +139,8 @@ void LibraryApplicationLoader::Load(
 void LibraryApplicationLoader::CompletePendingLoads() {
   ScopedVector<PendingLoad> pending_loads;
   pending_loads_.swap(pending_loads);
-  if (main_function_.is_null()) {
-    for (const auto& pending_load : pending_loads)
-      pending_load->Fail();
-  } else {
-    for (const auto& pending_load : pending_loads)
-      pending_load->Succeed(main_function_);
-  }
+  for (const auto& pending_load : pending_loads)
+    pending_load->Complete(main_function_);
 }
 
 // static

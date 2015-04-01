@@ -21,7 +21,9 @@ class Shell {
  public:
   virtual ~Shell() {}
 
-  static Shell* Get(); // TODO(ASAP): Delete this.
+  // TODO(core): Kill this.
+  static Shell* Get();
+
   static scoped_ptr<Shell> Create();
 
   virtual void Launch(const GURL& url) = 0;

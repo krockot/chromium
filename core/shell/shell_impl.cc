@@ -19,6 +19,7 @@ namespace {
 
 const char kSchemeCore[] = "system";
 
+  // TODO(core): Kill this global ref to Shell.
 static Shell* g_shell;
 
 }  // namespace
@@ -93,7 +94,7 @@ void ShellImpl::ApplicationInstance::ConnectToApplication(
 
 scoped_ptr<Shell> Shell::Create() {
   g_shell = new ShellImpl;
-  return scoped_ptr<Shell>(g_shell);//new ShellImpl);
+  return scoped_ptr<Shell>(g_shell);
 }
 
 ShellImpl::ShellImpl()
@@ -149,11 +150,6 @@ void ShellImpl::Connect(const GURL& to_url,
                                             mojo::String::From(to_url.spec()));
 }
 
-/*
-void ShellImpl::KillApplicationForTest(const std::string& name) {
-
-}
-*/
 void ShellImpl::DestroyApplicationInstance(const std::string& name) {
   auto iter = running_applications_.find(name);
   DCHECK(iter != running_applications_.end());

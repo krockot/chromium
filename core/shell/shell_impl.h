@@ -22,8 +22,6 @@ class ShellImpl : public Shell {
   // Shell:
   void Launch(const GURL& url) override;
 
-  //void KillApplicationForTest(const std::string& name);
-
  private:
   class ApplicationInstance;
   friend class ApplicationInstance;

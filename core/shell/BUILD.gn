@@ -13,7 +13,7 @@ source_set("shell") {
   ]
 
   deps = [
-    # TODO(rockot): Remove this. It's a hack for in-process app hosting.
+    # TODO(core): Remove this. It's a hack for in-process app hosting.
     "//core/application_host",
     "//core/common",
     "//url",

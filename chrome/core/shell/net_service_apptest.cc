@@ -159,6 +159,9 @@ void CoreAppTest::SetUp() {
   InProcessBrowserTest::SetUp();
 }
 
+// TODO(core): Build a better way (i.e., hook into the embedder's default root
+// app once that's a thing) to bootstrap the test app launch. Then we can
+// eliminate core::Shell::Get().
 #define CORE_APP_TEST_F(test_fixture, test_name) \
     class test_fixture##_CoreAppTestWrapper : public test_fixture { \
      private: \
