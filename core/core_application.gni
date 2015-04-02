@@ -6,7 +6,7 @@ assert(enable_chrome_core)
 
 import("//third_party/mojo/src/mojo/public/mojo_application.gni")
 
-template("application") {
+template("core_application") {
   sources_target_name = target_name + "_sources"
 
   source_set(sources_target_name) {
@@ -16,9 +16,7 @@ template("application") {
 
     defines = [ "CORE_APPLICATION_IMPL" ]
 
-    sources = [
-      #"//core/application/application_main.cc",
-    ]
+    sources = []
     if (defined(invoker.sources)) {
       sources += invoker.sources
     }

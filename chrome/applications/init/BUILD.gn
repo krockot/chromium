@@ -4,9 +4,9 @@
 
 assert(enable_chrome_core)
 
-import("//core/application.gni")
+import("//core/core_application.gni")
 
-application("init") {
+core_application("init") {
   sources = [
     "init.cc",
     "init.h",

@@ -4,9 +4,9 @@
 
 assert(enable_chrome_core)
 
-import("//core/application.gni")
+import("//core/core_application.gni")
 
-application("net_service") {
+core_application("net_service") {
   sources = [
     "net_service.cc",
     "net_service.h",
