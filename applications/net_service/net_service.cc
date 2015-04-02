@@ -7,8 +7,8 @@
 #include "base/bind.h"
 #include "base/logging.h"
 #include "core/public/application/macros.h"
-#include "net/base/net_log.h"
 #include "net/dns/host_resolver.h"
+#include "net/log/net_log.h"
 #include "url/gurl.h"
 
 namespace net_service {
