@@ -256,6 +256,9 @@ struct PasswordForm {
   // The layout as determined during parsing. Default value is LAYOUT_OTHER.
   Layout layout;
 
+  // If true, this form was parsed using Autofill predictions.
+  bool was_parsed_using_autofill_predictions;
+
   // Returns true if this match was found using public suffix matching.
   bool IsPublicSuffixMatch() const;
 
@@ -274,8 +277,8 @@ typedef std::map<base::string16, const PasswordForm*> ConstPasswordFormMap;
 
 // For testing.
 std::ostream& operator<<(std::ostream& os, PasswordForm::Layout layout);
-std::ostream& operator<<(std::ostream& os,
-                         const autofill::PasswordForm& form);
+std::ostream& operator<<(std::ostream& os, const autofill::PasswordForm& form);
+std::ostream& operator<<(std::ostream& os, autofill::PasswordForm* form);
 
 }  // namespace autofill
 

@@ -35,21 +35,21 @@ static void RejectPromise(scoped_ptr<PromiseType> promise,
 MojoCdm::MojoCdm(mojo::ContentDecryptionModulePtr remote_cdm,
                  const SessionMessageCB& session_message_cb,
                  const SessionClosedCB& session_closed_cb,
-                 const SessionErrorCB& session_error_cb,
+                 const LegacySessionErrorCB& legacy_session_error_cb,
                  const SessionKeysChangeCB& session_keys_change_cb,
                  const SessionExpirationUpdateCB& session_expiration_update_cb)
     : remote_cdm_(remote_cdm.Pass()),
       binding_(this),
       session_message_cb_(session_message_cb),
       session_closed_cb_(session_closed_cb),
-      session_error_cb_(session_error_cb),
+      legacy_session_error_cb_(legacy_session_error_cb),
       session_keys_change_cb_(session_keys_change_cb),
       session_expiration_update_cb_(session_expiration_update_cb),
       weak_factory_(this) {
   DVLOG(1) << __FUNCTION__;
   DCHECK(!session_message_cb_.is_null());
   DCHECK(!session_closed_cb_.is_null());
-  DCHECK(!session_error_cb_.is_null());
+  DCHECK(!legacy_session_error_cb_.is_null());
   DCHECK(!session_keys_change_cb_.is_null());
   DCHECK(!session_expiration_update_cb_.is_null());
 
@@ -73,13 +73,14 @@ void MojoCdm::SetServerCertificate(const uint8_t* certificate_data,
 
 void MojoCdm::CreateSessionAndGenerateRequest(
     SessionType session_type,
-    const std::string& init_data_type,
+    EmeInitDataType init_data_type,
     const uint8_t* init_data,
     int init_data_length,
     scoped_ptr<NewSessionCdmPromise> promise) {
   remote_cdm_->CreateSessionAndGenerateRequest(
       static_cast<mojo::ContentDecryptionModule::SessionType>(session_type),
-      init_data_type, CreateMojoArray(init_data, init_data_length),
+      static_cast<mojo::ContentDecryptionModule::InitDataType>(init_data_type),
+      CreateMojoArray(init_data, init_data_length),
       base::Bind(&MojoCdm::OnPromiseResult<std::string>,
                  weak_factory_.GetWeakPtr(), base::Passed(&promise)));
 }
@@ -143,13 +144,13 @@ void MojoCdm::OnSessionClosed(const mojo::String& session_id) {
   session_closed_cb_.Run(session_id);
 }
 
-void MojoCdm::OnSessionError(const mojo::String& session_id,
-                             mojo::CdmException exception,
-                             uint32_t system_code,
-                             const mojo::String& error_message) {
-  session_error_cb_.Run(session_id,
-                        static_cast<MediaKeys::Exception>(exception),
-                        system_code, error_message);
+void MojoCdm::OnLegacySessionError(const mojo::String& session_id,
+                                   mojo::CdmException exception,
+                                   uint32_t system_code,
+                                   const mojo::String& error_message) {
+  legacy_session_error_cb_.Run(session_id,
+                               static_cast<MediaKeys::Exception>(exception),
+                               system_code, error_message);
 }
 
 void MojoCdm::OnSessionKeysChange(

@@ -771,7 +771,7 @@ void AutofillManager::OnLoadedServerPredictions(
 
   // Forward form structures to the password generation manager to detect
   // account creation forms.
-  driver_->DetectAccountCreationForms(form_structures_.get());
+  driver_->PropagateAutofillPredictions(form_structures_.get());
 
   // If the corresponding flag is set, annotate forms with the predicted types.
   driver_->SendAutofillTypePredictionsToRenderer(form_structures_.get());
@@ -779,6 +779,7 @@ void AutofillManager::OnLoadedServerPredictions(
 
 void AutofillManager::OnUnmaskResponse(const UnmaskResponse& response) {
   unmask_response_ = response;
+  real_pan_request_timestamp_ = base::Time::Now();
   real_pan_client_.UnmaskCard(unmasking_card_, response);
 }
 
@@ -795,6 +796,8 @@ IdentityProvider* AutofillManager::GetIdentityProvider() {
 
 void AutofillManager::OnDidGetRealPan(AutofillClient::GetRealPanResult result,
                                       const std::string& real_pan) {
+  AutofillMetrics::LogRealPanDuration(
+      base::Time::Now() - real_pan_request_timestamp_, result);
   if (!real_pan.empty()) {
     DCHECK_EQ(AutofillClient::SUCCESS, result);
     credit_card_form_event_logger_->OnDidFillSuggestion(unmasking_card_);

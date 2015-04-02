@@ -13,7 +13,7 @@
 #include "components/data_reduction_proxy/core/common/data_reduction_proxy_event_store.h"
 #include "components/data_reduction_proxy/core/common/data_reduction_proxy_params_test_utils.h"
 #include "components/data_reduction_proxy/core/common/data_reduction_proxy_switches.h"
-#include "net/base/capturing_net_log.h"
+#include "net/log/capturing_net_log.h"
 #include "net/proxy/proxy_server.h"
 #include "net/url_request/test_url_fetcher_factory.h"
 #include "net/url_request/url_request_test_util.h"
@@ -698,7 +698,7 @@ TEST_F(DataReductionProxyConfigTest, AreProxiesBypassed) {
                                                    tests[i].is_https,
                                                    NULL);
 
-    EXPECT_EQ(tests[i].expected_result, was_bypassed);
+    EXPECT_EQ(tests[i].expected_result, was_bypassed) << i;
   }
 }
 

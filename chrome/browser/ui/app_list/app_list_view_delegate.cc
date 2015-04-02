@@ -42,6 +42,7 @@
 #include "chrome/common/url_constants.h"
 #include "components/search_engines/template_url_prepopulate_data.h"
 #include "components/signin/core/browser/signin_manager.h"
+#include "components/user_prefs/user_prefs.h"
 #include "content/public/browser/browser_thread.h"
 #include "content/public/browser/notification_service.h"
 #include "content/public/browser/page_navigator.h"
@@ -139,10 +140,10 @@ void GetCustomLauncherPageUrls(content::BrowserContext* browser_context,
 
   // Prevent launcher pages from loading unless the pref is enabled.
   // (Command-line specified pages are exempt from this rule).
-  PrefService* local_state = g_browser_process->local_state();
-  if (local_state &&
-      local_state->HasPrefPath(prefs::kGoogleNowLauncherEnabled) &&
-      !local_state->GetBoolean(prefs::kGoogleNowLauncherEnabled)) {
+  PrefService* profile_prefs = user_prefs::UserPrefs::Get(browser_context);
+  if (profile_prefs &&
+      profile_prefs->HasPrefPath(prefs::kGoogleNowLauncherEnabled) &&
+      !profile_prefs->GetBoolean(prefs::kGoogleNowLauncherEnabled)) {
     return;
   }
 
@@ -292,7 +293,8 @@ void AppListViewDelegate::SetProfile(Profile* new_profile) {
         FROM_HERE_WITH_EXPLICIT_FUNCTION(
             "431326 AppListViewDelegate::SetProfile2"));
 
-    speech_ui_->SetSpeechRecognitionState(app_list::SPEECH_RECOGNITION_OFF);
+    speech_ui_->SetSpeechRecognitionState(app_list::SPEECH_RECOGNITION_OFF,
+                                          false);
     return;
   }
 
@@ -343,7 +345,8 @@ void AppListViewDelegate::SetUpSearchUI() {
 
   speech_ui_->SetSpeechRecognitionState(start_page_service
                                             ? start_page_service->state()
-                                            : app_list::SPEECH_RECOGNITION_OFF);
+                                            : app_list::SPEECH_RECOGNITION_OFF,
+                                        false);
 
   search_resource_manager_.reset(new app_list::SearchResourceManager(
       profile_,
@@ -648,8 +651,17 @@ void AppListViewDelegate::ToggleSpeechRecognitionForHotword(
     const scoped_refptr<content::SpeechRecognitionSessionPreamble>& preamble) {
   app_list::StartPageService* service =
       app_list::StartPageService::Get(profile_);
-  if (service)
+
+  // Don't start the recognizer or stop the hotword session if there is a
+  // network error. Show the network error message instead.
+  if (service) {
+    if (service->state() == app_list::SPEECH_RECOGNITION_NETWORK_ERROR) {
+      speech_ui_->SetSpeechRecognitionState(
+          app_list::SPEECH_RECOGNITION_NETWORK_ERROR, true);
+      return;
+    }
     service->ToggleSpeechRecognition(preamble);
+  }
 
   // With the new hotword extension, stop the hotword session. With the launcher
   // and NTP, this is unnecessary since the hotwording is implicitly stopped.
@@ -690,7 +702,7 @@ void AppListViewDelegate::OnSpeechSoundLevelChanged(int16 level) {
 
 void AppListViewDelegate::OnSpeechRecognitionStateChanged(
     app_list::SpeechRecognitionState new_state) {
-  speech_ui_->SetSpeechRecognitionState(new_state);
+  speech_ui_->SetSpeechRecognitionState(new_state, false);
 
   app_list::StartPageService* service =
       app_list::StartPageService::Get(profile_);

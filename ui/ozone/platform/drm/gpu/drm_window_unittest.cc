@@ -15,7 +15,6 @@
 #include "ui/ozone/platform/drm/gpu/drm_device_manager.h"
 #include "ui/ozone/platform/drm/gpu/drm_surface.h"
 #include "ui/ozone/platform/drm/gpu/drm_window.h"
-#include "ui/ozone/platform/drm/gpu/drm_window_manager.h"
 #include "ui/ozone/platform/drm/gpu/hardware_display_controller.h"
 #include "ui/ozone/platform/drm/gpu/screen_manager.h"
 #include "ui/ozone/platform/drm/test/mock_drm_device.h"
@@ -45,6 +44,15 @@ std::vector<skia::RefPtr<SkSurface>> GetCursorBuffers(
   return cursor_buffers;
 }
 
+SkBitmap AllocateBitmap(const gfx::Size& size) {
+  SkBitmap image;
+  SkImageInfo info = SkImageInfo::Make(size.width(), size.height(),
+                                       kN32_SkColorType, kPremul_SkAlphaType);
+  image.allocPixels(info);
+  image.eraseColor(SK_ColorWHITE);
+  return image;
+}
+
 }  // namespace
 
 class DrmWindowTest : public testing::Test {
@@ -60,7 +68,6 @@ class DrmWindowTest : public testing::Test {
   scoped_ptr<ui::DrmBufferGenerator> buffer_generator_;
   scoped_ptr<ui::ScreenManager> screen_manager_;
   scoped_ptr<ui::DrmDeviceManager> drm_device_manager_;
-  scoped_ptr<ui::DrmWindowManager> window_delegate_manager_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(DrmWindowTest);
@@ -76,35 +83,27 @@ void DrmWindowTest::SetUp() {
       drm_, kDefaultCrtc, kDefaultConnector, gfx::Point(), kDefaultMode);
 
   drm_device_manager_.reset(new ui::DrmDeviceManager(drm_));
-  window_delegate_manager_.reset(new ui::DrmWindowManager());
 
   scoped_ptr<ui::DrmWindow> window_delegate(new ui::DrmWindow(
       kDefaultWidgetHandle, drm_device_manager_.get(), screen_manager_.get()));
   window_delegate->Initialize();
   window_delegate->OnBoundsChanged(
       gfx::Rect(gfx::Size(kDefaultMode.hdisplay, kDefaultMode.vdisplay)));
-  window_delegate_manager_->AddWindowDelegate(kDefaultWidgetHandle,
-                                              window_delegate.Pass());
+  screen_manager_->AddWindow(kDefaultWidgetHandle, window_delegate.Pass());
 }
 
 void DrmWindowTest::TearDown() {
   scoped_ptr<ui::DrmWindow> delegate =
-      window_delegate_manager_->RemoveWindowDelegate(kDefaultWidgetHandle);
+      screen_manager_->RemoveWindow(kDefaultWidgetHandle);
   delegate->Shutdown();
   message_loop_.reset();
 }
 
 TEST_F(DrmWindowTest, SetCursorImage) {
-  SkBitmap image;
-  SkImageInfo info =
-      SkImageInfo::Make(6, 4, kN32_SkColorType, kPremul_SkAlphaType);
-  image.allocPixels(info);
-  image.eraseColor(SK_ColorWHITE);
-
-  std::vector<SkBitmap> cursor_bitmaps;
-  cursor_bitmaps.push_back(image);
-  window_delegate_manager_->GetWindowDelegate(kDefaultWidgetHandle)
-      ->SetCursor(cursor_bitmaps, gfx::Point(4, 2), 0);
+  const gfx::Size cursor_size(6, 4);
+  screen_manager_->GetWindow(kDefaultWidgetHandle)
+      ->SetCursor(std::vector<SkBitmap>(1, AllocateBitmap(cursor_size)),
+                  gfx::Point(4, 2), 0);
 
   SkBitmap cursor;
   std::vector<skia::RefPtr<SkSurface>> cursor_buffers = GetCursorBuffers(drm_);
@@ -117,7 +116,7 @@ TEST_F(DrmWindowTest, SetCursorImage) {
   // Check that the frontbuffer is displaying the right image as set above.
   for (int i = 0; i < cursor.height(); ++i) {
     for (int j = 0; j < cursor.width(); ++j) {
-      if (j < info.width() && i < info.height())
+      if (j < cursor_size.width() && i < cursor_size.height())
         EXPECT_EQ(SK_ColorWHITE, cursor.getColor(j, i));
       else
         EXPECT_EQ(static_cast<SkColor>(SK_ColorTRANSPARENT),
@@ -127,6 +126,11 @@ TEST_F(DrmWindowTest, SetCursorImage) {
 }
 
 TEST_F(DrmWindowTest, CheckCursorSurfaceAfterChangingDevice) {
+  const gfx::Size cursor_size(6, 4);
+  screen_manager_->GetWindow(kDefaultWidgetHandle)
+      ->SetCursor(std::vector<SkBitmap>(1, AllocateBitmap(cursor_size)),
+                  gfx::Point(4, 2), 0);
+
   // Add another device.
   scoped_refptr<ui::MockDrmDevice> drm = new ui::MockDrmDevice();
   screen_manager_->AddDisplayController(drm, kDefaultCrtc, kDefaultConnector);
@@ -135,10 +139,12 @@ TEST_F(DrmWindowTest, CheckCursorSurfaceAfterChangingDevice) {
       gfx::Point(0, kDefaultMode.vdisplay), kDefaultMode);
 
   // Move window to the display on the new device.
-  window_delegate_manager_->GetWindowDelegate(kDefaultWidgetHandle)
+  screen_manager_->GetWindow(kDefaultWidgetHandle)
       ->OnBoundsChanged(gfx::Rect(0, kDefaultMode.vdisplay,
                                   kDefaultMode.hdisplay,
                                   kDefaultMode.vdisplay));
 
   EXPECT_EQ(2u, GetCursorBuffers(drm).size());
+  // Make sure the cursor is showing on the new display.
+  EXPECT_NE(0u, drm->get_cursor_handle_for_crtc(kDefaultCrtc));
 }

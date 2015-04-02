@@ -335,20 +335,6 @@ class RendererSandboxedProcessLauncherDelegate
                               bool* success) {
     AddBaseHandleClosePolicy(policy);
 
-    if (base::win::GetVersion() == base::win::VERSION_WIN8 ||
-        base::win::GetVersion() == base::win::VERSION_WIN8_1) {
-      // TODO(shrikant): Check if these constants should be different across
-      // various versions of Chromium code base or could be same.
-      // If there should be different SID per channel then move this code
-      // in chrome rather than content and assign SID based on
-      // VersionInfo::GetChannel().
-      const wchar_t kAppContainerSid[] =
-          L"S-1-15-2-3251537155-1984446955-2931258699-841473695-1938553385-"
-          L"924012148-129201922";
-
-      policy->SetLowBox(kAppContainerSid);
-    }
-
     GetContentClient()->browser()->PreSpawnRenderer(policy, success);
   }
 
@@ -1256,7 +1242,7 @@ void RenderProcessHostImpl::PropagateBrowserCommandLineToRenderer(
     switches::kEnableBleedingEdgeRenderingFastPaths,
     switches::kEnableBlinkFeatures,
     switches::kEnableBrowserSideNavigation,
-    switches::kEnablePreferCompositingToLCDText,
+    switches::kEnableCompositorAnimationTimelines,
     switches::kEnableCredentialManagerAPI,
     switches::kEnableDeferredImageDecoding,
     switches::kEnableDelayAgnosticAec,
@@ -1278,6 +1264,7 @@ void RenderProcessHostImpl::PropagateBrowserCommandLineToRenderer(
     switches::kEnableOverlayScrollbar,
     switches::kEnablePinch,
     switches::kEnablePreciseMemoryInfo,
+    switches::kEnablePreferCompositingToLCDText,
     switches::kEnablePushMessagePayload,
     switches::kEnablePushMessagingHasPermission,
     switches::kEnableRendererMojoChannel,
@@ -1285,6 +1272,7 @@ void RenderProcessHostImpl::PropagateBrowserCommandLineToRenderer(
     switches::kEnableSkiaBenchmarking,
     switches::kEnableSlimmingPaint,
     switches::kEnableSmoothScrolling,
+    switches::kEnableStaleWhileRevalidate,
     switches::kEnableStatsTable,
     switches::kEnableStrictSiteIsolation,
     switches::kEnableThreadedCompositing,
@@ -1353,7 +1341,6 @@ void RenderProcessHostImpl::PropagateBrowserCommandLineToRenderer(
     cc::switches::kTopControlsShowThreshold,
 #if defined(ENABLE_PLUGINS)
     switches::kEnablePepperTesting,
-    switches::kEnablePluginPowerSaver,
 #endif
 #if defined(ENABLE_WEBRTC)
     switches::kDisableWebRtcHWDecoding,
@@ -1367,7 +1354,6 @@ void RenderProcessHostImpl::PropagateBrowserCommandLineToRenderer(
 #if defined(OS_ANDROID)
     switches::kDisableGestureRequirementForMediaPlayback,
     switches::kDisableWebRTC,
-    switches::kMediaDrmEnableNonCompositing,
     switches::kDisableWebAudio,
     switches::kRendererWaitForJavaDebugger,
 #endif
@@ -1437,7 +1423,10 @@ bool RenderProcessHostImpl::Shutdown(int exit_code, bool wait) {
   StopChildProcess(GetHandle());
   return true;
 #else
-  return base::KillProcess(GetHandle(), exit_code, wait);
+  if (!child_process_launcher_.get() || child_process_launcher_->IsStarting())
+    return false;
+
+  return child_process_launcher_->GetProcess().Terminate(exit_code, wait);
 #endif
 }
 

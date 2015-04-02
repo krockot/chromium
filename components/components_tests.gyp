@@ -106,6 +106,8 @@
     'data_reduction_proxy_unittest_sources': [
       'data_reduction_proxy/content/browser/data_reduction_proxy_message_filter_unittest.cc',
       'data_reduction_proxy/core/browser/data_reduction_proxy_bypass_protocol_unittest.cc',
+      'data_reduction_proxy/core/browser/data_reduction_proxy_bypass_stats_unittest.cc',
+      'data_reduction_proxy/core/browser/data_reduction_proxy_compression_stats_unittest.cc',
       'data_reduction_proxy/core/browser/data_reduction_proxy_config_service_client_unittest.cc',
       'data_reduction_proxy/core/browser/data_reduction_proxy_config_unittest.cc',
       'data_reduction_proxy/core/browser/data_reduction_proxy_configurator_unittest.cc',
@@ -116,9 +118,7 @@
       'data_reduction_proxy/core/browser/data_reduction_proxy_prefs_unittest.cc',
       'data_reduction_proxy/core/browser/data_reduction_proxy_request_options_unittest.cc',
       'data_reduction_proxy/core/browser/data_reduction_proxy_settings_unittest.cc',
-      'data_reduction_proxy/core/browser/data_reduction_proxy_statistics_prefs_unittest.cc',
       'data_reduction_proxy/core/browser/data_reduction_proxy_tamper_detection_unittest.cc',
-      'data_reduction_proxy/core/browser/data_reduction_proxy_usage_stats_unittest.cc',
       'data_reduction_proxy/core/common/data_reduction_proxy_client_config_parser_unittest.cc',
       'data_reduction_proxy/core/common/data_reduction_proxy_event_store_unittest.cc',
       'data_reduction_proxy/core/common/data_reduction_proxy_headers_unittest.cc',
@@ -264,6 +264,7 @@
       'metrics/net/net_metrics_log_uploader_unittest.cc',
       'metrics/persisted_logs_unittest.cc',
       'metrics/profiler/profiler_metrics_provider_unittest.cc',
+      'metrics/profiler/tracking_synchronizer_unittest.cc',
     ],
     'nacl_unittest_sources': [
       'nacl/browser/nacl_file_host_unittest.cc',

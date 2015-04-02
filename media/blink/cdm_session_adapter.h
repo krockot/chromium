@@ -60,7 +60,7 @@ class CdmSessionAdapter : public base::RefCounted<CdmSessionAdapter> {
 
   // Initializes a session with the |init_data_type|, |init_data| and
   // |session_type| provided.
-  void InitializeNewSession(const std::string& init_data_type,
+  void InitializeNewSession(EmeInitDataType init_data_type,
                             const uint8* init_data,
                             int init_data_length,
                             MediaKeys::SessionType session_type,
@@ -116,10 +116,10 @@ class CdmSessionAdapter : public base::RefCounted<CdmSessionAdapter> {
   void OnSessionExpirationUpdate(const std::string& session_id,
                                  const base::Time& new_expiry_time);
   void OnSessionClosed(const std::string& session_id);
-  void OnSessionError(const std::string& session_id,
-                      MediaKeys::Exception exception_code,
-                      uint32 system_code,
-                      const std::string& error_message);
+  void OnLegacySessionError(const std::string& session_id,
+                            MediaKeys::Exception exception_code,
+                            uint32 system_code,
+                            const std::string& error_message);
 
   // Helper function of the callbacks.
   WebContentDecryptionModuleSessionImpl* GetSession(

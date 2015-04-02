@@ -28,7 +28,6 @@ struct FaviconStatus;
 }
 
 namespace favicon {
-class FaviconClient;
 class FaviconDriverObserver;
 class FaviconHandler;
 }
@@ -81,6 +80,7 @@ class FaviconTabHelper : public content::WebContentsObserver,
   // favicon::FaviconDriver methods.
   int StartDownload(const GURL& url, int max_bitmap_size) override;
   bool IsOffTheRecord() override;
+  bool IsBookmarked(const GURL& url) override;
   const gfx::Image GetActiveFaviconImage() override;
   const GURL GetActiveFaviconURL() override;
   bool GetActiveFaviconValidity() override;
@@ -126,19 +126,16 @@ class FaviconTabHelper : public content::WebContentsObserver,
 
   Profile* profile_;
 
-  favicon::FaviconClient* client_;
-
   std::vector<content::FaviconURL> favicon_urls_;
 
   // Bypass cache when downloading favicons for this page URL.
   GURL bypass_cache_page_url_;
 
+  // FaviconHandlers used to download the different kind of favicons. Both
+  // |touch_icon_handler_| and |large_icon_handler_| may be null depending
+  // on the platform or variations.
   scoped_ptr<favicon::FaviconHandler> favicon_handler_;
-
-  // Handles downloading touchicons. It is null if
-  // browser_defaults::kEnableTouchIcon is false.
   scoped_ptr<favicon::FaviconHandler> touch_icon_handler_;
-
   scoped_ptr<favicon::FaviconHandler> large_icon_handler_;
 
   ObserverList<favicon::FaviconDriverObserver> observer_list_;

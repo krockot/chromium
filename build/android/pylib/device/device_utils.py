@@ -396,8 +396,9 @@ class DeviceUtils(object):
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def RestartAdbd(self, timeout=None, retries=None):
-    self.RunShellCommand(['sh', '-c', _RESTART_ADBD_SCRIPT],
-                         as_root=True, check_return=True)
+    with device_temp_file.DeviceTempFile(self.adb) as tmp:
+      self.WriteFile(tmp.name, _RESTART_ADBD_SCRIPT)
+      self.RunShellCommand(['sh', tmp.name], as_root=True, check_return=True)
     self.adb.WaitForDevice()
 
   REBOOT_DEFAULT_TIMEOUT = 10 * _DEFAULT_TIMEOUT

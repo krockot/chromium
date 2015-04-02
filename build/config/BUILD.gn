@@ -231,6 +231,9 @@ config("feature_flags") {
   if (enable_chrome_core) {
     defines += [ "ENABLE_CHROME_CORE" ]
   }
+  if (enable_video_hole) {
+    defines += [ "VIDEO_HOLE=1" ]
+  }
 }
 
 # Debug/release ----------------------------------------------------------------

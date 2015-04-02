@@ -29,7 +29,8 @@ public class TabRedirectHandler {
     private static final int NAVIGATION_TYPE_NONE = 0;
     private static final int NAVIGATION_TYPE_FROM_INTENT = 1;
     private static final int NAVIGATION_TYPE_FROM_USER_TYPING = 2;
-    private static final int NAVIGATION_TYPE_OTHER = 3;
+    private static final int NAVIGATION_TYPE_FROM_LINK_WITHOUT_USER_GESTURE = 3;
+    private static final int NAVIGATION_TYPE_OTHER = 4;
 
     private Intent mInitialIntent;
     // A resolver list which includes all resolvers of |mInitialIntent|.
@@ -41,7 +42,7 @@ public class TabRedirectHandler {
     private int mInitialNavigationType;
     private int mLastCommittedEntryIndexBeforeStartingNavigation;
 
-    private boolean mShouldStayInChromeUntilNewUrlLoading;
+    private boolean mShouldNotOverrideUrlLoadingUntilNewUrlLoading;
 
     private final Context mContext;
 
@@ -96,11 +97,11 @@ public class TabRedirectHandler {
         mInitialNavigationType = NAVIGATION_TYPE_NONE;
         mIsOnEffectiveRedirectChain = false;
         mLastCommittedEntryIndexBeforeStartingNavigation = 0;
-        mShouldStayInChromeUntilNewUrlLoading = false;
+        mShouldNotOverrideUrlLoadingUntilNewUrlLoading = false;
     }
 
-    public void setShouldStayInChromeUntilNewUrlLoading() {
-        mShouldStayInChromeUntilNewUrlLoading = true;
+    public void setShouldNotOverrideUrlLoadingUntilNewUrlLoading() {
+        mShouldNotOverrideUrlLoadingUntilNewUrlLoading = true;
     }
 
     /**
@@ -116,10 +117,11 @@ public class TabRedirectHandler {
      *
      * @param pageTransType page transition type of this loading.
      * @param isRedirect whether this loading is http redirect or not.
+     * @param hasUserGesture whether this loading is started by a user gesture.
      * @param lastUserInteractionTime time when the last user interaction was made.
      * @param lastCommittedEntryIndex the last committed entry index right before this loading.
      */
-    public void updateNewUrlLoading(int pageTransType, boolean isRedirect,
+    public void updateNewUrlLoading(int pageTransType, boolean isRedirect, boolean hasUserGesture,
             long lastUserInteractionTime, int lastCommittedEntryIndex) {
         long prevNewUrlLoadingTime = mLastNewUrlLoadingTime;
         mLastNewUrlLoadingTime = SystemClock.elapsedRealtime();
@@ -143,18 +145,19 @@ public class TabRedirectHandler {
             // Updates mInitialNavigationType for a new loading started by a user's gesture.
             if (isFromIntent && mInitialIntent != null) {
                 mInitialNavigationType = NAVIGATION_TYPE_FROM_INTENT;
-                mIsOnEffectiveRedirectChain = false;
-            } else if (pageTransitionCore == PageTransition.TYPED) {
-                mInitialNavigationType = NAVIGATION_TYPE_FROM_USER_TYPING;
-                mIsOnEffectiveRedirectChain = false;
-                clearIntentHistory();
             } else {
-                mInitialNavigationType = NAVIGATION_TYPE_OTHER;
-                mIsOnEffectiveRedirectChain = false;
                 clearIntentHistory();
+                if (pageTransitionCore == PageTransition.TYPED) {
+                    mInitialNavigationType = NAVIGATION_TYPE_FROM_USER_TYPING;
+                } else if (pageTransitionCore == PageTransition.LINK && !hasUserGesture) {
+                    mInitialNavigationType = NAVIGATION_TYPE_FROM_LINK_WITHOUT_USER_GESTURE;
+                } else {
+                    mInitialNavigationType = NAVIGATION_TYPE_OTHER;
+                }
             }
+            mIsOnEffectiveRedirectChain = false;
             mLastCommittedEntryIndexBeforeStartingNavigation = lastCommittedEntryIndex;
-            mShouldStayInChromeUntilNewUrlLoading = false;
+            mShouldNotOverrideUrlLoadingUntilNewUrlLoading = false;
         } else if (mInitialNavigationType != NAVIGATION_TYPE_NONE) {
             // Redirect chain starts from the second url loading.
             mIsOnEffectiveRedirectChain = true;
@@ -169,12 +172,19 @@ public class TabRedirectHandler {
     }
 
     /**
-     * @return whether we should stay in Chrome or not.
+     * @return whether we should stay in Chrome or not. There are two different
      */
     public boolean shouldStayInChrome() {
         return mIsInitialIntentHeadingToChrome
                 || mInitialNavigationType == NAVIGATION_TYPE_FROM_USER_TYPING
-                || mShouldStayInChromeUntilNewUrlLoading;
+                || mInitialNavigationType == NAVIGATION_TYPE_FROM_LINK_WITHOUT_USER_GESTURE;
+    }
+
+    /**
+     * @return whether we should stay in Chrome or not.
+     */
+    public boolean shouldNotOverrideUrlLoading() {
+        return mShouldNotOverrideUrlLoadingUntilNewUrlLoading;
     }
 
     /**

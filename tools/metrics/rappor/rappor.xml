@@ -117,6 +117,14 @@ components/rappor/rappor_service.cc.
   </summary>
 </rappor-metric>
 
+<rappor-metric name="ContentSettings.PermissionActions_Camera.Revoked.Url"
+    type="ETLD_PLUS_ONE">
+  <owner>jialiul@chromium.org</owner>
+  <summary>
+    The domain for which a camera permission was revoked.
+  </summary>
+</rappor-metric>
+
 <rappor-metric name="ContentSettings.PermissionActions_Geolocation.Denied.Url"
     type="ETLD_PLUS_ONE">
   <owner>miguelg@chromium.org</owner>
@@ -147,6 +155,22 @@ components/rappor/rappor_service.cc.
   <owner>miguelg@chromium.org</owner>
   <summary>
     The domain for which a Geolocation permission prompt was Ignored.
+  </summary>
+</rappor-metric>
+
+<rappor-metric name="ContentSettings.PermissionActions_Geolocation.Revoked.Url"
+    type="ETLD_PLUS_ONE">
+  <owner>jialiul@chromium.org</owner>
+  <summary>
+    The domain for which a Geolocation permission was revoked.
+  </summary>
+</rappor-metric>
+
+<rappor-metric name="ContentSettings.PermissionActions_Mic.Revoked.Url"
+    type="ETLD_PLUS_ONE">
+  <owner>jialiul@chromium.org</owner>
+  <summary>
+    The domain for which a microphone permission was revoked.
   </summary>
 </rappor-metric>
 
@@ -183,6 +207,15 @@ components/rappor/rappor_service.cc.
   <owner>miguelg@chromium.org</owner>
   <summary>
     The domain for which a Notification permission prompt was Ignored.
+  </summary>
+</rappor-metric>
+
+<rappor-metric
+    name="ContentSettings.PermissionActions_Notifications.Revoked.Url"
+    type="ETLD_PLUS_ONE">
+  <owner>jialiul@chromium.org</owner>
+  <summary>
+    The domain for which a Notification permission was revoked.
   </summary>
 </rappor-metric>
 
@@ -258,6 +291,16 @@ components/rappor/rappor_service.cc.
   </summary>
 </rappor-metric>
 
+<rappor-metric name="PushMessaging.GenericNotificationShown.Origin"
+    type="ETLD_PLUS_ONE">
+  <owner>miguelg@chromium.org</owner>
+  <summary>
+    Number of times the generic (forced) notification was shown per origin.
+    This happens if the site uses the push api but does not generate a
+    notification of their own.
+  </summary>
+</rappor-metric>
+
 <rappor-metric name="PushMessaging.MessageReceived.Origin" type="ETLD_PLUS_ONE">
   <owner>miguelg@chromium.org</owner>
   <summary>
@@ -303,6 +346,13 @@ components/rappor/rappor_service.cc.
   <summary>
     The domain and registry of the URL chrome://newtab is rewritten to.
     Recorded when a profile is loaded, if the URL is valid.
+  </summary>
+</rappor-metric>
+
+<rappor-metric name="SoftwareReporter.FoundUwS" type="COARSE_RAPPOR_TYPE">
+  <owner>mad@chromium.org</owner>
+  <summary>
+    The IDs of unwanted software found by the software reporter tool.
   </summary>
 </rappor-metric>
 

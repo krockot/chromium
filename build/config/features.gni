@@ -77,6 +77,9 @@ declare_args() {
 
   # Enables the experimental Chrome Core architecture.
   enable_chrome_core = false
+
+  # Enable hole punching for the protected video.
+  enable_video_hole = is_android
 }
 
 # Additional dependent variables -----------------------------------------------

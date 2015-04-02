@@ -17,7 +17,29 @@ function FileGrid() {
 /**
  * Inherits from cr.ui.Grid.
  */
-FileGrid.prototype.__proto__ = cr.ui.Grid.prototype;
+FileGrid.prototype = {
+  __proto__: cr.ui.Grid.prototype,
+
+  get dataModel() {
+    if (!this.dataModelDescriptor_) {
+      // We get the property descriptor for dataModel from cr.ui.List, because
+      // cr.ui.Grid doesn't have its own descriptor.
+      this.dataModelDescriptor_ =
+          Object.getOwnPropertyDescriptor(cr.ui.List.prototype, 'dataModel');
+    }
+    return this.dataModelDescriptor_.get.call(this);
+  },
+
+  set dataModel(model) {
+    // The setter for dataModel is overridden to remove/add the 'splice'
+    // listener for the current data model.
+    if (this.dataModel)
+      this.dataModel.removeEventListener('splice', this.onSplice_.bind(this));
+    this.dataModelDescriptor_.set.call(this, model);
+    if (this.dataModel)
+      this.dataModel.addEventListener('splice', this.onSplice_.bind(this));
+  }
+};
 
 /**
  * Decorates an HTML element to be a FileGrid.
@@ -81,6 +103,12 @@ FileGrid.decorate = function(
 };
 
 /**
+ * Grid size.
+ * @const {number}
+ */
+FileGrid.GridSize = 180; // px
+
+/**
  * Sets list thumbnail loader.
  * @param {ListThumbnailLoader} listThumbnailLoader A list thumbnail loader.
  * @private
@@ -108,14 +136,19 @@ FileGrid.prototype.setListThumbnailLoader = function(listThumbnailLoader) {
  */
 FileGrid.prototype.onThumbnailLoaded_ = function(event) {
   var listItem = this.getListItemByIndex(event.index);
-  if (listItem) {
+  var entry = listItem && this.dataModel.item(listItem.listIndex);
+  if (entry) {
     var box = listItem.querySelector('.img-container');
     if (box) {
       FileGrid.setThumbnailImage_(
           assertInstanceof(box, HTMLDivElement),
+          entry,
           event.dataUrl,
+          event.width,
+          event.height,
           /* should animate */ true);
     }
+    listItem.classList.toggle('thumbnail-loaded', true);
   }
 };
 
@@ -145,13 +178,16 @@ FileGrid.prototype.mergeItems = function(beginIndex, endIndex) {
         (nextIndex < this.dataModel.getFolderCount()
             ? nextIndex % columns == 0
             : (nextIndex - this.dataModel.getFolderCount()) % columns == 0)) {
+      var isFolderSpacer = nextIndex === this.dataModel.getFolderCount();
       if (isSpacer(next)) {
         // Leave the spacer on its place.
+        next.classList.toggle('folder-spacer', isFolderSpacer);
         item = next.nextSibling;
       } else {
         // Insert spacer.
         var spacer = this.ownerDocument.createElement('div');
         spacer.className = 'spacer';
+        spacer.classList.toggle('folder-spacer', isFolderSpacer);
         this.insertBefore(spacer, next);
         item = next;
       }
@@ -193,6 +229,7 @@ FileGrid.prototype.getItemTop = function(index) {
   var folderRows = Math.ceil(this.dataModel.getFolderCount() / this.columns);
   var indexInFiles = index - this.dataModel.getFolderCount();
   return folderRows * this.getFolderItemHeight_() +
+      (folderRows > 0 ? this.getSeparatorHeight_() : 0) +
       Math.floor(indexInFiles / this.columns) * this.getFileItemHeight_();
 };
 
@@ -321,8 +358,11 @@ FileGrid.prototype.getAfterFillerHeight = function(lastIndex) {
   var fileRows =  Math.ceil(this.dataModel.getFileCount() / this.columns);
   var row = this.getItemRow(lastIndex - 1);
   if (row < folderRows) {
-    return (folderRows - 1 - row) * this.getFolderItemHeight_() +
-        fileRows * this.getFileItemHeight_();
+    var fillerHeight = (folderRows - 1 - row) * this.getFolderItemHeight_() +
+                       fileRows * this.getFileItemHeight_();
+    if (fileRows > 0)
+      fillerHeight += this.getSeparatorHeight_();
+    return fillerHeight;
   }
   var rowInFiles = row - folderRows;
   return (fileRows - 1 - rowInFiles) * this.getFileItemHeight_();
@@ -333,7 +373,7 @@ FileGrid.prototype.getAfterFillerHeight = function(lastIndex) {
  * @return {number} The height of folder items.
  */
 FileGrid.prototype.getFolderItemHeight_ = function() {
-  return 48;  // TODO(fukino): Read from DOM and cache it.
+  return 44;  // TODO(fukino): Read from DOM and cache it.
 };
 
 /**
@@ -341,7 +381,15 @@ FileGrid.prototype.getFolderItemHeight_ = function() {
  * @return {number} The height of file items.
  */
 FileGrid.prototype.getFileItemHeight_ = function() {
-  return 188;  // TODO(fukino): Read from DOM and cache it.
+  return 184;  // TODO(fukino): Read from DOM and cache it.
+};
+
+/**
+ * Returns the height of the separator which separates folders and files.
+ * @return {number} The height of the separator.
+ */
+FileGrid.prototype.getSeparatorHeight_ = function() {
+  return 5;  // TODO(fukino): Read from DOM and cache it.
 };
 
 /**
@@ -351,11 +399,14 @@ FileGrid.prototype.getFileItemHeight_ = function() {
  * @private
  */
 FileGrid.prototype.getRowForListOffset_ = function(offset) {
+  var innerOffset = Math.max(0, offset - this.paddingTop_);
   var folderRows = Math.ceil(this.dataModel.getFolderCount() / this.columns);
-  if (offset < folderRows * this.getFolderItemHeight_())
-    return Math.floor(offset / this.getFolderItemHeight_());
+  if (innerOffset < folderRows * this.getFolderItemHeight_())
+    return Math.floor(innerOffset / this.getFolderItemHeight_());
 
-  var offsetInFiles = offset - folderRows * this.getFolderItemHeight_();
+  var offsetInFiles = innerOffset - folderRows * this.getFolderItemHeight_();
+  if (folderRows > 0)
+    offsetInFiles = Math.max(0, offsetInFiles - this.getSeparatorHeight_());
   return folderRows + Math.floor(offsetInFiles / this.getFileItemHeight_());
 };
 
@@ -381,7 +432,7 @@ FileGrid.prototype.updateListItemsMetadata = function(type, entries) {
     if (!entry || urls.indexOf(entry.toURL()) === -1)
       continue;
 
-    this.decorateThumbnailBox_(assertInstanceof(box, HTMLDivElement), entry);
+    this.decorateThumbnailBox_(assert(listItem), entry);
     this.updateSharedStatus_(assert(listItem), entry);
   }
 };
@@ -421,10 +472,14 @@ FileGrid.prototype.decorateThumbnail_ = function(li, entry) {
   li.appendChild(frame);
 
   var box = li.ownerDocument.createElement('div');
-  if (entry) {
-    this.decorateThumbnailBox_(assertInstanceof(box, HTMLDivElement), entry);
-  }
+  box.className = 'img-container';
   frame.appendChild(box);
+  if (entry)
+    this.decorateThumbnailBox_(assertInstanceof(li, HTMLLIElement), entry);
+
+  var shield = li.ownerDocument.createElement('div');
+  shield.className = 'shield';
+  frame.appendChild(shield);
 
   var isDirectory = entry && entry.isDirectory;
   if (!isDirectory) {
@@ -457,13 +512,13 @@ FileGrid.prototype.decorateThumbnail_ = function(li, entry) {
 /**
  * Decorates the box containing a centered thumbnail image.
  *
- * @param {!HTMLDivElement} box Box to decorate.
+ * @param {!HTMLLIElement} li List item which contains the box to be decorated.
  * @param {Entry} entry Entry which thumbnail is generating for.
  * @private
  */
-FileGrid.prototype.decorateThumbnailBox_ = function(box, entry) {
-  box.className = 'img-container';
-
+FileGrid.prototype.decorateThumbnailBox_ = function(li, entry) {
+  var box = assertInstanceof(li.querySelector('.img-container'),
+                             HTMLDivElement);
   if (this.importStatusVisible_ &&
       importer.isEligibleType(entry)) {
     this.historyLoader_.getHistory().then(
@@ -481,13 +536,19 @@ FileGrid.prototype.decorateThumbnailBox_ = function(box, entry) {
   // Set thumbnail if it's already in cache.
   if (this.listThumbnailLoader_ &&
       this.listThumbnailLoader_.getThumbnailFromCache(entry)) {
+    var thumbnailData = this.listThumbnailLoader_.getThumbnailFromCache(entry);
     FileGrid.setThumbnailImage_(
         box,
-        this.listThumbnailLoader_.getThumbnailFromCache(entry).dataUrl,
+        entry,
+        thumbnailData.dataUrl,
+        thumbnailData.width,
+        thumbnailData.height,
         /* should not animate */ false);
+    li.classList.toggle('thumbnail-loaded', true);
   } else {
     var mediaType = FileType.getMediaType(entry);
     box.setAttribute('generic-thumbnail', mediaType);
+    li.classList.toggle('thumbnail-loaded', false);
   }
 };
 
@@ -519,18 +580,39 @@ FileGrid.prototype.setImportStatusVisible = function(visible) {
 };
 
 /**
+ * Handles the splice event of the data model to change the view based on
+ * whether image files is dominant or not in the directory.
+ * @private
+ */
+FileGrid.prototype.onSplice_ = function() {
+  this.classList.toggle('image-dominant', this.dataModel.isImageDominant());
+};
+
+/**
  * Sets thumbnail image to the box.
  * @param {!HTMLDivElement} box A div element to hold thumbnails.
+ * @param {Entry!} entry An entry of the thumbnail.
  * @param {string} dataUrl Data url of thumbnail.
+ * @param {number} width Width of thumbnail.
+ * @param {number} height Height of thumbnail.
  * @param {boolean} shouldAnimate Whether the thumbanil is shown with animation
  *     or not.
  * @private
  */
-FileGrid.setThumbnailImage_ = function(box, dataUrl, shouldAnimate) {
+FileGrid.setThumbnailImage_ = function(
+    box, entry, dataUrl, width, height, shouldAnimate) {
   var oldThumbnails = box.querySelectorAll('.thumbnail');
 
   var thumbnail = box.ownerDocument.createElement('div');
   thumbnail.classList.add('thumbnail');
+
+  // If the image is JPEG or the thumbnail is larger than the grid size, resize
+  // it to cover the thumbnail box.
+  var type = FileType.getType(entry);
+  if ((type.type === 'image' && type.subtype === 'JPEG') ||
+      width > FileGrid.GridSize || height > FileGrid.GridSize)
+    thumbnail.style.backgroundSize = 'cover';
+
   thumbnail.style.backgroundImage = 'url(' + dataUrl + ')';
   thumbnail.addEventListener('webkitAnimationEnd', function() {
     // Remove animation css once animation is completed in order not to animate

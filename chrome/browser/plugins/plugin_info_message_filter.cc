@@ -15,6 +15,7 @@
 #include "chrome/browser/plugins/plugin_finder.h"
 #include "chrome/browser/plugins/plugin_metadata.h"
 #include "chrome/browser/plugins/plugin_prefs.h"
+#include "chrome/browser/plugins/plugins_field_trial.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser_otr_state.h"
 #include "chrome/common/pref_names.h"
@@ -37,6 +38,7 @@
 #include "extensions/browser/guest_view/guest_view_base.h"
 #include "extensions/browser/guest_view/web_view/web_view_renderer_state.h"
 #include "extensions/common/extension.h"
+#include "extensions/common/manifest_constants.h"
 #include "extensions/common/manifest_handlers/webview_info.h"
 #endif
 
@@ -155,8 +157,12 @@ bool IsPluginLoadingAccessibleResourceInWebView(
   const extensions::Extension* extension =
       extension_registry->GetExtensionById(extension_id,
                              extensions::ExtensionRegistry::ENABLED);
-  if (!extensions::WebviewInfo::IsResourceWebviewAccessible(
-          extension, partition_id, resource.path())) {
+  const extensions::WebviewInfo* webview_info =
+      static_cast<const extensions::WebviewInfo*>(extension->GetManifestData(
+          extensions::manifest_keys::kWebviewAccessibleResources));
+  if (!webview_info ||
+      !webview_info->IsResourceWebviewAccessible(extension, partition_id,
+                                                 resource.path())) {
     return false;
   }
 
@@ -356,7 +362,12 @@ void PluginInfoMessageFilter::Context::DecidePluginStatus(
   GetPluginContentSetting(plugin, params.top_origin_url, params.url,
                           plugin_metadata->identifier(), &plugin_setting,
                           &uses_default_content_setting, &is_managed);
+
+  plugin_setting = PluginsFieldTrial::EffectiveContentSetting(
+      CONTENT_SETTINGS_TYPE_PLUGINS, plugin_setting);
+
   DCHECK(plugin_setting != CONTENT_SETTING_DEFAULT);
+  DCHECK(plugin_setting != CONTENT_SETTING_ASK);
 
   PluginMetadata::SecurityStatus plugin_status =
       plugin_metadata->GetSecurityStatus(plugin);
@@ -419,8 +430,7 @@ void PluginInfoMessageFilter::Context::DecidePluginStatus(
   if (plugin_setting == CONTENT_SETTING_DETECT_IMPORTANT_CONTENT) {
     status->value =
         ChromeViewHostMsg_GetPluginInfo_Status::kPlayImportantContent;
-  } else if (plugin_setting == CONTENT_SETTING_BLOCK ||
-             plugin_setting == CONTENT_SETTING_ASK) {
+  } else if (plugin_setting == CONTENT_SETTING_BLOCK) {
     status->value =
         is_managed ? ChromeViewHostMsg_GetPluginInfo_Status::kBlockedByPolicy
                    : ChromeViewHostMsg_GetPluginInfo_Status::kBlocked;

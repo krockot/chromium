@@ -164,15 +164,15 @@ void NetworkPortalNotificationControllerDelegate::Click() {
 
   Profile* profile = ProfileManager::GetActiveUserProfile();
 
-  const bool bypass_proxy_switch_present =
+  const bool disable_bypass_proxy_switch_present =
       base::CommandLine::ForCurrentProcess()->HasSwitch(
-          chromeos::switches::kEnableCaptivePortalBypassProxyOption);
+          chromeos::switches::kDisableCaptivePortalBypassProxy);
   const bool use_incognito_profile =
-      bypass_proxy_switch_present
-          ? (profile &&
+      disable_bypass_proxy_switch_present
+          ? false
+          : (profile &&
              profile->GetPrefs()->GetBoolean(
-                 prefs::kCaptivePortalAuthenticationIgnoresProxy))
-          : false;
+                 prefs::kCaptivePortalAuthenticationIgnoresProxy));
 
   if (use_incognito_profile) {
     if (controller_)
@@ -311,7 +311,7 @@ void NetworkPortalNotificationController::OnDialogDestroyed(
     const NetworkPortalWebDialog* dialog) {
   if (dialog == dialog_) {
     dialog_ = nullptr;
-    ProfileHelper::Get()->ClearSigninProfile(base::Closure(), nullptr);
+    ProfileHelper::Get()->ClearSigninProfile(base::Closure());
   }
 }
 

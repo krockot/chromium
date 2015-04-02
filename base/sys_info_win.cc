@@ -1,13 +1,11 @@
-// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Copyright 2015 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 #include "base/sys_info.h"
 
 #include <windows.h>
-#include <winioctl.h>
 
-#include "base/files/file.h"
 #include "base/files/file_path.h"
 #include "base/logging.h"
 #include "base/memory/scoped_ptr.h"
@@ -65,44 +63,6 @@ int64 SysInfo::AmountOfFreeDiskSpace(const FilePath& path) {
   return rv < 0 ? kint64max : rv;
 }
 
-bool SysInfo::HasSeekPenalty(const FilePath& path, bool* has_seek_penalty) {
-  ThreadRestrictions::AssertIOAllowed();
-
-  DCHECK(path.IsAbsolute());
-  DCHECK(has_seek_penalty);
-
-  // TODO(dbeam): Vista, XP support.
-  if (win::GetVersion() < win::VERSION_WIN7)
-    return false;
-
-  std::vector<FilePath::StringType> components;
-  path.GetComponents(&components);
-
-  File drive(FilePath(L"\\\\.\\" + components[0]), File::FLAG_OPEN);
-  if (!drive.IsValid())
-    return false;
-
-  STORAGE_PROPERTY_QUERY query = {};
-  query.QueryType = PropertyStandardQuery;
-  query.PropertyId = StorageDeviceSeekPenaltyProperty;
-
-  DEVICE_SEEK_PENALTY_DESCRIPTOR result;
-  DWORD bytes_returned;
-
-  BOOL success = DeviceIoControl(drive.GetPlatformFile(),
-                                 IOCTL_STORAGE_QUERY_PROPERTY,
-                                 &query, sizeof(query),
-                                 &result, sizeof(result),
-                                 &bytes_returned,
-                                 NULL);
-  if (success == FALSE || bytes_returned < sizeof(result))
-    return false;
-
-  *has_seek_penalty = result.IncursSeekPenalty != FALSE;
-  return true;
-}
-
-// static
 std::string SysInfo::OperatingSystemName() {
   return "Windows NT";
 }

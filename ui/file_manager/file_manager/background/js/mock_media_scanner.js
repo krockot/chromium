@@ -20,6 +20,12 @@ function TestMediaScanner() {
    */
   this.fileEntries = [];
 
+  /**
+   * List of file entries found while scanning.
+   * @type {!Array.<!FileEntry>}
+   */
+  this.duplicateFileEntries = [];
+
   /** @type {number} */
   this.totalBytes = 100;
 
@@ -103,6 +109,15 @@ TestMediaScanner.prototype.assertScanCount = function(expected) {
 };
 
 /**
+ * Asserts that the last scan was canceled. Fails if no
+ *     scan exists.
+ */
+TestMediaScanner.prototype.assertLastScanCanceled = function() {
+  assertTrue(this.scans_.length > 0);
+  assertTrue(this.scans_[this.scans_.length - 1].canceled());
+};
+
+/**
  * importer.MediaScanner and importer.ScanResult test double.
  *
  * @constructor
@@ -112,11 +127,20 @@ TestMediaScanner.prototype.assertScanCount = function(expected) {
  * @param {!Array.<!FileEntry>} fileEntries
  */
 function TestScanResult(fileEntries) {
+  /** @private {number} */
+  this.scanId_ = ++TestScanResult.lastId_;
+
   /**
    * List of file entries found while scanning.
    * @type {!Array.<!FileEntry>}
    */
   this.fileEntries = fileEntries.slice();
+
+  /**
+   * List of file entries found while scanning.
+   * @type {!Array.<!FileEntry>}
+   */
+  this.duplicateFileEntries = [];
 
   /** @type {number} */
   this.totalBytes = 100;
@@ -133,6 +157,9 @@ function TestScanResult(fileEntries) {
   /** @type {boolean} */
   this.settled_ = false;
 
+  /** @private {boolean} */
+  this.canceled_ = false;
+
   /** @type {!Promise.<!importer.ScanResult>} */
   this.whenFinal_ = new Promise(
       function(resolve, reject) {
@@ -147,9 +174,23 @@ function TestScanResult(fileEntries) {
       }.bind(this));
 }
 
+/** @private {number} */
+TestScanResult.lastId_ = 0;
+
+/** @struct */
+TestScanResult.prototype = {
+  /** @return {string} */
+  get name() { return 'TestScanResult(' + this.scanId_ + ')' }
+};
+
 /** @override */
 TestScanResult.prototype.getFileEntries = function() {
   return this.fileEntries;
+};
+
+/** @override */
+TestScanResult.prototype.getDuplicateFileEntries = function() {
+  return this.duplicateFileEntries;
 };
 
 /** @override */
@@ -168,8 +209,13 @@ TestScanResult.prototype.isFinal = function() {
 };
 
 /** @override */
-TestScanResult.prototype.isInvalidated = function() {
-  return false;
+TestScanResult.prototype.cancel = function() {
+  this.canceled_ = true;
+};
+
+/** @override */
+TestScanResult.prototype.canceled = function() {
+  return this.canceled_;
 };
 
 /** @override */

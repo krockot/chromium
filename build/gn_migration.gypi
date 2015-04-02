@@ -56,18 +56,19 @@
         '../chrome/chrome.gyp:chromedriver_unittests',
         '../chrome/chrome.gyp:interactive_ui_tests',
         '../chrome/chrome.gyp:load_library_perf_tests',
+        '../chrome/chrome.gyp:performance_browser_tests',
         '../chrome/chrome.gyp:service_discovery_sniffer',
         '../chrome/chrome.gyp:sync_integration_tests',
         '../chrome/chrome.gyp:sync_performance_tests',
         '../chrome/chrome.gyp:unit_tests',
         '../chrome/tools/profile_reset/jtl_compiler.gyp:jtl_compiler',
+        '../cloud_print/cloud_print.gyp:cloud_print_unittests',
         '../components/components.gyp:network_hints_browser',
         '../components/components.gyp:policy_templates',
         '../components/components.gyp:webui_generator',
         '../components/components_tests.gyp:components_browsertests',
         '../components/components_tests.gyp:components_perftests',
         '../components/components_tests.gyp:components_unittests',
-        '../components/nacl.gyp:nacl_loader_unittests',
         '../content/content.gyp:content_app_browser',
         '../content/content.gyp:content_app_child',
         '../content/content_shell_and_tests.gyp:content_browsertests',
@@ -185,7 +186,17 @@
         ['chromeos== 1 or use_ash==1', {
           'dependencies': [
             '../components/components.gyp:session_manager_component',
+          ]
+        }],
+        ['disable_nacl==0 and disable_nacl_untrusted==0', {
+          'dependencies': [
+             '../remoting/remoting.gyp:remoting_key_tester',
           ],
+        }],
+        ['disable_nacl==0 and disable_nacl_untrusted==0', {
+          'dependencies': [
+            '../components/nacl.gyp:nacl_loader_unittests',
+          ]
         }],
         ['enable_extensions==1 and OS!="mac"', {
           'dependencies': [
@@ -200,6 +211,13 @@
         }],
         ['remoting==1', {
           'dependencies': [
+            '../remoting/remoting.gyp:remoting_host',
+            '../remoting/remoting.gyp:remoting_it2me_native_messaging_host',
+            '../remoting/remoting.gyp:remoting_me2me_native_messaging_host',
+            '../remoting/remoting.gyp:remoting_me2me_host',
+            '../remoting/remoting.gyp:remoting_native_messaging_manifests',
+            '../remoting/remoting.gyp:remoting_perftests',
+            '../remoting/remoting.gyp:remoting_start_host',
             '../remoting/remoting.gyp:remoting_unittests',
           ],
         }],
@@ -293,6 +311,7 @@
             '../chrome/chrome.gyp:chromedriver',
             '../chrome/chrome.gyp:chromedriver_unitests',
             '../chrome/chrome.gyp:interactive_ui_tests',
+            '../chrome/chrome.gyp:performance_browser_tests',
             '../chrome/chrome.gyp:sync_integration_tests',
             '../chrome/chrome.gyp:unit_tests',
             '../extensions/extensions_tests.gyp:extensions_browsertests',
@@ -410,13 +429,26 @@
       ],
     },
     {
+      'target_name': 'gyp_only',
+      'type': 'none',
+      'conditions': [
+        ['OS=="linux"', {
+          'conditions': [
+            ['disable_nacl==0 and disable_nacl_untrusted==0', {
+              'dependencies': [
+                '../mojo/mojo_nacl.gyp:monacl_shell',  # This should not be built in chromium.
+              ]
+            }],
+          ]
+        }],
+      ],
+    },
+    {
       'target_name': 'gyp_remaining',
       'type': 'none',
       'conditions': [
         ['OS=="linux"', {
           'dependencies': [
-            '../chrome/chrome.gyp:performance_browser_tests',
-            '../cloud_print/cloud_print.gyp:cloud_print_unittests',
             '../third_party/webrtc/tools/tools.gyp:frame_analyzer',
             '../third_party/webrtc/tools/tools.gyp:rgba_to_i420_converter',
 
@@ -424,22 +456,16 @@
             '../ppapi/ppapi_internal.gyp:*',
           ],
           'conditions': [
-            ['disable_nacl==0 and disable_nacl_untrusted==0', {
-              'dependencies': [
-                '../mojo/mojo_nacl.gyp:monacl_shell',  # TODO(GYP) This will be deleted; don't port
-                 '../remoting/remoting.gyp:remoting_key_tester',
-              ]
-            }],
             ['remoting==1', {
               'dependencies': [
-                '../remoting/app_remoting_webapp.gyp:ar_sample_app',
-                '../remoting/remoting.gyp:remoting_host',
-                '../remoting/remoting.gyp:remoting_it2me_native_messaging_host',
-                '../remoting/remoting.gyp:remoting_me2me_host',
-                '../remoting/remoting.gyp:remoting_me2me_native_messaging_host',
-                '../remoting/remoting.gyp:remoting_native_messaging_manifests',
-                '../remoting/remoting.gyp:remoting_perftests',
-                '../remoting/remoting.gyp:remoting_start_host',
+                '../remoting/app_remoting_webapp.gyp:ar_sample_app',  # crbug.com/471916
+              ],
+              'conditions': [
+                ['disable_nacl==0 and disable_nacl_untrusted==0', {
+                  'dependencies': [
+                    '../remoting/remoting.gyp:remoting_key_tester',
+                  ]
+                }],
               ],
             }],
             ['test_isolation_mode!="noop"', {

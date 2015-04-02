@@ -52,7 +52,8 @@ SchedulerStateMachine::SchedulerStateMachine(const SchedulerSettings& settings)
       continuous_painting_(false),
       children_need_begin_frames_(false),
       defer_commits_(false),
-      last_commit_had_no_updates_(false) {
+      last_commit_had_no_updates_(false),
+      wait_for_active_tree_ready_to_draw_(false) {
 }
 
 const char* SchedulerStateMachine::OutputSurfaceStateToString(
@@ -205,6 +206,8 @@ void SchedulerStateMachine::AsValueInto(
                     pending_tree_is_ready_for_activation_);
   state->SetBoolean("active_tree_needs_first_draw",
                     active_tree_needs_first_draw_);
+  state->SetBoolean("wait_for_active_tree_ready_to_draw",
+                    wait_for_active_tree_ready_to_draw_);
   state->SetBoolean("did_create_and_initialize_first_output_surface",
                     did_create_and_initialize_first_output_surface_);
   state->SetBoolean("impl_latency_takes_priority",
@@ -733,7 +736,15 @@ bool SchedulerStateMachine::BeginFrameNeededToAnimateOrDraw() const {
   if (forced_redraw_state_ == FORCED_REDRAW_STATE_WAITING_FOR_DRAW)
     return true;
 
-  return needs_animate_ || needs_redraw_;
+  // TODO(mithro): Remove background animation ticking. crbug.com/371747
+  if (needs_animate_)
+    return true;
+
+  // Only background tick for animations - not draws, which will never happen.
+  if (!visible_)
+    return false;
+
+  return needs_redraw_;
 }
 
 // These are cases where we are very likely to draw soon, but might not
@@ -746,8 +757,11 @@ bool SchedulerStateMachine::ProactiveBeginFrameWanted() const {
     return false;
 
   // We should proactively request a BeginImplFrame if a commit is pending
-  // because we will want to draw if the commit completes quickly.
-  if (needs_commit_ || commit_state_ != COMMIT_STATE_IDLE)
+  // because we will want to draw if the commit completes quickly. Do not
+  // request frames when commits are disabled, because the frame requests will
+  // not provide the needed commit (and will wake up the process when it could
+  // stay idle).
+  if ((needs_commit_ || commit_state_ != COMMIT_STATE_IDLE) && !defer_commits_)
     return true;
 
   // If the pending tree activates quickly, we'll want a BeginImplFrame soon
@@ -805,7 +819,11 @@ void SchedulerStateMachine::OnBeginImplFrameIdle() {
 
 SchedulerStateMachine::BeginImplFrameDeadlineMode
 SchedulerStateMachine::CurrentBeginImplFrameDeadlineMode() const {
-  if (ShouldTriggerBeginImplFrameDeadlineImmediately()) {
+  if (wait_for_active_tree_ready_to_draw_) {
+    // When we are waiting for ready to draw signal, we do not wait to post a
+    // deadline yet.
+    return BEGIN_IMPL_FRAME_DEADLINE_MODE_BLOCKED_ON_READY_TO_DRAW;
+  } else if (ShouldTriggerBeginImplFrameDeadlineImmediately()) {
     return BEGIN_IMPL_FRAME_DEADLINE_MODE_IMMEDIATE;
   } else if (needs_redraw_ && pending_swaps_ < max_pending_swaps_) {
     // We have an animation or fast input path on the impl thread that wants
@@ -915,6 +933,11 @@ void SchedulerStateMachine::SetNeedsRedraw() { needs_redraw_ = true; }
 
 void SchedulerStateMachine::SetNeedsAnimate() {
   needs_animate_ = true;
+}
+
+void SchedulerStateMachine::SetWaitForReadyToDraw() {
+  DCHECK(settings_.impl_side_painting);
+  wait_for_active_tree_ready_to_draw_ = true;
 }
 
 void SchedulerStateMachine::SetNeedsPrepareTiles() {
@@ -1033,11 +1056,16 @@ void SchedulerStateMachine::DidLoseOutputSurface() {
     return;
   output_surface_state_ = OUTPUT_SURFACE_LOST;
   needs_redraw_ = false;
+  wait_for_active_tree_ready_to_draw_ = false;
 }
 
 void SchedulerStateMachine::NotifyReadyToActivate() {
   if (has_pending_tree_)
     pending_tree_is_ready_for_activation_ = true;
+}
+
+void SchedulerStateMachine::NotifyReadyToDraw() {
+  wait_for_active_tree_ready_to_draw_ = false;
 }
 
 void SchedulerStateMachine::DidCreateAndInitializeOutputSurface() {

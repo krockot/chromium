@@ -22,15 +22,12 @@
 #include "base/strings/utf_string_conversions.h"
 #include "base/test/test_file_util.h"
 #include "net/base/auth.h"
-#include "net/base/capturing_net_log.h"
 #include "net/base/chunked_upload_data_stream.h"
 #include "net/base/completion_callback.h"
 #include "net/base/elements_upload_data_stream.h"
 #include "net/base/load_timing_info.h"
 #include "net/base/load_timing_info_test_util.h"
 #include "net/base/net_errors.h"
-#include "net/base/net_log.h"
-#include "net/base/net_log_unittest.h"
 #include "net/base/request_priority.h"
 #include "net/base/test_completion_callback.h"
 #include "net/base/test_data_directory.h"
@@ -53,6 +50,10 @@
 #include "net/http/http_stream_factory.h"
 #include "net/http/http_stream_parser.h"
 #include "net/http/http_transaction_test_util.h"
+#include "net/log/capturing_net_log.h"
+#include "net/log/net_log.h"
+#include "net/log/net_log_unittest.h"
+#include "net/proxy/mock_proxy_resolver.h"
 #include "net/proxy/proxy_config_service_fixed.h"
 #include "net/proxy/proxy_info.h"
 #include "net/proxy/proxy_resolver.h"
@@ -9517,10 +9518,11 @@ TEST_P(HttpNetworkTransactionTest,
   proxy_config.set_auto_detect(true);
   proxy_config.set_pac_url(GURL("http://fooproxyurl"));
 
-  CapturingProxyResolver* capturing_proxy_resolver =
-      new CapturingProxyResolver();
+  CapturingProxyResolver capturing_proxy_resolver;
   session_deps_.proxy_service.reset(new ProxyService(
-      new ProxyConfigServiceFixed(proxy_config), capturing_proxy_resolver,
+      new ProxyConfigServiceFixed(proxy_config),
+      make_scoped_ptr(
+          new ForwardingProxyResolverFactory(&capturing_proxy_resolver)),
       NULL));
   CapturingNetLog net_log;
   session_deps_.net_log = &net_log;
@@ -9618,11 +9620,11 @@ TEST_P(HttpNetworkTransactionTest,
 
   ASSERT_EQ(OK, ReadTransaction(trans.get(), &response_data));
   EXPECT_EQ("hello!", response_data);
-  ASSERT_EQ(3u, capturing_proxy_resolver->resolved().size());
+  ASSERT_EQ(3u, capturing_proxy_resolver.resolved().size());
   EXPECT_EQ("http://www.google.com/",
-            capturing_proxy_resolver->resolved()[0].spec());
+            capturing_proxy_resolver.resolved()[0].spec());
   EXPECT_EQ("https://www.google.com/",
-            capturing_proxy_resolver->resolved()[1].spec());
+            capturing_proxy_resolver.resolved()[1].spec());
 
   LoadTimingInfo load_timing_info;
   EXPECT_TRUE(trans->GetLoadTimingInfo(&load_timing_info));
@@ -12004,11 +12006,8 @@ TEST_P(HttpNetworkTransactionTest, DoNotUseSpdySessionIfCertDoesNotMatch) {
   // all others direct.
   ProxyConfig proxy_config;
   proxy_config.proxy_rules().ParseFromString("http=https://proxy:443");
-  CapturingProxyResolver* capturing_proxy_resolver =
-      new CapturingProxyResolver();
   session_deps_.proxy_service.reset(new ProxyService(
-      new ProxyConfigServiceFixed(proxy_config), capturing_proxy_resolver,
-      NULL));
+      new ProxyConfigServiceFixed(proxy_config), nullptr, NULL));
 
   // Load a valid cert.  Note, that this does not need to
   // be valid for proxy because the MockSSLClientSocket does

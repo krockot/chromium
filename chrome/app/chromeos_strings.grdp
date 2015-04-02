@@ -247,6 +247,9 @@ Press any key to continue exploring.
   <message name="IDS_FILE_BROWSER_CLOSE_VOLUME_BUTTON_LABEL" desc="Title of the action for closing either an archive volume or a volume provided by an extension.">
     Close
   </message>
+  <message name="IDS_FILE_BROWSER_ADD_NEW_SERVICES_BUTTON_LABEL" desc="Title of the button in the left nav to add new services (file systems) to Files app.">
+    Add new services
+  </message>
   <message name="IDS_FILE_BROWSER_ACTION_VIEW" desc="Title of the action to view (no edit) a file.">
     View
   </message>
@@ -680,6 +683,9 @@ Press any key to continue exploring.
 
   <message name="IDS_FILE_BROWSER_SUGGEST_DIALOG_TITLE" desc="Title of the suggest app dialog, which shows the list of the apps which supports the selected file.">
     Select an app to open this file
+  </message>
+  <message name="IDS_FILE_BROWSER_SUGGEST_DIALOG_FOR_PROVIDERS_TITLE" desc="Title of the suggest app dialog, which shows the list of the apps that can be added to the left nav of Files app.">
+    Available services
   </message>
   <message name="IDS_FILE_BROWSER_SUGGEST_DIALOG_LINK_TO_WEBSTORE" desc="Text of the link to the app list on Chrome Webstore, which shows the more apps than in the suggest app dialog.">
     See more...
@@ -6191,5 +6197,20 @@ All users must sign out to continue.
   </message>
   <message name="IDS_FLAGS_ENABLE_FIREWALL_HOLE_PUNCHING_DESCRIPTION" desc="Description of the option to enable punching holes in the Chrome OS firewall.">
     Enable punching holes in the Chrome OS firewall for Chrome Apps that open a TCP/IP server socket or UDP socket.
+  </message>
+  <message name="IDS_FILE_SYSTEM_REQUEST_FILE_SYSTEM_DIALOG_TITLE" desc="Title of a prompt dialog for granting permissions to a volume (eg. USB drive, SD card, MTP device) with the specified name.">
+    Permission requested
+  </message>
+  <message name="IDS_FILE_SYSTEM_REQUEST_FILE_SYSTEM_DIALOG_MESSAGE" desc="Message in a prompt dialog for granting read-only permissions to a volume (eg. USB drive, SD card, MTP device) with the specified name to the extension.">
+    Do you want to grant this app permission to read files from <ph name="VOLUME_NAME">$1<ex>FooBar 4GB</ex></ph>?
+  </message>
+  <message name="IDS_FILE_SYSTEM_REQUEST_FILE_SYSTEM_DIALOG_WRITABLE_MESSAGE" desc="Message in a prompt dialog for granting full permissions (read, write, delete, create files and directories) to a volume (eg. USB drive, SD card, MTP device) with the specified name to the extension.">
+    Do you want to grant this app permission to read, write, delete and create files on <ph name="VOLUME_NAME">$1<ex>FooBar 4GB</ex>?</ph>
+  </message>
+  <message name="IDS_FILE_SYSTEM_REQUEST_FILE_SYSTEM_DIALOG_YES_BUTTON" desc="Label on the button to grant permissions.">
+    Yes
+  </message>
+  <message name="IDS_FILE_SYSTEM_REQUEST_FILE_SYSTEM_DIALOG_NO_BUTTON" desc="Label on the button to reject permissions.">
+    No
   </message>
 </grit-part>

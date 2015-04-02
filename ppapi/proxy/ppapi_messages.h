@@ -102,6 +102,7 @@ IPC_ENUM_TRAITS(PP_Flash_BrowserOperations_Permission)
 IPC_ENUM_TRAITS(PP_Flash_BrowserOperations_SettingType)
 IPC_ENUM_TRAITS(PP_FlashSetting)
 IPC_ENUM_TRAITS(PP_ImageDataFormat)
+IPC_ENUM_TRAITS_MAX_VALUE(PP_InitDataType, PP_INITDATATYPE_WEBM)
 IPC_ENUM_TRAITS(PP_InputEvent_MouseButton)
 IPC_ENUM_TRAITS(PP_InputEvent_Type)
 IPC_ENUM_TRAITS_MAX_VALUE(PP_IsolatedFileSystemType_Private,
@@ -800,7 +801,7 @@ IPC_MESSAGE_ROUTED5(
     PP_Instance /* instance */,
     uint32_t /* promise_id */,
     PP_SessionType /* session_type */,
-    ppapi::proxy::SerializedVar /* init_data_type, String */,
+    PP_InitDataType /* init_data_type */,
     ppapi::proxy::SerializedVar /* init_data, ArrayBuffer */)
 IPC_MESSAGE_ROUTED4(PpapiMsg_PPPContentDecryptor_LoadSession,
                     PP_Instance /* instance */,
@@ -1164,7 +1165,7 @@ IPC_MESSAGE_ROUTED3(PpapiHostMsg_PPBInstance_SessionExpirationChange,
 IPC_MESSAGE_ROUTED2(PpapiHostMsg_PPBInstance_SessionClosed,
                     PP_Instance /* instance */,
                     ppapi::proxy::SerializedVar /* session_id, String */)
-IPC_MESSAGE_ROUTED5(PpapiHostMsg_PPBInstance_SessionError,
+IPC_MESSAGE_ROUTED5(PpapiHostMsg_PPBInstance_LegacySessionError,
                     PP_Instance /* instance */,
                     ppapi::proxy::SerializedVar /* session_id, String */,
                     PP_CdmExceptionCode /* exception_code */,

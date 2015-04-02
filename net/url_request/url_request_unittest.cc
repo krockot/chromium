@@ -29,15 +29,12 @@
 #include "base/strings/string_util.h"
 #include "base/strings/stringprintf.h"
 #include "base/strings/utf_string_conversions.h"
-#include "net/base/capturing_net_log.h"
 #include "net/base/chunked_upload_data_stream.h"
 #include "net/base/elements_upload_data_stream.h"
 #include "net/base/load_flags.h"
 #include "net/base/load_timing_info.h"
 #include "net/base/load_timing_info_test_util.h"
 #include "net/base/net_errors.h"
-#include "net/base/net_log.h"
-#include "net/base/net_log_unittest.h"
 #include "net/base/net_module.h"
 #include "net/base/net_util.h"
 #include "net/base/request_priority.h"
@@ -60,6 +57,9 @@
 #include "net/http/http_request_headers.h"
 #include "net/http/http_response_headers.h"
 #include "net/http/http_util.h"
+#include "net/log/capturing_net_log.h"
+#include "net/log/net_log.h"
+#include "net/log/net_log_unittest.h"
 #include "net/ocsp/nss_ocsp.h"
 #include "net/proxy/proxy_service.h"
 #include "net/socket/ssl_client_socket.h"
@@ -2551,6 +2551,7 @@ TEST_F(URLRequestTest, FirstPartyOnlyCookiesEnabled) {
   // LocalHttpTestServer points).
   {
     TestNetworkDelegate network_delegate;
+    network_delegate.set_first_party_only_cookies_enabled(true);
     default_context_.set_network_delegate(&network_delegate);
 
     TestDelegate d;
@@ -2568,6 +2569,7 @@ TEST_F(URLRequestTest, FirstPartyOnlyCookiesEnabled) {
   // Verify that the cookie is sent for first-party requests.
   {
     TestNetworkDelegate network_delegate;
+    network_delegate.set_first_party_only_cookies_enabled(true);
     default_context_.set_network_delegate(&network_delegate);
     TestDelegate d;
     scoped_ptr<URLRequest> req(default_context_.CreateRequest(
@@ -2585,6 +2587,7 @@ TEST_F(URLRequestTest, FirstPartyOnlyCookiesEnabled) {
   // Verify that the cookie is not-sent for non-first-party requests.
   {
     TestNetworkDelegate network_delegate;
+    network_delegate.set_first_party_only_cookies_enabled(true);
     default_context_.set_network_delegate(&network_delegate);
     TestDelegate d;
     scoped_ptr<URLRequest> req(default_context_.CreateRequest(
@@ -2594,6 +2597,66 @@ TEST_F(URLRequestTest, FirstPartyOnlyCookiesEnabled) {
     base::RunLoop().Run();
 
     EXPECT_TRUE(d.data_received().find("FirstPartyCookieToSet=1") ==
+                std::string::npos);
+    EXPECT_EQ(0, network_delegate.blocked_get_cookies_count());
+    EXPECT_EQ(0, network_delegate.blocked_set_cookie_count());
+  }
+}
+
+TEST_F(URLRequestTest, FirstPartyOnlyCookiesDisabled) {
+  LocalHttpTestServer test_server;
+  ASSERT_TRUE(test_server.Start());
+
+  // Set up a 'First-Party-Only' cookie (on '127.0.0.1', as that's where
+  // LocalHttpTestServer points).
+  {
+    TestNetworkDelegate network_delegate;
+    network_delegate.set_first_party_only_cookies_enabled(false);
+    default_context_.set_network_delegate(&network_delegate);
+
+    TestDelegate d;
+    scoped_ptr<URLRequest> req(default_context_.CreateRequest(
+        test_server.GetURL(
+            "set-cookie?FirstPartyCookieToSet=1;First-Party-Only"),
+        DEFAULT_PRIORITY, &d));
+    req->Start();
+    base::RunLoop().Run();
+    EXPECT_EQ(0, network_delegate.blocked_get_cookies_count());
+    EXPECT_EQ(0, network_delegate.blocked_set_cookie_count());
+    EXPECT_EQ(1, network_delegate.set_cookie_count());
+  }
+
+  // Verify that the cookie is sent for first-party requests.
+  {
+    TestNetworkDelegate network_delegate;
+    network_delegate.set_first_party_only_cookies_enabled(false);
+    default_context_.set_network_delegate(&network_delegate);
+    TestDelegate d;
+    scoped_ptr<URLRequest> req(default_context_.CreateRequest(
+        test_server.GetURL("echoheader?Cookie"), DEFAULT_PRIORITY, &d));
+    req->set_first_party_for_cookies(test_server.GetURL(""));
+    req->Start();
+    base::RunLoop().Run();
+
+    EXPECT_TRUE(d.data_received().find("FirstPartyCookieToSet=1") !=
+                std::string::npos);
+    EXPECT_EQ(0, network_delegate.blocked_get_cookies_count());
+    EXPECT_EQ(0, network_delegate.blocked_set_cookie_count());
+  }
+
+  // Verify that the cookie is also sent for non-first-party requests.
+  {
+    TestNetworkDelegate network_delegate;
+    network_delegate.set_first_party_only_cookies_enabled(false);
+    default_context_.set_network_delegate(&network_delegate);
+    TestDelegate d;
+    scoped_ptr<URLRequest> req(default_context_.CreateRequest(
+        test_server.GetURL("echoheader?Cookie"), DEFAULT_PRIORITY, &d));
+    req->set_first_party_for_cookies(GURL("http://third-party.test/"));
+    req->Start();
+    base::RunLoop().Run();
+
+    EXPECT_TRUE(d.data_received().find("FirstPartyCookieToSet=1") !=
                 std::string::npos);
     EXPECT_EQ(0, network_delegate.blocked_get_cookies_count());
     EXPECT_EQ(0, network_delegate.blocked_set_cookie_count());

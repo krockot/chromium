@@ -396,15 +396,16 @@ const Experiment::Choice kFillOnAccountSelectChoices[] = {
 
 #if defined(USE_ASH)
 const Experiment::Choice kAshScreenRotationAnimationChoices[] = {
-  { IDS_GENERIC_EXPERIMENT_CHOICE_DISABLED, "", "" },
+  { IDS_GENERIC_EXPERIMENT_CHOICE_DEFAULT, "", "" },
+  { IDS_GENERIC_EXPERIMENT_CHOICE_DISABLED,
+    ash::switches::kAshEnableScreenRotationAnimation,
+    "none" },
   { IDS_ASH_SCREEN_ROTATION_ANIMATION_PARTIAL_ROTATION,
-    ash::switches::kAshEnableScreenRotationAnimation, "partial-rotation" },
-  { IDS_ASH_SCREEN_ROTATION_ANIMATION_PARTIAL_ROTATION_SLOW,
-    ash::switches::kAshEnableScreenRotationAnimation, "partial-rotation-slow" },
+    ash::switches::kAshEnableScreenRotationAnimation,
+    "partial-rotation" },
   { IDS_ASH_SCREEN_ROTATION_ANIMATION_FULL_ROTATION,
-    ash::switches::kAshEnableScreenRotationAnimation, "full-rotation" },
-  { IDS_ASH_SCREEN_ROTATION_ANIMATION_FULL_ROTATION_SLOW,
-    ash::switches::kAshEnableScreenRotationAnimation, "full-rotation-slow" }
+    ash::switches::kAshEnableScreenRotationAnimation,
+    "full-rotation" }
 };
 #endif
 
@@ -727,13 +728,6 @@ const Experiment kExperiments[] = {
     IDS_FLAGS_DISABLE_INFOBAR_FOR_PROTECTED_MEDIA_IDENTIFIER_DESCRIPTION,
     kOsAndroid,
     SINGLE_VALUE_TYPE(switches::kDisableInfobarForProtectedMediaIdentifier)
-  },
-  {
-    "mediadrm-enable-non-compositing",
-    IDS_FLAGS_MEDIADRM_ENABLE_NON_COMPOSITING_NAME,
-    IDS_FLAGS_MEDIADRM_ENABLE_NON_COMPOSITING_DESCRIPTION,
-    kOsAndroid,
-    SINGLE_VALUE_TYPE(switches::kMediaDrmEnableNonCompositing)
   },
 #endif  // defined(OS_ANDROID)
   {
@@ -1824,7 +1818,7 @@ const Experiment kExperiments[] = {
     "disable-threaded-scrolling",
     IDS_FLAGS_DISABLE_THREADED_SCROLLING_NAME,
     IDS_FLAGS_DISABLE_THREADED_SCROLLING_DESCRIPTION,
-    kOsWin | kOsLinux | kOsCrOS | kOsAndroid,
+    kOsWin | kOsLinux | kOsCrOS | kOsAndroid | kOsMac,
     SINGLE_VALUE_TYPE(switches::kDisableThreadedScrolling)
   },
   {
@@ -2075,7 +2069,8 @@ const Experiment kExperiments[] = {
     IDS_FLAGS_ENABLE_PLUGIN_POWER_SAVER_NAME,
     IDS_FLAGS_ENABLE_PLUGIN_POWER_SAVER_DESCRIPTION,
     kOsDesktop,
-    SINGLE_VALUE_TYPE(switches::kEnablePluginPowerSaver)
+    ENABLE_DISABLE_VALUE_TYPE(switches::kEnablePluginPowerSaver,
+                              switches::kDisablePluginPowerSaver)
   },
 #endif
 #if defined(OS_CHROMEOS)
@@ -2104,11 +2099,11 @@ const Experiment kExperiments[] = {
   },
 #if defined(OS_CHROMEOS)
   {
-    "enable-captive-portal-bypass-proxy",
-    IDS_FLAGS_ENABLE_CAPTIVE_PORTAL_BYPASS_PROXY_NAME,
-    IDS_FLAGS_ENABLE_CAPTIVE_PORTAL_BYPASS_PROXY_DESCRIPTION,
+    "disable-captive-portal-bypass-proxy",
+    IDS_FLAGS_DISABLE_CAPTIVE_PORTAL_BYPASS_PROXY_NAME,
+    IDS_FLAGS_DISABLE_CAPTIVE_PORTAL_BYPASS_PROXY_DESCRIPTION,
     kOsCrOS,
-    SINGLE_VALUE_TYPE(chromeos::switches::kEnableCaptivePortalBypassProxyOption)
+    SINGLE_VALUE_TYPE(chromeos::switches::kDisableCaptivePortalBypassProxy)
   },
   {
     "disable-roboto-font-ui",
@@ -2299,6 +2294,17 @@ const Experiment kExperiments[] = {
     kOsAll,
     SINGLE_VALUE_TYPE(switches::kEnableInvalidCertCollection)
   },
+// Since kEnableLauncherSearchProviderApi is not available when app list is
+// disabled, flag guard enable-launcher-search-provider-api.
+#if defined(ENABLE_APP_LIST)
+  {
+    "enable-launcher-search-provider-api",
+    IDS_FLAGS_ENABLE_LAUNCHER_SEARCH_PROVIDER_API,
+    IDS_FLAGS_ENABLE_LAUNCHER_SEARCH_PROVIDER_API_DESCRIPTION,
+    kOsCrOS,
+    SINGLE_VALUE_TYPE(app_list::switches::kEnableLauncherSearchProviderApi)
+  },
+#endif  // defined(ENABLE_APP_LIST)
 
   // NOTE: Adding new command-line switches requires adding corresponding
   // entries to enum "LoginCustomFlags" in histograms.xml. See note in

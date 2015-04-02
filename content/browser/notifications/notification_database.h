@@ -18,6 +18,7 @@ class GURL;
 namespace leveldb {
 class DB;
 class Env;
+class FilterPolicy;
 class WriteBatch;
 }
 
@@ -50,6 +51,10 @@ class CONTENT_EXPORT NotificationDatabase {
 
     // General failure code. More specific failures should be used if available.
     STATUS_ERROR_FAILED = 3,
+
+    // Number of entries in the status enumeration. Used by UMA. Must always be
+    // one higher than the otherwise highest value in this enumeration.
+    STATUS_COUNT = 4
   };
 
   explicit NotificationDatabase(const base::FilePath& path);
@@ -170,6 +175,8 @@ class CONTENT_EXPORT NotificationDatabase {
   base::FilePath path_;
 
   int64_t next_notification_id_ = 0;
+
+  scoped_ptr<const leveldb::FilterPolicy> filter_policy_;
 
   // The declaration order for these members matters, as |db_| depends on |env_|
   // and thus has to be destructed first.

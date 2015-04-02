@@ -40,6 +40,7 @@
 #include "third_party/WebKit/public/platform/WebSelectionBound.h"
 #include "third_party/WebKit/public/platform/WebSize.h"
 #include "third_party/WebKit/public/web/WebKit.h"
+#include "third_party/WebKit/public/web/WebRuntimeFeatures.h"
 #include "third_party/WebKit/public/web/WebWidget.h"
 #include "ui/gfx/frame_time.h"
 #include "ui/gl/gl_switches.h"
@@ -108,7 +109,7 @@ cc::LayerSelectionBound ConvertWebSelectionBound(
   return cc_bound;
 }
 
-gfx::Size CalculateDefaultTileSize() {
+gfx::Size CalculateDefaultTileSize(RenderWidget* widget) {
   int default_tile_size = 256;
 #if defined(OS_ANDROID)
   // TODO(epenner): unify this for all platforms if it
@@ -151,7 +152,12 @@ gfx::Size CalculateDefaultTileSize() {
     if (numTiles >= 40)
       default_tile_size = 512;
   }
+#elif defined(OS_CHROMEOS)
+  // Use 512 for high DPI (dsf=2.0f) devices.
+  if (widget->screen_info().deviceScaleFactor >= 2.0f)
+    default_tile_size = 512;
 #endif
+
   return gfx::Size(default_tile_size, default_tile_size);
 }
 
@@ -211,8 +217,12 @@ void RenderWidgetCompositor::Initialize() {
   settings.accelerated_animation_enabled =
       !cmd->HasSwitch(cc::switches::kDisableThreadedAnimation);
   settings.use_display_lists = cmd->HasSwitch(switches::kEnableSlimmingPaint);
+  if (cmd->HasSwitch(switches::kEnableCompositorAnimationTimelines)) {
+    settings.use_compositor_animation_timelines = true;
+    blink::WebRuntimeFeatures::enableCompositorAnimationTimelines(true);
+  }
 
-  settings.default_tile_size = CalculateDefaultTileSize();
+  settings.default_tile_size = CalculateDefaultTileSize(widget_);
   if (cmd->HasSwitch(switches::kDefaultTileWidth)) {
     int tile_width = 0;
     GetSwitchValueAsInt(*cmd,

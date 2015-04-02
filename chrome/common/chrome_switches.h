@@ -169,7 +169,6 @@ extern const char kEnableSessionCrashedBubble[];
 extern const char kEnableSettingsWindow[];
 extern const char kDisableSettingsWindow[];
 extern const char kEnableSpdy4[];
-extern const char kEnableStaleWhileRevalidate[];
 extern const char kEnableSuggestionsService[];
 extern const char kEnableSupervisedUserBlacklist[];
 extern const char kEnableSupervisedUserManagedBookmarksFolder[];
@@ -396,6 +395,8 @@ extern const char kDebugPrint[];
 extern const char kAllowNaClCrxFsAPI[];
 extern const char kAllowNaClFileHandleAPI[];
 extern const char kAllowNaClSocketAPI[];
+extern const char kDisablePluginPowerSaver[];
+extern const char kEnablePluginPowerSaver[];
 #endif
 
 #ifndef NDEBUG

@@ -45,35 +45,35 @@ FileType.types = [
   // Raw
   {
     type: 'raw', name: 'IMAGE_FILE_TYPE', subtype: 'ARW',
-    pattern: /\.arw?$/i, icon: 'image'
+    pattern: /\.arw$/i, icon: 'image'
   },
   {
     type: 'raw', name: 'IMAGE_FILE_TYPE', subtype: 'CR2',
-    pattern: /\.cr2?$/i, icon: 'image'
+    pattern: /\.cr2$/i, icon: 'image'
   },
   {
     type: 'raw', name: 'IMAGE_FILE_TYPE', subtype: 'DNG',
-    pattern: /\.dng?$/i, icon: 'image'
+    pattern: /\.dng$/i, icon: 'image'
   },
   {
     type: 'raw', name: 'IMAGE_FILE_TYPE', subtype: 'NEF',
-    pattern: /\.nef?$/i, icon: 'image'
+    pattern: /\.nef$/i, icon: 'image'
   },
   {
     type: 'raw', name: 'IMAGE_FILE_TYPE', subtype: 'NRW',
-    pattern: /\.nrw?$/i, icon: 'image'
+    pattern: /\.nrw$/i, icon: 'image'
   },
   {
-    type: 'raw', name: 'IMAGE_FILE_TYPE', subtype: 'ORW',
-    pattern: /\.orf?$/i, icon: 'image'
+    type: 'raw', name: 'IMAGE_FILE_TYPE', subtype: 'ORF',
+    pattern: /\.orf$/i, icon: 'image'
   },
   {
     type: 'raw', name: 'IMAGE_FILE_TYPE', subtype: 'RAF',
-    pattern: /\.raf?$/i, icon: 'image'
+    pattern: /\.raf$/i, icon: 'image'
   },
   {
     type: 'raw', name: 'IMAGE_FILE_TYPE', subtype: 'RW2',
-    pattern: /\.rw2?$/i, icon: 'image'
+    pattern: /\.rw2$/i, icon: 'image'
   },
 
   // Video
@@ -319,6 +319,8 @@ FileType.isAudio = function(entry) {
 };
 
 /**
+ * Returns whether the |entry| is image file that can be opened in browser.
+ * Note that it returns false for RAW images.
  * @param {Entry} entry Reference to the file.
  * @return {boolean} True if image file.
  */
@@ -340,15 +342,6 @@ FileType.isVideo = function(entry) {
  */
 FileType.isRaw = function(entry) {
   return FileType.getMediaType(entry) === 'raw';
-};
-
-/**
- * Files with more pixels won't have preview.
- * @param {Entry} entry Reference to the file.
- * @return {boolean} True if image or video.
- */
-FileType.isImageOrVideo = function(entry) {
-  return FileType.isType(entry, ['image', 'video']);
 };
 
 /**

@@ -81,25 +81,13 @@ void TimerExpiredTask::KillProcess() {
   // terminates.  We just care that it eventually terminates, and that's what
   // TerminateProcess should do for us. Don't check for the result code since
   // it fails quite often. This should be investigated eventually.
-  base::KillProcess(process_.Handle(), kProcessKilledExitCode, false);
+  process_.Terminate(kProcessKilledExitCode, false);
 
   // Now, just cleanup as if the process exited normally.
   OnObjectSignaled(process_.Handle());
 }
 
 }  // namespace
-
-bool KillProcess(ProcessHandle process, int exit_code, bool wait) {
-  bool result = (TerminateProcess(process, exit_code) != FALSE);
-  if (result && wait) {
-    // The process may not end immediately due to pending I/O
-    if (WAIT_OBJECT_0 != WaitForSingleObject(process, 60 * 1000))
-      DPLOG(ERROR) << "Error waiting for process exit";
-  } else if (!result) {
-    DPLOG(ERROR) << "Unable to terminate process";
-  }
-  return result;
-}
 
 TerminationStatus GetTerminationStatus(ProcessHandle handle, int* exit_code) {
   DWORD tmp_exit_code = 0;

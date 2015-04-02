@@ -49,6 +49,12 @@ const char kAllowNaClFileHandleAPI[]        = "allow-nacl-file-handle-api";
 // Specifies comma-separated list of extension ids or hosts to grant
 // access to TCP/UDP socket APIs.
 const char kAllowNaClSocketAPI[]            = "allow-nacl-socket-api";
+
+// Disables forcing on the experimental Plugin Power Saver feature.
+const char kDisablePluginPowerSaver[] = "disable-plugin-power-saver";
+
+// Enables forcing on the experimental Plugin Power Saver feature.
+const char kEnablePluginPowerSaver[] = "enable-plugin-power-saver";
 #endif
 
 // Don't block outdated plugins.
@@ -574,11 +580,6 @@ const char kDisableSettingsWindow[]          = "disable-settings-window";
 
 // Enable SPDY/4, aka HTTP/2. This is a temporary testing flag.
 const char kEnableSpdy4[]                   = "enable-spdy4";
-
-// Enables implementation of the Cache-Control: stale-while-revalidate directive
-// which permits servers to allow the use of stale resources while revalidation
-// proceeds in the background.
-const char kEnableStaleWhileRevalidate[]    = "enable-stale-while-revalidate";
 
 // Enables the suggestions service.
 const char kEnableSuggestionsService[]      = "enable-suggestions-service";

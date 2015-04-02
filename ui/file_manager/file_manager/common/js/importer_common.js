@@ -276,11 +276,7 @@ importer.importEnabled = function() {
             'disable-cloud-import',
             /** @param {boolean} disabled */
             function(disabled) {
-              // TODO(smckay): For M42 only, we dropped the ball on
-              // decent RTL formatting. Disable it for the duration of M42 only.
-              var rtl = ['ar', 'iw', 'he', 'fa'].indexOf(
-                  chrome.i18n.getUILanguage().toLowerCase()) !== -1;
-              resolve(!disabled && !rtl);
+              resolve(!disabled);
             });
       });
 };
@@ -348,7 +344,7 @@ importer.getMachineId = function() {
             if (id) {
               return id;
             }
-            var id = importer.generateMachineId_();
+            var id = importer.generateId();
             return storage.set(importer.Setting.MACHINE_ID, id)
                 .then(
                     function() {
@@ -381,11 +377,9 @@ importer.getDebugLogFilename = function(logId) {
 };
 
 /**
- * @return {number} A relatively unique six digit integer that is most likely
- *     unique to this machine among a user's machines. Used only to segregate
- *     log files on sync storage.
+ * @return {number} A relatively random six digit integer.
  */
-importer.generateMachineId_ = function() {
+importer.generateId = function() {
   return Math.floor(Math.random() * 899999) + 100000;
 };
 

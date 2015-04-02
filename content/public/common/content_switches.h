@@ -92,6 +92,7 @@ extern const char kDisableXSSAuditor[];
 CONTENT_EXPORT extern const char kDomAutomationController[];
 extern const char kEnable2dCanvasClipAntialiasing[];
 CONTENT_EXPORT extern const char kEnableBleedingEdgeRenderingFastPaths[];
+CONTENT_EXPORT extern const char kEnableCompositorAnimationTimelines[];
 CONTENT_EXPORT extern const char kEnableCredentialManagerAPI[];
 CONTENT_EXPORT extern const char kEnableBeginFrameScheduling[];
 CONTENT_EXPORT extern const char kEnablePreferCompositingToLCDText[];
@@ -127,6 +128,7 @@ extern const char kEnableSkiaBenchmarking[];
 CONTENT_EXPORT extern const char kEnableSlimmingPaint[];
 CONTENT_EXPORT extern const char kEnableSmoothScrolling[];
 CONTENT_EXPORT extern const char kEnableSpatialNavigation[];
+CONTENT_EXPORT extern const char kEnableStaleWhileRevalidate[];
 CONTENT_EXPORT extern const char kEnableStatsTable[];
 CONTENT_EXPORT extern const char kEnableStrictMixedContentChecking[];
 CONTENT_EXPORT extern const char kEnableStrictPowerfulFeatureRestrictions[];
@@ -297,10 +299,6 @@ CONTENT_EXPORT extern const char kFontCacheSharedMemSuffix[];
 #endif
 
 CONTENT_EXPORT extern const char kEnableNpapi[];
-
-#if defined(ENABLE_PLUGINS)
-CONTENT_EXPORT extern const char kEnablePluginPowerSaver[];
-#endif
 
 // DON'T ADD RANDOM STUFF HERE. Put it in the main section above in
 // alphabetical order, or in one of the ifdefs (also in order in each section).

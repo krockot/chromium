@@ -59,6 +59,8 @@
       'browser/ui/android/status_tray_android.cc',
       'browser/ui/android/tab_contents/chrome_web_contents_view_delegate_android.cc',
       'browser/ui/android/tab_contents/chrome_web_contents_view_delegate_android.h',
+      'browser/ui/android/tab_model/single_tab_model.cc',
+      'browser/ui/android/tab_model/single_tab_model.h',
       'browser/ui/android/tab_model/tab_model.cc',
       'browser/ui/android/tab_model/tab_model.h',
       'browser/ui/android/tab_model/tab_model_jni_bridge.cc',
@@ -665,6 +667,8 @@
       'browser/ui/cocoa/simple_message_box_mac.mm',
       'browser/ui/cocoa/single_web_contents_dialog_manager_cocoa.h',
       'browser/ui/cocoa/single_web_contents_dialog_manager_cocoa.mm',
+      'browser/ui/cocoa/spinner_view.h',
+      'browser/ui/cocoa/spinner_view.mm',
       'browser/ui/cocoa/sprite_view.h',
       'browser/ui/cocoa/sprite_view.mm',
       'browser/ui/cocoa/ssl_client_certificate_selector_cocoa.h',
@@ -1322,6 +1326,8 @@
     # directory.
     'chrome_browser_ui_chromeos_sources': [
       # On chromeos, file manager extension handles the file open/save dialog.
+      'browser/ui/app_list/search/launcher_search/launcher_search_provider.cc',
+      'browser/ui/app_list/search/launcher_search/launcher_search_provider.h',
       'browser/ui/views/select_file_dialog_extension.cc',
       'browser/ui/views/select_file_dialog_extension.h',
       'browser/ui/views/select_file_dialog_extension_factory.cc',
@@ -1827,6 +1833,8 @@
       'browser/ui/webui/quota_internals/quota_internals_types.h',
       'browser/ui/webui/quota_internals/quota_internals_ui.cc',
       'browser/ui/webui/quota_internals/quota_internals_ui.h',
+      'browser/ui/webui/settings/md_settings_localized_strings_provider.cc',
+      'browser/ui/webui/settings/md_settings_localized_strings_provider.h',
       'browser/ui/webui/settings/md_settings_ui.cc',
       'browser/ui/webui/settings/md_settings_ui.h',
       'browser/ui/webui/signin/inline_login_handler.cc',
@@ -2325,6 +2333,7 @@
       'browser/ui/views/toolbar/wrench_toolbar_button.cc',
       'browser/ui/views/toolbar/wrench_toolbar_button.h',
       'browser/ui/views/touch_uma/touch_uma.h',
+      'browser/ui/views/translate/chrome_translate_client_views.cc',
       'browser/ui/views/translate/translate_bubble_view.cc',
       'browser/ui/views/translate/translate_bubble_view.h',
       'browser/ui/views/update_recommended_message_box.cc',
@@ -2351,6 +2360,8 @@
       'browser/ui/views/apps/chrome_app_window_client_views_mac.mm',
       'browser/ui/views/apps/chrome_native_app_window_views_mac.h',
       'browser/ui/views/apps/chrome_native_app_window_views_mac.mm',
+      'browser/ui/views/apps/native_app_window_frame_view_mac.h',
+      'browser/ui/views/apps/native_app_window_frame_view_mac.mm',
     ],
     # Windows-only. Assume ash/aura/views.
     'chrome_browser_ui_win_sources': [

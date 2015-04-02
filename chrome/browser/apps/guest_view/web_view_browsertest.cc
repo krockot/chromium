@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include "base/path_service.h"
+#include "base/process/process.h"
 #include "base/strings/stringprintf.h"
 #include "base/strings/utf_string_conversions.h"
 #include "chrome/app/chrome_command_ids.h"
@@ -980,7 +981,7 @@ IN_PROC_BROWSER_TEST_F(WebViewTest, Shim_TestAutosizeRemoveAttributes) {
 }
 
 // This test is disabled due to being flaky. http://crbug.com/282116
-#if defined(OS_WIN) || defined(OS_MACOSX)
+#if defined(OS_WIN) || defined(OS_MACOSX) || defined(OS_CHROMEOS)
 #define MAYBE_Shim_TestAutosizeWithPartialAttributes \
     DISABLED_Shim_TestAutosizeWithPartialAttributes
 #else
@@ -2627,6 +2628,18 @@ IN_PROC_BROWSER_TEST_F(WebViewTest, Shim_TestResizeEvents) {
   TestHelper("testResizeEvents", "web_view/shim", NO_TEST_SERVER);
 }
 
+IN_PROC_BROWSER_TEST_F(WebViewTest, Shim_TestPerOriginZoomMode) {
+  TestHelper("testPerOriginZoomMode", "web_view/shim", NO_TEST_SERVER);
+}
+
+IN_PROC_BROWSER_TEST_F(WebViewTest, Shim_TestPerViewZoomMode) {
+  TestHelper("testPerViewZoomMode", "web_view/shim", NO_TEST_SERVER);
+}
+
+IN_PROC_BROWSER_TEST_F(WebViewTest, Shim_TestDisabledZoomMode) {
+  TestHelper("testDisabledZoomMode", "web_view/shim", NO_TEST_SERVER);
+}
+
 // This test verify that the set of rules registries of a webview will be
 // removed from RulesRegistryService after the webview is gone.
 // http://crbug.com/438327
@@ -2664,9 +2677,9 @@ IN_PROC_BROWSER_TEST_F(
       rules_registry_id, "ui").get());
 
   // Kill the embedder's render process, so the webview will go as well.
-  content::RenderProcessHost* host =
-      embedder_web_contents->GetRenderProcessHost();
-  base::KillProcess(host->GetHandle(), 0, false);
+  base::Process process = base::Process::DeprecatedGetProcessFromHandle(
+        embedder_web_contents->GetRenderProcessHost()->GetHandle());
+  process.Terminate(0, false);
   observer->WaitForEmbedderRenderProcessTerminate();
 
   EXPECT_FALSE(registry_service->GetRulesRegistry(

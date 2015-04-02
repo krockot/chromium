@@ -122,7 +122,7 @@ a:focus {
 
 /* Directory tree at the left. */
 .dialog-navigation-list {
-  -webkit-border-end: 1px solid rgb(210, 210, 210);
+  box-shadow: 1px 0 rgba(0, 0, 0, 0.15);
   background-color: rgb(250, 250, 250);
   display: flex;
   flex: none;
@@ -132,6 +132,10 @@ a:focus {
   overflow: hidden;
   position: relative;
   width: 240px;
+}
+
+html[dir='rtl'] .dialog-navigation-list {
+  box-shadow: -1px 0 rgba(0, 0, 0, 0.15);
 }
 
 .dialog-navigation-list-contents {
@@ -189,7 +193,7 @@ div.splitter {
   width: 36px;
 }
 
-#directory-tree .tree-row > .volume-icon {
+#directory-tree .tree-row > .item-icon {
   flex: none;
   height: 16px;
   width: 16px;
@@ -204,7 +208,7 @@ div.splitter {
 }
 
 #directory-tree .tree-row > paper-ripple {
-  color: rgb(27, 168, 243);
+  color: rgb(33, 150, 243);
 }
 
 #directory-tree .tree-item.accepts > .tree-row,
@@ -212,7 +216,7 @@ div.splitter {
 #directory-tree .tree-row[lead],
 #directory-tree .tree-row[selected],
 #directory-tree .tree-row[anchor] {
-  color: rgb(27, 168, 243);
+  color: rgb(33, 150, 243);
 }
 
 #directory-tree .tree-row > .root-eject {
@@ -241,7 +245,7 @@ div.splitter {
 /* Breadcrumbs and things under the title but above the list view. */
 .dialog-header {
   align-items: center;
-  background: rgba(27, 168, 243, 1.0);
+  background: rgba(33, 150, 243, 1.0);
   border-bottom: 1px solid rgb(56, 179, 244);
   color: white;
   display: flex;
@@ -413,7 +417,7 @@ body.check-select #gear-button {
 }
 
 #cloud-import-details-button {
-  margin-left: -15px;
+  -webkit-margin-start: -15px;
 }
 
 #cloud-import-details {
@@ -421,11 +425,18 @@ body.check-select #gear-button {
   border-radius: 2px;
   line-height: 1.5em;
   position: absolute;
-  right: 13px;  /* Positioned in relation to the cloud-import toolbar button */
   top: 38px;  /* Positioned just overlapping the top of the toolbar */
   transition: all 0.2s ease;
   width: 270px;
   z-index: 5;
+}
+
+html[dir='ltr'] #cloud-import-details {
+  right: 13px;  /* Positioned in relation to the cloud-import toolbar button */
+}
+
+html[dir='rtl'] #cloud-import-details {
+  left: 13px;  /* Positioned in relation to the cloud-import toolbar button */
 }
 
 #cloud-import-details.hidden {
@@ -466,9 +477,9 @@ body.check-select #gear-button {
 }
 
 #cloud-import-details .status .content {
+  -webkit-padding-start: 10px;
   flex: 1;
   color: #646464;
-  padding-left: 10px;
 }
 
 #cloud-import-details .status .content::first-line {
@@ -696,13 +707,13 @@ html[dir='rtl'] #search-box .clear {
 
 .dialog-footer .primary,
 .dialog-footer .primary:hover {
-  background-color: rgb(27, 168, 243);
+  background-color: rgb(33, 150, 243);
   color: white;
 }
 
 .dialog-footer .secondary,
 .dialog-footer .secondary:hover {
-  color: rgb(27, 168, 243);
+  color: rgb(33, 150, 243);
 }
 
 .dialog-footer input {
@@ -721,7 +732,7 @@ html[dir='rtl'] #search-box .clear {
 }
 
 .dialog-footer paper-input-decorator /deep/ .focused-underline {
-  background-color: rgb(27, 168, 243);
+  background-color: rgb(33, 150, 243);
 }
 
 .dialog-footer select {
@@ -748,7 +759,7 @@ html[dir='rtl'] #search-box .clear {
 .dialog-footer .primary:focus,
 .dialog-footer .secondary:focus,
 .dialog-footer select:focus {
-  box-shadow: 0 0 0 2px rgba(27, 168, 243, 0.5);
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.5);
 }
 
 .progressable:not([progress]) .progress-bar,
@@ -967,11 +978,11 @@ html[dir='rtl'] .breadcrumbs .separator {
   /* On the right side, we have less margin to pack items as long as they are
      fully visible. */
   -webkit-padding-end: 2px;
-  -webkit-padding-start: 4px;
+  -webkit-padding-start: 12px;
   box-sizing: border-box;
   overflow-y: auto;
   padding-bottom: 16px;
-  padding-top: 4px;
+  padding-top: 12px;
   width: 100%;
 }
 
@@ -1010,25 +1021,19 @@ body[type='full-page'] .detail-name .detail-icon {
 /* Styles specific for the grid view. */
 
 .thumbnail-grid .thumbnail-item {
-  -webkit-margin-start: 12px;
+  -webkit-margin-start: 4px;
   background-color: rgb(245, 245, 245);
-  border-radius: 2px;
-  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.37);
   height: 180px;
-  margin-top: 12px;
+  margin-top: 4px;
   overflow: hidden;
   position: relative;
-  transition: box-shadow 220ms ease;
   vertical-align: top;  /* Prevent vertical spacing for wrapped inline box. */
   width: 180px;
 }
 
 .thumbnail-grid .thumbnail-item.directory {
+  box-shadow: 0 1px rgba(0, 0, 0, 0.15);
   height: 40px;
-}
-
-.thumbnail-grid .thumbnail-item .thumbnail {
-  border-radius: 2px;
 }
 
 .thumbnail-grid .thumbnail-frame {
@@ -1039,7 +1044,6 @@ body[type='full-page'] .detail-name .detail-icon {
 .thumbnail-grid .thumbnail-item[selected],
 .thumbnail-grid .thumbnail-item.accepts {
   background-color: rgb(221, 242, 253);
-  box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.3);
 }
 
 .thumbnail-grid .checkmark {
@@ -1064,7 +1068,8 @@ body[type='full-page'] .detail-name .detail-icon {
       url(../images/files/ui/2x/thumbnail_checked.png) 2x);
 }
 
-body.selecting .thumbnail-grid .checkmark.inactive {
+body.selecting .thumbnail-grid .checkmark.inactive,
+.thumbnail-grid .thumbnail-item:hover .checkmark.inactive {
   opacity: 0.6;
 }
 
@@ -1091,7 +1096,7 @@ body.check-select .thumbnail-grid .thumbnail-item[selected] .checkmark.active {
   -webkit-user-drag: none;
   background-color: rgb(230, 230, 230);
   background-position: center;
-  background-size: cover;
+  background-repeat: no-repeat;
   height: 100%;
   opacity: 1;
   position: absolute;
@@ -1102,15 +1107,41 @@ body.check-select .thumbnail-grid .thumbnail-item[selected] .checkmark.active {
   -webkit-animation: fadeIn 250ms linear;
 }
 
+.thumbnail-grid .shield {
+  background-color: rgba(27, 168, 243, 0.5);
+  bottom: 0;
+  display: none;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.thumbnail-grid .thumbnail-item[selected] .shield {
+  display: block;
+}
+
 .thumbnail-grid .thumbnail-bottom {
-  background-color: white;
-  border-radius: 0 0 2px 2px;
+  background-color: rgba(255, 255, 255, 0.85);
   color: rgb(51, 51, 51);
   height: 40px;
 }
 
-.thumbnail-grid .thumbnail-item[selected] .thumbnail-bottom {
-  background-color: rgb(221, 242, 253);
+.thumbnail-grid .thumbnail-item.directory .thumbnail-bottom {
+  background-color: rgb(255, 255, 255);
+}
+
+.thumbnail-grid .thumbnail-item[selected].directory .thumbnail-bottom {
+  background-color: rgb(232, 246, 253);
+}
+
+.thumbnail-grid > .spacer.folder-spacer {
+  height: 5px;
+}
+
+body:not(.check-select) .thumbnail-grid.image-dominant
+    .thumbnail-loaded:not([selected]) .thumbnail-bottom {
+  display: none;
 }
 
 .badge {
@@ -1140,7 +1171,7 @@ body.check-select .thumbnail-grid .thumbnail-item[selected] .checkmark.active {
 
 .imported .filename-label,
 .copied .filename-label {
-  margin-right: 14px;
+  -webkit-margin-end: 14px;
 }
 
 /* Padding counterweights negative margins of items, thus eliminating scroll
@@ -1973,8 +2004,8 @@ list.autocomplete-suggestions > [lead] {
   -webkit-margin-end: 12px;
   -webkit-margin-start: auto;
   background: -webkit-image-set(
-      url(../images/files/ui/expand_less_active.png) 1x,
-      url(../images/files/ui/2x/expand_less_active.png) 2x)
+      url(../images/files/ui/expand_more_active.png) 1x,
+      url(../images/files/ui/2x/expand_more_active.png) 2x)
       no-repeat;
   display: block;
   margin-bottom: 20px;
@@ -1982,8 +2013,8 @@ list.autocomplete-suggestions > [lead] {
 
 #progress-center button.open {
   background: -webkit-image-set(
-      url(../images/files/ui/expand_more.png) 1x,
-      url(../images/files/ui/2x/expand_more.png) 2x)
+      url(../images/files/ui/expand_less.png) 1x,
+      url(../images/files/ui/2x/expand_less.png) 2x)
       no-repeat;
   /* If progress bar exists, show open button at slighly higher position. */
   margin-bottom: 14px;

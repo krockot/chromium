@@ -206,9 +206,15 @@ IN_PROC_BROWSER_TEST_F(AutomationApiTest, Find) {
 #else
 #define MAYBE_Mixins Mixins
 #endif
-IN_PROC_BROWSER_TEST_F(AutomationApiTest, Mixins) {
+IN_PROC_BROWSER_TEST_F(AutomationApiTest, DISABLED_Mixins) {
   StartEmbeddedTestServer();
   ASSERT_TRUE(RunExtensionSubtest("automation/tests/tabs", "mixins.html"))
+      << message_;
+}
+
+IN_PROC_BROWSER_TEST_F(AutomationApiTest, TreeChange) {
+  StartEmbeddedTestServer();
+  ASSERT_TRUE(RunExtensionSubtest("automation/tests/tabs", "tree_change.html"))
       << message_;
 }
 

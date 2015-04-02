@@ -27,7 +27,7 @@ class MojoCdm : public MediaKeys, public mojo::ContentDecryptionModuleClient {
   MojoCdm(mojo::ContentDecryptionModulePtr remote_cdm,
           const SessionMessageCB& session_message_cb,
           const SessionClosedCB& session_closed_cb,
-          const SessionErrorCB& session_error_cb,
+          const LegacySessionErrorCB& legacy_session_error_cb,
           const SessionKeysChangeCB& session_keys_change_cb,
           const SessionExpirationUpdateCB& session_expiration_update_cb);
   ~MojoCdm() final;
@@ -38,7 +38,7 @@ class MojoCdm : public MediaKeys, public mojo::ContentDecryptionModuleClient {
                             scoped_ptr<SimpleCdmPromise> promise) final;
   void CreateSessionAndGenerateRequest(
       SessionType session_type,
-      const std::string& init_data_type,
+      EmeInitDataType init_data_type,
       const uint8_t* init_data,
       int init_data_length,
       scoped_ptr<NewSessionCdmPromise> promise) final;
@@ -62,10 +62,10 @@ class MojoCdm : public MediaKeys, public mojo::ContentDecryptionModuleClient {
                         mojo::Array<uint8_t> message,
                         const mojo::String& legacy_destination_url) final;
   void OnSessionClosed(const mojo::String& session_id) final;
-  void OnSessionError(const mojo::String& session_id,
-                      mojo::CdmException exception,
-                      uint32_t system_code,
-                      const mojo::String& error_message) final;
+  void OnLegacySessionError(const mojo::String& session_id,
+                            mojo::CdmException exception,
+                            uint32_t system_code,
+                            const mojo::String& error_message) final;
   void OnSessionKeysChange(
       const mojo::String& session_id,
       bool has_additional_usable_key,
@@ -93,7 +93,7 @@ class MojoCdm : public MediaKeys, public mojo::ContentDecryptionModuleClient {
   // Callbacks for firing session events.
   SessionMessageCB session_message_cb_;
   SessionClosedCB session_closed_cb_;
-  SessionErrorCB session_error_cb_;
+  LegacySessionErrorCB legacy_session_error_cb_;
   SessionKeysChangeCB session_keys_change_cb_;
   SessionExpirationUpdateCB session_expiration_update_cb_;
 

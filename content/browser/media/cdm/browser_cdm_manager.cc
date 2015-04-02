@@ -25,6 +25,10 @@
 #include "media/base/cdm_promise.h"
 #include "media/base/limits.h"
 
+#if defined(OS_ANDROID)
+#include "content/public/common/renderer_preferences.h"
+#endif
+
 namespace content {
 
 using media::BrowserCdm;
@@ -446,8 +450,23 @@ void BrowserCdmManager::AddCdm(int render_frame_id,
   DCHECK(task_runner_->RunsTasksOnCurrentThread());
   DCHECK(!GetCdm(render_frame_id, cdm_id));
 
+  bool use_secure_surface = false;
+
+#if defined(OS_ANDROID)
+  // TODO(sandersd): Pass the security level from key system instead.
+  // http://crbug.com/467779
+  RenderFrameHost* rfh =
+      RenderFrameHost::FromID(render_process_id_, render_frame_id);
+  WebContents* web_contents = WebContents::FromRenderFrameHost(rfh);
+  if (web_contents) {
+    content::RendererPreferences* prefs =
+        web_contents->GetMutableRendererPrefs();
+    use_secure_surface = prefs->use_video_overlay_for_embedded_encrypted_video;
+  }
+#endif
+
   scoped_ptr<BrowserCdm> cdm(media::CreateBrowserCdm(
-      key_system, BROWSER_CDM_MANAGER_CB(OnSessionMessage),
+      key_system, use_secure_surface, BROWSER_CDM_MANAGER_CB(OnSessionMessage),
       BROWSER_CDM_MANAGER_CB(OnSessionClosed),
       BROWSER_CDM_MANAGER_CB(OnLegacySessionError),
       BROWSER_CDM_MANAGER_CB(OnSessionKeysChange),
@@ -562,27 +581,10 @@ void BrowserCdmManager::CreateSessionAndGenerateRequestIfPermitted(
     return;
   }
 
-  // TODO(ddorwin): Move this conversion to MediaDrmBridge when fixing
-  // crbug.com/417440.
-  // "audio"/"video" does not matter, so use "video".
-  std::string init_data_type_string;
-  switch (init_data_type) {
-    case media::EmeInitDataType::WEBM:
-      init_data_type_string = "video/webm";
-      break;
-#if defined(USE_PROPRIETARY_CODECS)
-    case media::EmeInitDataType::CENC:
-      init_data_type_string = "video/mp4";
-      break;
-#endif
-    default:
-      NOTREACHED();
-  }
-
   // Only the temporary session type is supported in browser CDM path.
   // TODO(xhwang): Add SessionType support if needed.
   cdm->CreateSessionAndGenerateRequest(media::MediaKeys::TEMPORARY_SESSION,
-                                       init_data_type_string, &init_data[0],
+                                       init_data_type, &init_data[0],
                                        init_data.size(), promise.Pass());
 }
 

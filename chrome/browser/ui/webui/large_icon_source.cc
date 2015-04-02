@@ -38,8 +38,9 @@ LargeIconSource::IconRequest::IconRequest(
 LargeIconSource::IconRequest::~IconRequest() {
 }
 
-LargeIconSource::LargeIconSource(favicon::FaviconService* favicon_service,
-                                 FallbackIconService* fallback_icon_service)
+LargeIconSource::LargeIconSource(
+    favicon::FaviconService* favicon_service,
+    favicon::FallbackIconService* fallback_icon_service)
     : favicon_service_(favicon_service),
       fallback_icon_service_(fallback_icon_service) {
 }
@@ -121,7 +122,7 @@ void LargeIconSource::SendFallbackIcon(const IconRequest& request) {
     return;
   }
   favicon_base::FallbackIconStyle style;
-  style.background_color = SkColorSetRGB(0xcc, 0xcc, 0xcc);
+  style.background_color = SkColorSetRGB(0x78, 0x78, 0x78);
   style.text_color = SK_ColorWHITE;
   style.font_size_ratio = 0.44;
   style.roundness = 0;  // Square. Round corners can be applied by JavaScript.

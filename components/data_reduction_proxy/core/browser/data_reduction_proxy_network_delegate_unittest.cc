@@ -12,19 +12,19 @@
 #include "base/strings/string_number_conversions.h"
 #include "base/test/histogram_tester.h"
 #include "base/time/time.h"
+#include "components/data_reduction_proxy/core/browser/data_reduction_proxy_compression_stats.h"
 #include "components/data_reduction_proxy/core/browser/data_reduction_proxy_config_test_utils.h"
 #include "components/data_reduction_proxy/core/browser/data_reduction_proxy_metrics.h"
 #include "components/data_reduction_proxy/core/browser/data_reduction_proxy_request_options.h"
-#include "components/data_reduction_proxy/core/browser/data_reduction_proxy_statistics_prefs.h"
 #include "components/data_reduction_proxy/core/browser/data_reduction_proxy_test_utils.h"
 #include "components/data_reduction_proxy/core/common/data_reduction_proxy_headers_test_utils.h"
 #include "components/data_reduction_proxy/core/common/data_reduction_proxy_params_test_utils.h"
 #include "components/data_reduction_proxy/core/common/data_reduction_proxy_pref_names.h"
-#include "net/base/capturing_net_log.h"
 #include "net/base/host_port_pair.h"
 #include "net/base/load_flags.h"
-#include "net/base/net_log.h"
 #include "net/http/http_response_headers.h"
+#include "net/log/capturing_net_log.h"
+#include "net/log/net_log.h"
 #include "net/proxy/proxy_config.h"
 #include "net/proxy/proxy_server.h"
 #include "net/url_request/url_request.h"
@@ -151,8 +151,8 @@ class DataReductionProxyNetworkDelegateTest : public testing::Test {
     return test_context_->config();
   }
 
-  DataReductionProxyStatisticsPrefs* statistics_prefs() const {
-    return test_context_->data_reduction_proxy_service()->statistics_prefs();
+  DataReductionProxyCompressionStats* compression_stats() const {
+    return test_context_->data_reduction_proxy_service()->compression_stats();
   }
 
   scoped_ptr<DataReductionProxyNetworkDelegate>
@@ -425,12 +425,12 @@ TEST_F(DataReductionProxyNetworkDelegateTest, TotalLengths) {
       UNKNOWN_TYPE);
 
   EXPECT_EQ(kReceivedLength,
-            statistics_prefs()->GetInt64(
+            compression_stats()->GetInt64(
                 data_reduction_proxy::prefs::kHttpReceivedContentLength));
   EXPECT_FALSE(pref_service()->GetBoolean(
       data_reduction_proxy::prefs::kDataReductionProxyEnabled));
   EXPECT_EQ(kOriginalLength,
-            statistics_prefs()->GetInt64(
+            compression_stats()->GetInt64(
                 data_reduction_proxy::prefs::kHttpOriginalContentLength));
 
   // Record the same numbers again, and total lengths should be doubled.
@@ -441,12 +441,12 @@ TEST_F(DataReductionProxyNetworkDelegateTest, TotalLengths) {
       UNKNOWN_TYPE);
 
   EXPECT_EQ(kReceivedLength * 2,
-            statistics_prefs()->GetInt64(
+            compression_stats()->GetInt64(
                 data_reduction_proxy::prefs::kHttpReceivedContentLength));
   EXPECT_FALSE(pref_service()->GetBoolean(
       data_reduction_proxy::prefs::kDataReductionProxyEnabled));
   EXPECT_EQ(kOriginalLength * 2,
-            statistics_prefs()->GetInt64(
+            compression_stats()->GetInt64(
                 data_reduction_proxy::prefs::kHttpOriginalContentLength));
 }
 

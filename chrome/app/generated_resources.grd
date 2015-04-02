@@ -261,6 +261,9 @@ are declared in build/common.gypi.
       <!-- Bookmarks specific strings -->
       <part file="bookmarks_strings.grdp" />
 
+      <!-- Settings specific strings -->
+      <part file="settings_strings.grdp" />
+
       <!-- ChromeOS-specific strings -->
       <if expr="chromeos">
         <part file="chromeos_strings.grdp" />
@@ -6172,14 +6175,8 @@ Keep your key file in a safe place. You will need it to create new versions of y
         <message name="IDS_ASH_SCREEN_ROTATION_ANIMATION_PARTIAL_ROTATION" desc="Screen rotation animation option.">
           Partial Rotation
         </message>
-        <message name="IDS_ASH_SCREEN_ROTATION_ANIMATION_PARTIAL_ROTATION_SLOW" desc="Screen rotation animation option.">
-          Partial Rotation - Slow
-        </message>
         <message name="IDS_ASH_SCREEN_ROTATION_ANIMATION_FULL_ROTATION" desc="Screen rotation animation option.">
           Full Rotation
-        </message>
-        <message name="IDS_ASH_SCREEN_ROTATION_ANIMATION_FULL_ROTATION_SLOW" desc="Screen rotation animation option.">
-          Full Rotation - Slow
         </message>
         <message name="IDS_FLAGS_ASH_ENABLE_TOUCH_VIEW_TESTING_NAME" desc="Title for the flag which can be used to test the TouchView maximizing mode.">
           Enable TouchView maximizing UI for testing
@@ -6334,11 +6331,11 @@ Keep your key file in a safe place. You will need it to create new versions of y
         Allows applications to use NaCl Socket API. Use only to test NaCl plugins.
       </message>
       <if expr="enable_plugins">
-        <message name="IDS_FLAGS_ENABLE_PLUGIN_POWER_SAVER_NAME" desc="Name for the Plugin Power Saver feature.">
-          Enable Plugin Power Saver.
+        <message name="IDS_FLAGS_ENABLE_PLUGIN_POWER_SAVER_NAME" desc="Name for the flag to force on the Plugin Power Saver feature.">
+          Enable Plugin Power Saver
         </message>
-        <message name="IDS_FLAGS_ENABLE_PLUGIN_POWER_SAVER_DESCRIPTION" desc="Description for the Plugin Power Saver feature.">
-          Enables experimental power saver mode for peripheral plugin content.
+        <message name="IDS_FLAGS_ENABLE_PLUGIN_POWER_SAVER_DESCRIPTION" desc="Description of the flag to force on the Plugin Power Saver feature.">
+          Force on the experimental power saver mode for peripheral plugin content. Overrides content settings.
         </message>
       </if>
       <message name="IDS_FLAGS_ENABLE_PINCH_SCALE_NAME" desc="Name of the flag to turn on experiental pinch to scale.">
@@ -6529,6 +6526,12 @@ Keep your key file in a safe place. You will need it to create new versions of y
       </message>
       <message name="IDS_FLAGS_ENABLE_SYNC_APP_LIST_DESCRIPTION" desc="Description for the flag to enable syncing the app list.">
         Enable App Launcher sync. This also enables Folders where available (non OSX).
+      </message>
+      <message name="IDS_FLAGS_ENABLE_LAUNCHER_SEARCH_PROVIDER_API" desc="Name of the flag to enable launcher search provider api.">
+        Enable Launcher Search Provider API.
+      </message>
+      <message name="IDS_FLAGS_ENABLE_LAUNCHER_SEARCH_PROVIDER_API_DESCRIPTION" desc="Description for the flag to enable launcher search provider api.">
+        This API allows extensions to listen queries of the Chrome Launcher and return their search results to it.
       </message>
       <if expr="is_macosx">
         <message name="IDS_FLAGS_ENABLE_AVFOUNDATION_NAME" desc="Name of the flag to enable Mac AVFoundation.">
@@ -11299,7 +11302,10 @@ Chrome ran out of memory.
         Your card is verified
       </message>
       <message name="IDS_AUTOFILL_CARD_UNMASK_PROMPT_ERROR_TRY_AGAIN" desc="Error message that encourages the user to try to re-enter their credit card CVC after a previous failed attempt.">
-        There was a problem verifying your card. Check your information and try again.
+        Check your CVC and try again
+      </message>
+      <message name="IDS_AUTOFILL_CARD_UNMASK_PROMPT_ERROR_TRY_AGAIN_WITH_EXPIRATION" desc="Error message that encourages the user to try to re-enter their credit card expiration date and CVC after a previous failed attempt.">
+        Check your expiration date and CVC and try again
       </message>
       <message name="IDS_AUTOFILL_CARD_UNMASK_PROMPT_ERROR_PERMANENT" desc="Error message to show when a credit card cannot be verified and the user isn't allowed to retry.">
         Chrome was unable to verify your card at this time. Please try again later.
@@ -11308,7 +11314,7 @@ Chrome ran out of memory.
         There was a problem verifying your card. Check your internet connection and try again.
       </message>
       <message name="IDS_AUTOFILL_CARD_UNMASK_INVALID_EXPIRATION_DATE" desc="Error message to show when a user has input an invalid or old expiration date.">
-        Card expiration date should be after the current date.
+        The card is expired
       </message>
       <message name="IDS_AUTOFILL_CARD_UNMASK_EXPIRATION_DATE_SEPARATOR" desc="Separator for a credit card expiration date, e.g. the slash in 05/16." formatter_data="android_java">
         /
@@ -14571,11 +14577,11 @@ Do you accept?
         <message name="IDS_FLAGS_ENABLE_GESTURE_DELETION_DESCRIPTION" desc="Description of about::flags option to enable gesture deletion for the virtual keyboard">
           Enable gesture deletion for the virtual keyboard.
         </message>
-        <message name="IDS_FLAGS_ENABLE_CAPTIVE_PORTAL_BYPASS_PROXY_NAME" desc="Name of about::flags option to enable bypass proxy for captive portal authorization on Chrome OS.">
-          Enable bypass proxy for Captive Portal Authorization
+        <message name="IDS_FLAGS_DISABLE_CAPTIVE_PORTAL_BYPASS_PROXY_NAME" desc="Name of about::flags option to disable bypass proxy for captive portal authorization on Chrome OS.">
+          Disable bypass proxy for Captive Portal Authorization
         </message>
-        <message name="IDS_FLAGS_ENABLE_CAPTIVE_PORTAL_BYPASS_PROXY_DESCRIPTION" desc="Description of about::flags option to enable bypass proxy for captive portal authorization on Chrome OS.">
-          If proxy is configured, it usually prevents from authorization on different captive portals. This flag enables opening captive portal authorization dialog in a separate window, which ignores proxy settings.
+        <message name="IDS_FLAGS_DISABLE_CAPTIVE_PORTAL_BYPASS_PROXY_DESCRIPTION" desc="Description of about::flags option to disable bypass proxy for captive portal authorization on Chrome OS.">
+          If proxy is configured, it usually prevents from authorization on different captive portals. This flag disables opening captive portal authorization dialog in a separate window, which ignores proxy settings.
         </message>
 
         <message name="IDS_FLAGS_DISABLE_ROBOTO_FONT_UI_NAME" desc="Name of about::flags option to disable Roboto fonts in the Chrome OS UI.">

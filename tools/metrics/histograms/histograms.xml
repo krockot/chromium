@@ -691,6 +691,17 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   </summary>
 </histogram>
 
+<histogram name="Ash.NumberOfVisibleWindowsInPrimaryDisplay" units="Windows">
+  <owner>tdanderson@google.com</owner>
+  <owner>bruthig@google.com</owner>
+  <summary>
+    An upper bound on the number of windows visible to the user on the primary
+    display. Determined by processing the windows in increasing z-order and
+    counting all non-minimized windows until a maximized or fullscreen window is
+    processed. This metric is logged periodically every 30 minutes.
+  </summary>
+</histogram>
+
 <histogram name="Ash.ShelfAlignmentOverTime" enum="ShelfAlignmentValue">
   <owner>kuscher@google.com</owner>
   <summary>
@@ -2087,11 +2098,29 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   </summary>
 </histogram>
 
+<histogram name="Autofill.UnmaskPrompt.Duration" units="ms">
+  <owner>waltercacau@chromium.org</owner>
+  <summary>
+    Duration of the interaction with the UnmaskPrompt since it was shown until
+    it was closed. This prompt is triggered when a user selects a masked card in
+    an autofill dropdown.
+  </summary>
+</histogram>
+
 <histogram name="Autofill.UnmaskPrompt.Events" enum="AutofillUnmaskPromptEvent">
   <owner>waltercacau@chromium.org</owner>
   <summary>
     Events tracking the usage of the unmasking prompt. This prompt is triggered
     when a user selects a masked card in a autofill dropdown.
+  </summary>
+</histogram>
+
+<histogram name="Autofill.UnmaskPrompt.GetRealPanDuration" units="ms">
+  <owner>waltercacau@chromium.org</owner>
+  <summary>
+    Duration of the GetRealPan API call. This API call is triggered by the
+    unmasking prompt when the user types information to verify his ownership of
+    the card being fetched.
   </summary>
 </histogram>
 
@@ -2102,6 +2131,26 @@ Therefore, the affected-histogram name has to have at least one dot in it.
     Tracks the result of the GetRealPan API call. This API call is triggered by
     the unmasking prompt when the user types information to verify his ownership
     of the card being fetched.
+  </summary>
+</histogram>
+
+<histogram name="Autofill.UnmaskPrompt.TimeBeforeAbandonUnmasking" units="ms">
+  <owner>waltercacau@chromium.org</owner>
+  <summary>
+    Time the user waited before abandoning an unmasking operation. In such a
+    scenario, the user is cancelling a pending unmasking operation (possibly
+    because it is taking too long).  The time measured here corresponds to the
+    time between the user clicking the &quot;Verify&quot; button and then
+    clicking &quot;Cancel&quot;.
+  </summary>
+</histogram>
+
+<histogram name="Autofill.UnmaskPrompt.UnmaskingDuration" units="ms">
+  <owner>waltercacau@chromium.org</owner>
+  <summary>
+    Duration between the user clicking the Verify button within the unmasking
+    prompt until we get a response back from the server. This prompt is
+    triggered when a user selects a masked card in an autofill dropdown.
   </summary>
 </histogram>
 
@@ -4140,6 +4189,9 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 
 <histogram name="DataReductionProxy.PromoAction"
     enum="DataReductionProxyPromoAction">
+  <obsolete>
+    Deprecated as of 3/2015, replaced by DataReductionProxy.UIAction.
+  </obsolete>
   <owner>bengr@chromium.org</owner>
   <owner>marq@chromium.org</owner>
   <summary>
@@ -4172,6 +4224,9 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 
 <histogram name="DataReductionProxy.SettingsConversion"
     enum="DataReductionProxySettingsConversion">
+  <obsolete>
+    Deprecated as of 3/2015, replaced by DataReductionProxy.UIAction.
+  </obsolete>
   <owner>bengr@chromium.org</owner>
   <owner>marq@chromium.org</owner>
   <summary>
@@ -4193,6 +4248,27 @@ Therefore, the affected-histogram name has to have at least one dot in it.
     proxy will either be unavailable (the feature hasn't been rolled out to this
     user yet), not enabled (the feature is available but the user doesn't have
     it turned on), or enabled (the feature is enabled and turned on).
+  </summary>
+</histogram>
+
+<histogram name="DataReductionProxy.UIAction" enum="DataReductionProxyUIAction">
+  <owner>bengr@chromium.org</owner>
+  <owner>megjablon@chromium.org</owner>
+  <summary>
+    Samples of user interactions with the promo and settings menu. All samples
+    are mutually exclusive. These samples include:
+
+    The user interactions with the promo. On Android, there are three actions
+    that dismiss the promo (enable, dismiss, and learn more) and on iOS there is
+    a toggle to enable the proxy. This is sampled when the promo leaves view. If
+    the user clicks the link to the settings menu, the state of the ON/OFF
+    switch in the menu is sampled when the view is exited.
+
+    Any other user interaction with the the ON/OFF switch in the settings menu
+    for reducing data usage. Only the setting changes between entering the
+    reducing data usage setting menu and leaving the menu will be sampled
+    regardless of how many times he or she toggles the ON/OFF switch. Other
+    samples that report ON/OFF settings menu changes are not also reported here.
   </summary>
 </histogram>
 
@@ -6617,6 +6693,16 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   </summary>
 </histogram>
 
+<histogram name="EasyUnlock.AuthEvent.SignIn.Duration" units="ms">
+  <owner>isherman@google.com</owner>
+  <owner>tengs@google.com</owner>
+  <owner>xiaowenx@google.com</owner>
+  <summary>
+    Measures the time elapsed between the user focusing her user pod and signing
+    in using Smart Lock.
+  </summary>
+</histogram>
+
 <histogram name="EasyUnlock.AuthEvent.Unlock" enum="EasyUnlockAuthEvent">
   <owner>isherman@google.com</owner>
   <owner>xiaowenx@google.com</owner>
@@ -6626,6 +6712,18 @@ Therefore, the affected-histogram name has to have at least one dot in it.
     Lock unlock attempt succeeded or failed; or if a password fallback was used,
     the reason why. Recorded upon an unlock attempt for users who have the Smart
     Lock feature enabled.
+  </summary>
+</histogram>
+
+<histogram name="EasyUnlock.AuthEvent.Unlock.Duration" units="ms">
+  <owner>isherman@google.com</owner>
+  <owner>tengs@google.com</owner>
+  <owner>xiaowenx@google.com</owner>
+  <summary>
+    Measures the time elapsed between the lock screen being shown and the user
+    unlocking the device using Smart Lock. The lock screen is typically shown
+    when the user opens her Chromebook's lid (or otherwise wakes the computer),
+    but can also be shown when the user manually locks the device.
   </summary>
 </histogram>
 
@@ -8848,6 +8946,15 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   <summary>
     If opening the CRX file for unpacking fails, this integer is the error code
     given by the OS.
+  </summary>
+</histogram>
+
+<histogram name="Extensions.EventlessEventPages">
+  <owner>yoz@chromium.org</owner>
+  <summary>
+    The number of extensions with event pages that have no registered event
+    listeners at browser startup. (This may indicate something has gone wrong;
+    such event pages will never get started.)
   </summary>
 </histogram>
 
@@ -18585,6 +18692,14 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   </summary>
 </histogram>
 
+<histogram name="Net.NetInternalsUi.Feature" enum="NetInternalsUiFeature">
+  <owner>eroman@chromium.org</owner>
+  <summary>
+    Counts the number of browser launches where chrome://net-internals and
+    chrome://net-internals/#tests are used.
+  </summary>
+</histogram>
+
 <histogram name="Net.NetworkErrorsRecovered.MainFrame" enum="NetErrorCodes">
   <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
   <summary>
@@ -19936,6 +20051,13 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   <summary>
     If a QUIC connection timed out with open streams, this will be true when the
     connection has unacked packets.
+  </summary>
+</histogram>
+
+<histogram name="Net.QuicSession.TooManyOpenStreams" enum="BooleanTooMany">
+  <owner>rch@chromium.org</owner>
+  <summary>
+    True if more than 100 streams are open when a new stream is activated.
   </summary>
 </histogram>
 
@@ -22230,6 +22352,25 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   </summary>
 </histogram>
 
+<histogram name="Network.Shill.DarkResumeScanNumRetries">
+  <owner>samueltan@chromium.org</owner>
+  <summary>
+    Chrome OS network metric sampling the number of times a dark resume scan is
+    retried in a single dark resume.
+  </summary>
+</histogram>
+
+<histogram name="Network.Shill.DarkResumeScanRetryResult"
+    enum="DarkResumeScanRetryResult">
+  <owner>samueltan@chromium.org</owner>
+  <summary>
+    Chrome OS network metric that tracks whether dark resume scan retries led to
+    the system suspending from dark resume in a connected state. This metric is
+    only recorded in dark resumes when at least one dark resume scan retry was
+    launched.
+  </summary>
+</histogram>
+
 <histogram name="Network.Shill.DeviceConnectionStatus" enum="ConnectionStatus">
   <owner>zqiu@chromium.org</owner>
   <summary>
@@ -23792,6 +23933,59 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   </summary>
 </histogram>
 
+<histogram name="Notifications.Database.DeleteResult"
+    enum="NotificationDatabaseStatus">
+  <owner>peter@chromium.org</owner>
+  <summary>
+    Records the result status codes of deleting notification data from the Web
+    Notification database.
+  </summary>
+</histogram>
+
+<histogram name="Notifications.Database.DeleteServiceWorkerRegistrationResult"
+    enum="NotificationDatabaseStatus">
+  <owner>peter@chromium.org</owner>
+  <summary>
+    Records the result status codes of deleting all notification data associated
+    with a Service Worker registration ID.
+  </summary>
+</histogram>
+
+<histogram name="Notifications.Database.DestroyResult"
+    enum="NotificationDatabaseStatus">
+  <owner>peter@chromium.org</owner>
+  <summary>
+    Records the result status codes of destroying the Web Notification database
+    altogether.
+  </summary>
+</histogram>
+
+<histogram name="Notifications.Database.OpenResult"
+    enum="NotificationDatabaseStatus">
+  <owner>peter@chromium.org</owner>
+  <summary>
+    Records the result status codes of opening the Web Notification database.
+  </summary>
+</histogram>
+
+<histogram name="Notifications.Database.ReadResult"
+    enum="NotificationDatabaseStatus">
+  <owner>peter@chromium.org</owner>
+  <summary>
+    Records the result status codes of reading data of a single notification
+    from the Web Notification database.
+  </summary>
+</histogram>
+
+<histogram name="Notifications.Database.WriteResult"
+    enum="NotificationDatabaseStatus">
+  <owner>peter@chromium.org</owner>
+  <summary>
+    Records the result status codes of writing data for a notification to the
+    Web Notification database.
+  </summary>
+</histogram>
+
 <histogram name="Notifications.DifferentRequestingEmbeddingOrigins"
     enum="Boolean">
   <owner>peter@chromium.org</owner>
@@ -24806,12 +25000,34 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   </summary>
 </histogram>
 
+<histogram name="PasswordManager.FormDataDeserializationStatus"
+    enum="FormDataDeserializationStatus">
+  <owner>gcasto@chromium.org</owner>
+  <owner>dvadym@chromium.org</owner>
+  <summary>
+    The success or failure of deserializing saved FormData. Failure either
+    indicates corrupted data or the presence of bugs in the serialization or
+    deserialization code.
+  </summary>
+</histogram>
+
 <histogram name="PasswordManager.InfoBarResponse" enum="InfoBarResponse">
   <owner>dubroy@chromium.org</owner>
   <owner>vabr@chromium.org</owner>
   <summary>
     The distribution of responses to the &quot;Do you want Chrome to remember
     this password&quot;? info bar prompt.
+  </summary>
+</histogram>
+
+<histogram name="PasswordManager.KWalletDeserializationStatus"
+    enum="BooleanSuccess">
+  <owner>gcasto@chromium.org</owner>
+  <owner>dvadym@chromium.org</owner>
+  <summary>
+    The success or failure of deserializing PasswordForms in KWallet. Failure
+    either indicates corrupted data or the presense of bugs in the
+    deserialization code.
   </summary>
 </histogram>
 
@@ -27699,6 +27915,14 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   </summary>
 </histogram>
 
+<histogram name="Plugin.SyncMessageTime" units="ms">
+  <owner>gab@chromium.org</owner>
+  <summary>
+    Roundtrip times for synchronous IPC calls from the renderer to NPAPI plugin
+    processes.
+  </summary>
+</histogram>
+
 <histogram name="Power.BacklightLevelOnAC" units="%">
   <owner>derat@chromium.org</owner>
   <summary>
@@ -29381,6 +29605,14 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   </summary>
 </histogram>
 
+<histogram name="Process.Sandbox.Launch.Error" units="GetLastError">
+  <owner>shrikant@chromium.org</owner>
+  <summary>
+    Errors returned while launching sandboxed process on Windows. For decoding
+    error code please refer to http://goo.gl/fJJiAv.
+  </summary>
+</histogram>
+
 <histogram name="Process.Sandbox.Lowbox.Launch.Error" units="GetLastError">
   <owner>shrikant@chromium.org</owner>
   <summary>
@@ -29435,6 +29667,14 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 <histogram name="Profile.CreateAndInitializeProfile" units="milliseconds">
   <owner>rkaplow@chromium.org</owner>
   <summary>Length of time to setup profile.</summary>
+</histogram>
+
+<histogram name="Profile.CreateBrowserContextServicesTime" units="milliseconds">
+  <owner>rkaplow@chromium.org</owner>
+  <summary>
+    The amount of time that elapsed during the CreateBrowserContextServices call
+    within OnPrefsLoaded.
+  </summary>
 </histogram>
 
 <histogram name="Profile.CreateProfileHelperTime" units="milliseconds">
@@ -29604,6 +29844,14 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   </summary>
 </histogram>
 
+<histogram name="Profile.NotifyProfileCreatedTime" units="milliseconds">
+  <owner>rkaplow@chromium.org</owner>
+  <summary>
+    The amount of time that elapsed during the Notify() of
+    NOTIFICATION_PROFILE_CREATED during ProfileImpl::DoFinalInit().
+  </summary>
+</histogram>
+
 <histogram name="Profile.NumberOfAccountsPerProfile">
   <owner>mlerman@chromium.org</owner>
   <summary>
@@ -29754,6 +30002,13 @@ Therefore, the affected-histogram name has to have at least one dot in it.
     The error with the current user profile that caused an error dialog to be
     shown. This dialog is shown usually when there is some sort of corruption in
     the user's profile data.
+  </summary>
+</histogram>
+
+<histogram name="Profile.ProfileImplDoFinalInit" units="milliseconds">
+  <owner>rkaplow@chromium.org</owner>
+  <summary>
+    The amount of time that elapsed during the ProfileImpl::DoFinalInit().
   </summary>
 </histogram>
 
@@ -37320,7 +37575,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.AllResponses">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of all network responses received by a renderer. Each response is
     corresponding to one URL requested by a renderer. Incremented when the first
@@ -37329,14 +37584,14 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.BrowsingInstanceCount">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of all current BrowsingInstances.  Recorded once per UMA ping.
   </summary>
 </histogram>
 
 <histogram name="SiteIsolation.CurrentRendererProcessCount">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of all renderer processes, including WebUI and extensions.
     Recorded once per UMA ping.
@@ -37344,7 +37599,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.IsolateAllSitesProcessCountEstimate">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The upper bound of the predicted renderer process count if we isolated all
     sites, subject to the process limit.  Recorded once per UMA ping.
@@ -37352,7 +37607,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.IsolateAllSitesProcessCountLowerBound">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The lower bound of the predicted renderer process count if we isolated all
     sites, subject to the process limit.  Happens to be the number of unique
@@ -37361,7 +37616,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.IsolateAllSitesProcessCountNoLimit">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The predicted renderer process count if we isolated all sites and if there
     were no process limit.  Recorded once per UMA ping.
@@ -37369,7 +37624,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.IsolateAllSitesTotalProcessCountEstimate">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The predicted total process count if we isolated all sites, subject to the
     process limit.  Recorded once per UMA ping.
@@ -37377,7 +37632,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.IsolateHttpsSitesProcessCountEstimate">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The upper bound of the predicted renderer process count if we isolated only
     HTTPS (not HTTP) sites, subject to the process limit.  Recorded once per UMA
@@ -37386,7 +37641,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.IsolateHttpsSitesProcessCountLowerBound">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The lower bound of the predicted renderer process count if we isolated only
     HTTPS (not HTTP) sites, subject to the process limit.  Happens to be the
@@ -37395,7 +37650,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.IsolateHttpsSitesProcessCountNoLimit">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The predicted renderer process count if we isolated only HTTPS (not HTTP)
     sites and if there were no process limit.  Recorded once per UMA ping.
@@ -37403,7 +37658,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.IsolateHttpsSitesTotalProcessCountEstimate">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The predicted total process count if we isolated only HTTPS (not HTTP)
     sites, subject to the process limit.  Recorded once per UMA ping.
@@ -37411,7 +37666,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.DataLength" units="byte">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The number of bytes in the first network packet for a response with headers
     that imply potential illegal cross-site access. Recorded when the first
@@ -37420,7 +37675,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.HTML.Blocked">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of blocked cross-site document responses due to having HTML
     content type header and contents sniffed as HTML. Sampled with value of 1
@@ -37429,7 +37684,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.HTML.Blocked.NonRenderableStatusCode">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses with a nonrenderable HTTP status code among blocked
     cross-site document responses due to their HTML contents. Sampled with value
@@ -37439,7 +37694,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 
 <histogram name="SiteIsolation.XSD.HTML.Blocked.RenderableStatusCode"
     enum="ContentResourceType">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses with a renderable HTTP status code sub-categorized by
     their requesting context type (e.g., image, script, etc.) among blocked
@@ -37450,7 +37705,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.HTML.NoSniffBlocked.NonRenderableStatusCode">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses with a nonrenderable HTTP status code among blocked
     cross-site document responses due to having HTML content type and nosniff
@@ -37461,7 +37716,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 
 <histogram name="SiteIsolation.XSD.HTML.NoSniffBlocked.RenderableStatusCode"
     enum="ContentResourceType">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses with a renderable HTTP status code sub-categorized by
     their requesting context type (e.g., image, script, etc.), among blocked
@@ -37472,7 +37727,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.HTML.NotBlocked">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of not blocked responses despite having an HTML content type
     header due to the failure of content sniffing. Sampled with value 1 when the
@@ -37481,7 +37736,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.HTML.NotBlocked.MaybeJS">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses that may be parsed as JavaScript among not blocked
     responses. Sampled with value 1 when the first network packet of a response
@@ -37490,7 +37745,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.JSON.Blocked">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of blocked cross-site document responses due to having JSON
     content type header and contents sniffed as JSON. Sampled with value 1 when
@@ -37499,7 +37754,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.JSON.Blocked.NonRenderableStatusCode">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses with a nonrenderable HTTP status code among blocked
     cross-site document responses due to their JSON contents. Sampled with value
@@ -37509,7 +37764,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 
 <histogram name="SiteIsolation.XSD.JSON.Blocked.RenderableStatusCode"
     enum="ContentResourceType">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses with a renderable HTTP status code sub-categorized by
     their requesting context type (e.g., image, script, etc.), among blocked
@@ -37520,7 +37775,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.JSON.NoSniffBlocked.NonRenderableStatusCode">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses with a nonrenderable HTTP status code among blocked
     cross-site document responses due to having JSON content type and nosniff
@@ -37531,7 +37786,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 
 <histogram name="SiteIsolation.XSD.JSON.NoSniffBlocked.RenderableStatusCode"
     enum="ContentResourceType">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses with a renderable HTTP status code sub-categorized by
     their requesting context type (e.g., image, script, etc.), among blocked
@@ -37542,7 +37797,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.JSON.NotBlocked">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of not blocked responses despite having an JSON content type
     header due to the failure of content sniffing. Sampled with value 1 when the
@@ -37551,7 +37806,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.JSON.NotBlocked.MaybeJS">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses that may be parsed as JavaScript among not blocked
     responses with a JSON content type header. Sampled with value 1 when the
@@ -37560,7 +37815,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.MimeType" enum="SiteIsolationMimeType">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     MIME type codes for content type header values of potentially cross-site
     document responses, excluding same-site or not http(s) urls. Sampled with a
@@ -37570,7 +37825,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.Plain.HTML.Blocked">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of blocked cross-site document responses due to having Plain
     content type header and contents sniffed as HTML. Sampled with value 1 when
@@ -37579,7 +37834,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.Plain.HTML.Blocked.NonRenderableStatusCode">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses with a nonrenderable HTTP status code among blocked
     responses due to their Plain.HTML contents. Sampled with value 1 when the
@@ -37589,7 +37844,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 
 <histogram name="SiteIsolation.XSD.Plain.HTML.Blocked.RenderableStatusCode"
     enum="ContentResourceType">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses with a renderable HTTP status code sub-categorized by
     their requesting context type (e.g., image, script, etc.), among blocked
@@ -37600,7 +37855,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.Plain.JSON.Blocked">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of blocked cross-site document responses due to having Plain
     content type header and contents sniffed as JSON. Sampled with value 1 when
@@ -37609,7 +37864,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.Plain.JSON.Blocked.NonRenderableStatusCode">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses with a nonrenderable HTTP status code among blocked
     cross-site document responses due to their Plain.JSON contents. Sampled with
@@ -37620,7 +37875,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 
 <histogram name="SiteIsolation.XSD.Plain.JSON.Blocked.RenderableStatusCode"
     enum="ContentResourceType">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses with a renderable HTTP status code sub-categorized by
     their requesting context type (e.g., image, script, etc.), among blocked
@@ -37632,7 +37887,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 
 <histogram
     name="SiteIsolation.XSD.Plain.NoSniffBlocked.NonRenderableStatusCode">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses with a nonrenderable HTTP status code among blocked
     cross-site document responses due to having Plain content type and nosniff
@@ -37643,7 +37898,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 
 <histogram name="SiteIsolation.XSD.Plain.NoSniffBlocked.RenderableStatusCode"
     enum="ContentResourceType">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses with a renderable HTTP status code sub-categorized by
     their requesting context type (e.g., image, script, etc.), among blocked
@@ -37654,7 +37909,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.Plain.NotBlocked">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of not blocked responses despite having an Plain content type
     header due to the failure of content sniffing. Sampled with value 1 when the
@@ -37663,7 +37918,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.Plain.NotBlocked.MaybeJS">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses that may be parsed as JavaScript among not blocked
     responses with a Plain content type header. Sampled with value 1 when the
@@ -37672,7 +37927,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.Plain.XML.Blocked">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of blocked cross-site document responses due to having Plain
     content type header and contents sniffed as XML. Sampled with value 1 when
@@ -37681,7 +37936,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.Plain.XML.Blocked.NonRenderableStatusCode">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses with a nonrenderable HTTP status code among blocked
     cross-site document responses due to their Plain.XML contents. Sampled with
@@ -37692,7 +37947,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 
 <histogram name="SiteIsolation.XSD.Plain.XML.Blocked.RenderableStatusCode"
     enum="ContentResourceType">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses with renderable HTTP status codes sub-categorized by
     their requesting context type (e.g., image, script, etc.), among blocked
@@ -37703,7 +37958,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.XML.Blocked">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of blocked cross-site document responses due to having XML content
     type header and contents sniffed as XML. Sampled with value 1 when the first
@@ -37712,7 +37967,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.XML.Blocked.NonRenderableStatusCode">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses with nonrenderable HTTP status codes among blocked
     cross-site document responses due to their XML contents. Sampled with value
@@ -37722,7 +37977,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 
 <histogram name="SiteIsolation.XSD.XML.Blocked.RenderableStatusCode"
     enum="ContentResourceType">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses with renderable HTTP status codes sub-categorized by
     their requesting context type (e.g., image, script, etc.), among blocked
@@ -37733,7 +37988,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.XML.NoSniffBlocked.NonRenderableStatusCode">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses with a nonrenderable HTTP status code among blocked
     cross-site document responses due to having XML content type and nosniff
@@ -37744,7 +37999,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 
 <histogram name="SiteIsolation.XSD.XML.NoSniffBlocked.RenderableStatusCode"
     enum="ContentResourceType">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses with a renderable HTTP status code sub-categorized by
     their requesting context type (e.g., image, script, etc.), among blocked
@@ -37755,7 +38010,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.XML.NotBlocked">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of not blocked responses despite having an XML content type header
     due to the failure of content sniffing. Sampled with value 1 when the first
@@ -37764,7 +38019,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </histogram>
 
 <histogram name="SiteIsolation.XSD.XML.NotBlocked.MaybeJS">
-  <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
+  <owner>creis@chromium.org</owner>
   <summary>
     The count of responses that may be parsed as JavaScript among not blocked
     responses with an XML content type. Sampled with value 1 when the first
@@ -37796,6 +38051,14 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 <histogram name="SoftwareReporter.Cleaner.Version">
   <owner>mad@chromium.org</owner>
   <summary>The build version of the software reporter cleaner tool.</summary>
+</histogram>
+
+<histogram name="SoftwareReporter.FoundUwSReadError" enum="BooleanError">
+  <owner>mad@chromium.org</owner>
+  <summary>
+    Whether there was an error reading the registry key containing UwS found by
+    the Software Removal Tool.
+  </summary>
 </histogram>
 
 <histogram name="SoftwareReporter.LastUploadResult" enum="BooleanSuccess">
@@ -45428,6 +45691,9 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   <int value="51" label="Addr. line 3, Unknown"/>
   <int value="52" label="Addr. line 3, Match"/>
   <int value="53" label="Addr. line 3, Mismatch"/>
+  <int value="54" label="Username, Unknown"/>
+  <int value="55" label="Username, Match"/>
+  <int value="56" label="Username, Mismatch"/>
 </enum>
 
 <enum name="AutofillUnmaskPromptEvent" type="int">
@@ -45446,6 +45712,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   <int value="8" label="Local save stayed disabled"/>
   <int value="9" label="Did opt out of local save"/>
   <int value="10" label="Local save stayed enabled"/>
+  <int value="11" label="Closed, abandon unmasking"/>
 </enum>
 
 <enum name="AutofillUserHappiness" type="int">
@@ -45684,6 +45951,11 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   <int value="1" label="Enabled"/>
 </enum>
 
+<enum name="BooleanError" type="int">
+  <int value="0" label="No Error"/>
+  <int value="1" label="Error"/>
+</enum>
+
 <enum name="BooleanExpired" type="int">
   <int value="0" label="Unexpired"/>
   <int value="1" label="Expired"/>
@@ -45872,6 +46144,11 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 <enum name="BooleanTimedOut" type="int">
   <int value="0" label="Did not time out"/>
   <int value="1" label="Timed out"/>
+</enum>
+
+<enum name="BooleanTooMany" type="int">
+  <int value="0" label="Correct"/>
+  <int value="1" label="Too many"/>
 </enum>
 
 <enum name="BooleanUnknown" type="int">
@@ -46844,6 +47121,11 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   <int value="2" label="Clock Changed"/>
 </enum>
 
+<enum name="DarkResumeScanRetryResult" type="int">
+  <int value="0" label="Not Connected"/>
+  <int value="1" label="Connected"/>
+</enum>
+
 <enum name="DarkResumeUnmatchedScanResultReceived" type="int">
   <int value="0" label="False (all scan results match)"/>
   <int value="1" label="True (at least one unmatched scan result)"/>
@@ -46926,6 +47208,25 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   <int value="0" label="Proxy not available"/>
   <int value="1" label="Proxy available but not enabled"/>
   <int value="2" label="Proxy available and enabled"/>
+</enum>
+
+<enum name="DataReductionProxyUIAction" type="int">
+  <int value="0" label="Enabled directly from the promo"/>
+  <int value="1" label="Enabled then disabled from promo (iOS-only)"/>
+  <int value="2"
+      label="Promo settings link clicked, then enabled from settings"/>
+  <int value="3"
+      label="Promo settings link clicked, but not enabled from settings"/>
+  <int value="4" label="Promo dismissed (no action performed)"/>
+  <int value="5"
+      label="Arrived at settings menu by another path: entered off, exited
+             off"/>
+  <int value="6"
+      label="Arrived at settings menu by another path: entered off, exited on"/>
+  <int value="7"
+      label="Arrived at settings menu by another path: entered on, exited off"/>
+  <int value="8"
+      label="Arrived at settings menu by another path: entered on, exited on"/>
 </enum>
 
 <enum name="DefaultSearchChangeOrigin" type="int">
@@ -49677,14 +49978,17 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   <int value="982" label="DEVELOPERPRIVATE_DELETEEXTENSIONERRORS"/>
   <int value="983" label="FILEMANAGERPRIVATE_ISPIEXLOADERENABLED"/>
   <int value="984" label="HOTWORDPRIVATE_SPEAKERMODELEXISTSRESULT"/>
-  <int value="985" label="SETTINGSPRIVATE_SETBOOLEANPREF"/>
-  <int value="986" label="SETTINGSPRIVATE_SETNUMERICPREF"/>
-  <int value="987" label="SETTINGSPRIVATE_SETSTRINGPREF"/>
-  <int value="988" label="SETTINGSPRIVATE_SETURLPREF"/>
+  <int value="985" label="SETTINGSPRIVATE_SETPREF"/>
+  <int value="986" label="DELETED_SETTINGSPRIVATE_SETNUMERICPREF"/>
+  <int value="987" label="DELETED_SETTINGSPRIVATE_SETSTRINGPREF"/>
+  <int value="988" label="DELETED_SETTINGSPRIVATE_SETURLPREF"/>
   <int value="989" label="SETTINGSPRIVATE_GETALLPREFS"/>
   <int value="990" label="SETTINGSPRIVATE_GETPREF"/>
   <int value="991" label="NETWORKINGPRIVATE_FORGETNETWORK"/>
   <int value="992" label="EASYUNLOCKPRIVATE_HIDEERRORBUBBLE"/>
+  <int value="993" label="WEBVIEWINTERNAL_SETZOOMMODE"/>
+  <int value="994" label="WEBVIEWINTERNAL_GETZOOMMODE"/>
+  <int value="995" label="LAUNCHERSEARCHPROVIDER_SETSEARCHRESULTS"/>
 </enum>
 
 <enum name="ExtensionInstallCause" type="int">
@@ -50752,6 +51056,12 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   <int value="737" label="CryptoAlgorithmHkdf"/>
   <int value="738" label="CryptoAlgorithmPbkdf2"/>
   <int value="739" label="DocumentSetDomain"/>
+  <int value="740" label="UpgradeInsecureRequestsEnabled"/>
+  <int value="741" label="UpgradeInsecureRequestsUpgradedRequest"/>
+  <int value="742" label="DocumentDesignMode"/>
+  <int value="743" label="GlobalCacheStorage"/>
+  <int value="744" label="NetInfo"/>
+  <int value="745" label="BackgroundSync"/>
 </enum>
 
 <enum name="FFmpegCodecs" type="int">
@@ -51221,6 +51531,15 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   <int value="2" label="Started browser process">
     Total number of browser processes.
   </int>
+</enum>
+
+<enum name="FormDataDeserializationStatus" type="int">
+  <int value="0" label="Login database success"/>
+  <int value="1" label="Login database failure"/>
+  <int value="2" label="Libsecret success"/>
+  <int value="3" label="Libsecret failure"/>
+  <int value="4" label="GNOME success"/>
+  <int value="5" label="GNOME failure"/>
 </enum>
 
 <enum name="FtpDataConnectionError" type="int">
@@ -53523,6 +53842,7 @@ To add a new entry, add it with any value and run test to compute valid value.
   <int value="-1056310158" label="disable-memory-pressure-chromeos"/>
   <int value="-1052782474" label="enable-cloud-devices"/>
   <int value="-1052415111" label="malware-interstitial-v2"/>
+  <int value="-1052219252" label="disable-captive-portal-bypass-proxy"/>
   <int value="-1022971520" label="enable-search-button-in-omnibox-for-str"/>
   <int value="-996673716" label="enable-web-app-frame"/>
   <int value="-979057409" label="enable-seccomp-filter-sandbox"/>
@@ -53632,6 +53952,7 @@ To add a new entry, add it with any value and run test to compute valid value.
   <int value="147373243" label="enable-deferred-image-decoding"/>
   <int value="180074362" label="memory-pressure-thresholds"/>
   <int value="203776499" label="enable-virtual-keyboard-overscroll"/>
+  <int value="266702296" label="disable-plugin-power-saver"/>
   <int value="270267831" label="enable-scripts-require-action"/>
   <int value="278756320" label="disable-app-list-app-info"/>
   <int value="346711293" label="enable-save-password-bubble"/>
@@ -53709,6 +54030,7 @@ To add a new entry, add it with any value and run test to compute valid value.
   <int value="1105439588" label="enable-swipe-selection"/>
   <int value="1107543566" label="enable-one-copy"/>
   <int value="1108663108" label="disable-device-discovery-notifications"/>
+  <int value="1118109174" label="enable-launcher-search-provider-api"/>
   <int value="1129888794" label="ash-touch-hud"/>
   <int value="1133635187" label="force-gpu-rasterization"/>
   <int value="1139226452" label="enable-nacl-debug"/>
@@ -55315,6 +55637,11 @@ To add a new entry, add it with any value and run test to compute valid value.
   <int value="11" label="Both Buttons Shown, Reload Clicked"/>
 </enum>
 
+<enum name="NetInternalsUiFeature" type="int">
+  <int value="0" label="NetInternals"/>
+  <int value="1" label="Connection tester"/>
+</enum>
+
 <enum name="NetPreconnectUtilization" type="int">
   <int value="0" label="non-speculative, never connected"/>
   <int value="1" label="non-speculative, never used"/>
@@ -55715,6 +56042,13 @@ To add a new entry, add it with any value and run test to compute valid value.
   <int value="5" label="Notification displayed"/>
   <int value="6" label="Notification closed by user"/>
   <int value="7" label="Notification closed by system"/>
+</enum>
+
+<enum name="NotificationDatabaseStatus" type="int">
+  <int value="0" label="OK"/>
+  <int value="1" label="Not found error"/>
+  <int value="2" label="Corruption error"/>
+  <int value="3" label="Failure error"/>
 </enum>
 
 <enum name="NotStreamingReason" type="int">
@@ -56999,6 +57333,7 @@ To add a new entry, add it with any value and run test to compute valid value.
   <int value="1360443600" label="PPB_OpenGLES2FramebufferMultisample;1.0"/>
   <int value="1374404330" label="PPB_BrokerTrusted;0.3"/>
   <int value="1374976378" label="PPB_OpenGLES2Query;1.0"/>
+  <int value="1423820530" label="PPB_ContentDecryptor_Private;0.14"/>
   <int value="1437724812" label="PPB_AudioConfig;1.0"/>
   <int value="1443771913" label="PPB_NetAddress;1.0"/>
   <int value="1502481774" label="PPB_OpenGLES2ChromiumMapSub(Dev);1.0"/>
@@ -62489,6 +62824,14 @@ To add a new entry, add it with any value and run test to compute valid value.
   <affected-histogram name="Autofill.FormEvents.CreditCard"/>
 </histogram_suffixes>
 
+<histogram_suffixes name="AutofillRealPanResultGroups" separator=".">
+  <suffix name="Failure" label="Failure"/>
+  <suffix name="NetworkError" label="Network errors"/>
+  <suffix name="Success" label="Success"/>
+  <affected-histogram name="Autofill.UnmaskPrompt.GetRealPanDuration"/>
+  <affected-histogram name="Autofill.UnmaskPrompt.UnmaskingDuration"/>
+</histogram_suffixes>
+
 <histogram_suffixes name="AutofillServerExperiments">
   <suffix name="ar06" label="Acceptance ratio: 0.6"/>
   <suffix name="ar1" label="Acceptance ratio: 1.0"/>
@@ -62526,6 +62869,14 @@ To add a new entry, add it with any value and run test to compute valid value.
   <affected-histogram name="Autofill.Quality.PredictedType.ByFieldType"/>
   <affected-histogram name="Autofill.Quality.ServerType"/>
   <affected-histogram name="Autofill.Quality.ServerType.ByFieldType"/>
+</histogram_suffixes>
+
+<histogram_suffixes name="AutofillUnmaskPromptCloseReasonEvents" separator=".">
+  <suffix name="Failure" label="Failure"/>
+  <suffix name="NoAttempts" label="No attempts"/>
+  <suffix name="Success" label="Success"/>
+  <suffix name="AbandonUnmasking" label="Abandon unmasking"/>
+  <affected-histogram name="Autofill.UnmaskPrompt.Duration"/>
 </histogram_suffixes>
 
 <histogram_suffixes name="BadBlockCounts" separator=".">

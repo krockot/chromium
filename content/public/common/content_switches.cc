@@ -286,6 +286,10 @@ const char kDisableAcceleratedJpegDecoding[] =
 const char kEnableBleedingEdgeRenderingFastPaths[] =
     "enable-bleeding-edge-rendering-fast-paths";
 
+// Enables new cc/animation system (Project Heaviside). crbug.com/394772
+const char kEnableCompositorAnimationTimelines[] =
+    "enable-compositor-animation-timelines";
+
 // Enables LCD text.
 const char kEnableLCDText[]                 = "enable-lcd-text";
 
@@ -417,6 +421,11 @@ const char kEnableSmoothScrolling[]         = "enable-smooth-scrolling";
 
 // Enable spatial navigation
 const char kEnableSpatialNavigation[]       = "enable-spatial-navigation";
+
+// Enables implementation of the Cache-Control: stale-while-revalidate directive
+// which permits servers to allow the use of stale resources while revalidation
+// proceeds in the background.
+const char kEnableStaleWhileRevalidate[]    = "enable-stale-while-revalidate";
 
 // Enables StatsTable, logging statistics to a global named shared memory table.
 const char kEnableStatsTable[]              = "enable-stats-table";
@@ -976,11 +985,6 @@ const char kFontCacheSharedMemSuffix[] = "font-cache-shared-mem-suffix";
 
 // Enables the use of NPAPI plugins.
 const char kEnableNpapi[]                   = "enable-npapi";
-
-#if defined(ENABLE_PLUGINS)
-// Enables the plugin power saver feature.
-const char kEnablePluginPowerSaver[] = "enable-plugin-power-saver";
-#endif
 
 // Don't dump stuff here, follow the same order as the header.
 

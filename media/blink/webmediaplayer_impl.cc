@@ -26,6 +26,7 @@
 #include "media/audio/null_audio_sink.h"
 #include "media/base/bind_to_current_loop.h"
 #include "media/base/cdm_context.h"
+#include "media/base/key_systems.h"
 #include "media/base/limits.h"
 #include "media/base/media_log.h"
 #include "media/base/pipeline.h"
@@ -102,24 +103,6 @@ STATIC_ASSERT_MATCHING_ENUM(UseCredentials);
 #define BIND_TO_RENDER_LOOP1(function, arg1) \
   (DCHECK(main_task_runner_->BelongsToCurrentThread()), \
   BindToCurrentLoop(base::Bind(function, AsWeakPtr(), arg1)))
-
-static void AddLogEntry(const scoped_refptr<MediaLog>& media_log,
-                        MediaLog::MediaLogLevel level,
-                        const std::string& message) {
-  media_log->AddEvent(media_log->CreateLogEvent(level, message));
-}
-
-static blink::WebEncryptedMediaInitDataType ConvertInitDataType(
-    const std::string& init_data_type) {
-  if (init_data_type == "cenc")
-    return blink::WebEncryptedMediaInitDataType::Cenc;
-  if (init_data_type == "keyids")
-    return blink::WebEncryptedMediaInitDataType::Keyids;
-  if (init_data_type == "webm")
-    return blink::WebEncryptedMediaInitDataType::Webm;
-  NOTREACHED() << "unexpected " << init_data_type;
-  return blink::WebEncryptedMediaInitDataType::Unknown;
-}
 
 WebMediaPlayerImpl::WebMediaPlayerImpl(
     blink::WebLocalFrame* frame,
@@ -700,9 +683,10 @@ void WebMediaPlayerImpl::OnEncryptedMediaInitData(
 
   encrypted_media_support_.SetInitDataType(init_data_type);
 
-  client_->encrypted(ConvertInitDataType(init_data_type),
-                     vector_as_array(&init_data),
-                     base::saturated_cast<unsigned int>(init_data.size()));
+  client_->encrypted(
+      ConvertToWebInitDataType(GetInitDataTypeForName(init_data_type)),
+      vector_as_array(&init_data),
+      base::saturated_cast<unsigned int>(init_data.size()));
 }
 
 void WebMediaPlayerImpl::OnWaitingForDecryptionKey() {
@@ -837,7 +821,7 @@ void WebMediaPlayerImpl::OnPipelineBufferingStateChanged(
 void WebMediaPlayerImpl::OnDemuxerOpened() {
   DCHECK(main_task_runner_->BelongsToCurrentThread());
   client_->mediaSourceOpened(new WebMediaSourceImpl(
-      chunk_demuxer_, base::Bind(&AddLogEntry, media_log_)));
+      chunk_demuxer_, base::Bind(&MediaLog::AddLogEvent, media_log_)));
 }
 
 void WebMediaPlayerImpl::OnAddTextTrack(
@@ -907,7 +891,7 @@ void WebMediaPlayerImpl::StartPipeline() {
     DCHECK(!chunk_demuxer_);
     DCHECK(!data_source_);
 
-    mse_log_cb = base::Bind(&AddLogEntry, media_log_);
+    mse_log_cb = base::Bind(&MediaLog::AddLogEvent, media_log_);
 
     chunk_demuxer_ = new ChunkDemuxer(
         BIND_TO_RENDER_LOOP(&WebMediaPlayerImpl::OnDemuxerOpened),

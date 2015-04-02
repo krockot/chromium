@@ -209,8 +209,9 @@ class CONTENT_EXPORT PepperPluginInstanceImpl
   bool HandleInputEvent(const blink::WebInputEvent& event,
                         blink::WebCursorInfo* cursor_info);
   PP_Var GetInstanceObject(v8::Isolate* isolate);
-  void ViewChanged(const gfx::Rect& position,
+  void ViewChanged(const gfx::Rect& window,
                    const gfx::Rect& clip,
+                   const gfx::Rect& unobscured,
                    const std::vector<gfx::Rect>& cut_outs_rects);
 
   // Handlers for composition events.
@@ -490,11 +491,11 @@ class CONTENT_EXPORT PepperPluginInstanceImpl
                                PP_Var session_id_var,
                                PP_Time new_expiry_time) override;
   void SessionClosed(PP_Instance instance, PP_Var session_id_var) override;
-  void SessionError(PP_Instance instance,
-                    PP_Var session_id_var,
-                    PP_CdmExceptionCode exception_code,
-                    uint32 system_code,
-                    PP_Var error_description_var) override;
+  void LegacySessionError(PP_Instance instance,
+                          PP_Var session_id_var,
+                          PP_CdmExceptionCode exception_code,
+                          uint32 system_code,
+                          PP_Var error_description_var) override;
   void DeliverBlock(PP_Instance instance,
                     PP_Resource decrypted_block,
                     const PP_DecryptedBlockInfo* block_info) override;
@@ -742,6 +743,8 @@ class CONTENT_EXPORT PepperPluginInstanceImpl
   // The last state sent to the plugin. It is only valid after
   // |sent_initial_did_change_view_| is set to true.
   ppapi::ViewData last_sent_view_data_;
+  // The current unobscured portion of the plugin.
+  gfx::Rect unobscured_rect_;
 
   // Indicates if we've ever sent a didChangeView to the plugin. This ensures we
   // always send an initial notification, even if the position and clip are the

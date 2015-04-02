@@ -30,20 +30,40 @@ const struct sched_param kRealTimePrio = {8};
 }  // namespace
 
 const ThreadPriorityToNiceValuePair kThreadPriorityToNiceValueMap[4] = {
-  { kThreadPriority_RealtimeAudio, -10 },
-  { kThreadPriority_Background, 10 },
-  { kThreadPriority_Normal, 0 },
-  { kThreadPriority_Display, -6 },
+    {ThreadPriority::BACKGROUND, 10},
+    {ThreadPriority::NORMAL, 0},
+    {ThreadPriority::DISPLAY, -6},
+    {ThreadPriority::REALTIME_AUDIO, -10},
 }
 
-bool HandleSetThreadPriorityForPlatform(PlatformThreadHandle handle,
-                                        ThreadPriority priority) {
+bool SetThreadPriorityForPlatform(PlatformThreadHandle handle,
+                                  ThreadPriority priority) {
 #if !defined(OS_NACL)
-  return priority == kThreadPriority_RealtimeAudio &&
+  // TODO(gab): Assess the correctness of using |pthread_self()| below instead
+  // of |handle|. http://crbug.com/468793.
+  return priority == ThreadPriority::REALTIME_AUDIO &&
          pthread_setschedparam(pthread_self(), SCHED_RR, &kRealTimePrio) == 0;
 #else
   return false;
 #endif
+}
+
+bool GetThreadPriorityForPlatform(PlatformThreadHandle handle,
+                                  ThreadPriority* priority) {
+#if !defined(OS_NACL)
+  // TODO(gab): Assess the correctness of using |pthread_self()| below instead
+  // of |handle|. http://crbug.com/468793.
+  int maybe_sched_rr = 0;
+  struct sched_param maybe_realtime_prio = {0};
+  if (pthread_getschedparam(pthread_self(), &maybe_sched_rr,
+                            &maybe_realtime_prio) == 0 &&
+      maybe_sched_rr == SCHED_RR &&
+      maybe_realtime_prio.sched_priority == kRealTimePrio.sched_priority) {
+    *priority = ThreadPriority::REALTIME_AUDIO;
+    return true;
+  }
+#endif
+  return false;
 }
 
 }  // namespace internal

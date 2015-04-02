@@ -155,6 +155,12 @@ arm_list="libc6-dev-armhf-cross
           linux-libc-dev-armhf-cross
           g++-arm-linux-gnueabihf"
 
+# Work around for dependency issue Ubuntu/Trusty: http://crbug.com/435056
+if [ "x$lsb_release" = "xtrusty" ]; then
+  arm_list+=" g++-4.8-multilib-arm-linux-gnueabihf
+              gcc-4.8-multilib-arm-linux-gnueabihf"
+fi
+
 # Packages to build NaCl, its toolchains, and its ports.
 naclports_list="ant autoconf bison cmake gawk intltool xutils-dev xsltproc"
 nacl_list="g++-mingw-w64-i686 lib32z1-dev
@@ -360,7 +366,7 @@ if test "$do_inst_lib32" = "1" || test "$do_inst_nacl" = "1"; then
     sudo dpkg --add-architecture i386
   fi
 fi
-#sudo apt-get update
+sudo apt-get update
 
 # We initially run "apt-get" with the --reinstall option and parse its output.
 # This way, we can find all the packages that need to be newly installed

@@ -387,6 +387,8 @@ std::vector<APIPermissionInfo*> ChromeAPIPermissions::GetAllPermissions()
        IDS_EXTENSION_PROMPT_WARNING_FILE_SYSTEM_DIRECTORY,
        PermissionMessage::kFileSystemDirectory},
       {APIPermission::kFileSystemProvider, "fileSystemProvider"},
+      {APIPermission::kFileSystemRequestFileSystem,
+       "fileSystem.requestFileSystem"},
       {APIPermission::kFileSystemRetainEntries, "fileSystem.retainEntries"},
       {APIPermission::kFileSystemWrite, "fileSystem.write"},
       {APIPermission::kFileSystemWriteDirectory,
@@ -413,6 +415,7 @@ std::vector<APIPermissionInfo*> ChromeAPIPermissions::GetAllPermissions()
        APIPermissionInfo::kFlagNone,
        IDS_EXTENSION_PROMPT_WARNING_INTERCEPT_ALL_KEYS,
        PermissionMessage::kInterceptAllKeys},
+      {APIPermission::kLauncherSearchProvider, "launcherSearchProvider"},
 
       // Settings override permissions.
       {APIPermission::kHomepage,

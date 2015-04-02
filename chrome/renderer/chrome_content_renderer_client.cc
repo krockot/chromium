@@ -759,19 +759,13 @@ WebPlugin* ChromeContentRendererClient::CreatePlugin(
       status_value = ChromeViewHostMsg_GetPluginInfo_Status::kAllowed;
     }
 
-#if defined(ENABLE_PLUGINS)
-    if (status_value == ChromeViewHostMsg_GetPluginInfo_Status::kAllowed &&
-        base::CommandLine::ForCurrentProcess()->HasSwitch(
-            switches::kEnablePluginPowerSaver)) {
-      status_value =
-          ChromeViewHostMsg_GetPluginInfo_Status::kPlayImportantContent;
-    }
-#endif
-
 #if defined(OS_WIN)
     // In Windows we need to check if we can load NPAPI plugins.
     // For example, if the render view is in the Ash desktop, we should not.
-    if (status_value == ChromeViewHostMsg_GetPluginInfo_Status::kAllowed &&
+    // If user is on ALLOW or DETECT setting, loading needs to be blocked here.
+    if ((status_value == ChromeViewHostMsg_GetPluginInfo_Status::kAllowed ||
+         status_value ==
+             ChromeViewHostMsg_GetPluginInfo_Status::kPlayImportantContent) &&
         info.type == content::WebPluginInfo::PLUGIN_TYPE_NPAPI) {
         if (observer->AreNPAPIPluginsBlocked())
           status_value =
@@ -784,7 +778,7 @@ WebPlugin* ChromeContentRendererClient::CreatePlugin(
             int template_id, const base::string16& message) {
           return ChromePluginPlaceholder::CreateBlockedPlugin(
               render_frame, frame, params, info, identifier, group_name,
-              template_id, message, std::string(), GURL());
+              template_id, message, PlaceholderPosterInfo());
         };
     switch (status_value) {
       case ChromeViewHostMsg_GetPluginInfo_Status::kNotFound: {
@@ -855,35 +849,43 @@ WebPlugin* ChromeContentRendererClient::CreatePlugin(
 #endif  // !defined(DISABLE_NACL) && defined(ENABLE_EXTENSIONS)
 
 #if defined(ENABLE_PLUGINS)
-        bool power_saver_enabled =
-            status_value ==
-            ChromeViewHostMsg_GetPluginInfo_Status::kPlayImportantContent;
-        bool blocked_for_background_tab =
-            render_frame->IsHidden() && power_saver_enabled;
-
-        if (info.name == ASCIIToUTF16(content::kFlashPluginName))
-          TrackPosterParamPresence(params, power_saver_enabled);
-
-        std::string poster_attribute;
-        if (power_saver_enabled)
-          poster_attribute = GetPluginInstancePosterAttribute(params);
-
         // Delay loading plugins if prerendering.
         // TODO(mmenke):  In the case of prerendering, feed into
         //                ChromeContentRendererClient::CreatePlugin instead, to
         //                reduce the chance of future regressions.
         bool is_prerendering =
             prerender::PrerenderHelper::IsPrerendering(render_frame);
-        if (blocked_for_background_tab || is_prerendering ||
-            !poster_attribute.empty()) {
+
+        // TODO(tommycli): Plugin Power Saver is disabled on prerendered pages.
+        // This is because the placeholder does not feed back into
+        // ChromeContentRendererClient::CreatePlugin. Because of this, it does
+        // not handle the preroll to UI overlay placeholder flow correctly.
+        //
+        // Background tab plugin deferral is disabled for the same reason.
+        //
+        // https://crbug.com/471427
+        bool power_saver_enabled =
+            !is_prerendering &&
+            status_value ==
+                ChromeViewHostMsg_GetPluginInfo_Status::kPlayImportantContent;
+
+        if (info.name == ASCIIToUTF16(content::kFlashPluginName))
+          TrackPosterParamPresence(params, power_saver_enabled);
+
+        PlaceholderPosterInfo poster_info;
+        if (power_saver_enabled) {
+          poster_info.poster_attribute =
+              GetPluginInstancePosterAttribute(params);
+          poster_info.base_url = frame->document().url();
+        }
+
+        if (is_prerendering || !poster_info.poster_attribute.empty()) {
           placeholder = ChromePluginPlaceholder::CreateBlockedPlugin(
               render_frame, frame, params, info, identifier, group_name,
-              poster_attribute.empty() ? IDR_BLOCKED_PLUGIN_HTML
-                                       : IDR_PLUGIN_POSTER_HTML,
+              poster_info.poster_attribute.empty() ? IDR_BLOCKED_PLUGIN_HTML
+                                                   : IDR_PLUGIN_POSTER_HTML,
               l10n_util::GetStringFUTF16(IDS_PLUGIN_BLOCKED, group_name),
-              poster_attribute, frame->document().url());
-          placeholder->set_blocked_for_background_tab(
-              blocked_for_background_tab);
+              poster_info);
           placeholder->set_blocked_for_prerendering(is_prerendering);
           placeholder->set_power_saver_enabled(power_saver_enabled);
           placeholder->set_allow_loading(true);
