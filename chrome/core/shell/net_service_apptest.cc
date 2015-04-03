@@ -5,6 +5,7 @@
 #include "base/bind.h"
 #include "base/callback.h"
 #include "base/logging.h"
+#include "base/message_loop/message_loop_proxy.h"
 #include "base/run_loop.h"
 #include "chrome/core/application_host/chrome_core_application_host_client.h"
 #include "chrome/test/base/in_process_browser_test.h"
@@ -106,7 +107,9 @@ class TestCoreApplicationHostClient : public ChromeCoreApplicationHostClient {
 
 void CoreAppTest::WaitForAppExit() {
   base::RunLoop run_loop;
-  quit_closure_ = run_loop.QuitClosure();
+  quit_closure_ = base::Bind(
+      base::IgnoreResult(&base::TaskRunner::PostTask),
+      base::MessageLoopProxy::current(), FROM_HERE, run_loop.QuitClosure());
   run_loop.Run();
 }
 
