@@ -8,7 +8,11 @@ import("//third_party/mojo/src/mojo/public/tools/bindings/mojom.gni")
 
 mojom("interfaces") {
   sources = [
+    "application_broker.mojom",
     "application_host_service.mojom",
+    "process.mojom",
+    "sandbox.mojom",
+    "shell_private.mojom",
   ]
 
   public_deps = [

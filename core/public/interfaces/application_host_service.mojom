@@ -4,8 +4,20 @@
 
 module core;
 
-import "mojo/public/interfaces/application/shell.mojom";
+import "mojo/public/interfaces/application/application.mojom";
+
+enum LaunchError {
+  // You may have problems, but this launch isn't one of them.
+  OK,
+
+  // The application resource could not be loaded.
+  NOT_FOUND,
+
+  // The Application resource was loaded but is malformed in some way.
+  INVAILD_APPLICATION,
+};
 
 interface ApplicationHostService {
-  Initialize(mojo.Shell shell);
+  LaunchApplication(string url)
+      => (LaunchError result, mojo.Application? application);
 };
