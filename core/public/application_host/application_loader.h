@@ -17,34 +17,11 @@ namespace core {
 
 class ApplicationLoader {
  public:
-  // The result of an application load request. If the load was successful,
-  // this will yield a valid EntryPoint which can be used to launch the app.
-  // Otherwise the original Application request can be recovered.
-  class Result {
-   public:
-    explicit Result(scoped_ptr<EntryPoint> entry_point);
-    explicit Result(
-        mojo::InterfaceRequest<mojo::Application> application_request);
-    ~Result();
-
-    // Indicates if loading failed. If true, |GetEntryPoint()| will return an
-    // invalid pointer and |PassRequest()| can be use to recover the original
-    // Application request.
-    bool Failed() const;
-
-    // Pass the EntryPoint off to the caller. Returns null if loading failed.
-    scoped_ptr<EntryPoint> PassEntryPoint();
-
-    // Pass the original Application request off to the caller if loading
-    // failed. Otherwise this returns an unbound request.
-    mojo::InterfaceRequest<mojo::Application> PassRequest();
-
-   private:
-    scoped_ptr<EntryPoint> entry_point_;
-    mojo::InterfaceRequest<mojo::Application> application_request_;
-  };
-
-  using LoadCallback = base::Callback<void(scoped_ptr<Result> result)>;
+  using SuccessCallback =
+      base::Callback<void(scoped_ptr<EntryPoint> entry_point)>;
+  using FailureCallback =
+      base::Callback<void(
+          mojo::InterfaceRequest<mojo::Application> application)>;
 
   virtual ~ApplicationLoader() {}
 
@@ -57,17 +34,10 @@ class ApplicationLoader {
   static scoped_ptr<ApplicationLoader> CreateForFactory(
       const ApplicationFactory& factory);
 
-  // These are for convenient construction of Result objects for success or
-  // failure.
-  static scoped_ptr<Result> CreateSuccessResult(
-      mojo::InterfaceRequest<mojo::Application> application_request,
-      const EntryPoint::MainFunction& main_function);
-  static scoped_ptr<Result> CreateFailureResult(
-      mojo::InterfaceRequest<mojo::Application> aplplication_request);
-
   virtual void Load(
       mojo::InterfaceRequest<mojo::Application> application_request,
-      const LoadCallback& callback) = 0;
+      const SuccessCallback& success_callback,
+      const FailureCallback& failure_callback) = 0;
 };
 
 }  // namespace core

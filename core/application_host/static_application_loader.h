@@ -19,10 +19,12 @@ class StaticApplicationLoader : public core::ApplicationLoader {
   StaticApplicationLoader(const core::ApplicationFactory& factory);
   ~StaticApplicationLoader() override;
 
-  // core::ApplicationLoader:
-  void Load(mojo::InterfaceRequest<mojo::Application> application_request,
-            const LoadCallback& callback) override;
  private:
+  // ApplicationLoader:
+  void Load(mojo::InterfaceRequest<mojo::Application> application_request,
+            const SuccessCallback& success_callback,
+            const FailureCallback& failure_callback) override;
+
   void Start(MojoHandle application_request_handle);
 
   core::ApplicationFactory factory_;

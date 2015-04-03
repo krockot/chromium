@@ -19,10 +19,12 @@ StaticApplicationLoader::~StaticApplicationLoader() {
 
 void StaticApplicationLoader::Load(
     mojo::InterfaceRequest<mojo::Application> application_request,
-    const LoadCallback& callback) {
-  callback.Run(CreateSuccessResult(application_request.Pass(),
-                                   base::Bind(&StaticApplicationLoader::Start,
-                                              weak_factory_.GetWeakPtr())));
+    const SuccessCallback& success_callback,
+    const FailureCallback& failure_callback) {
+  success_callback.Run(make_scoped_ptr(new EntryPoint(
+      application_request.Pass(),
+      base::Bind(&StaticApplicationLoader::Start,
+                 weak_factory_.GetWeakPtr()))));
 }
 
 void StaticApplicationLoader::Start(MojoHandle application_request_handle) {

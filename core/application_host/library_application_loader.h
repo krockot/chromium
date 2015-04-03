@@ -21,11 +21,12 @@ class LibraryApplicationLoader : public ApplicationLoader {
   LibraryApplicationLoader(const std::string& library_name);
   ~LibraryApplicationLoader() override;
 
+ private:
   // ApplicationLoader:
   void Load(mojo::InterfaceRequest<mojo::Application> application_request,
-            const LoadCallback& callback) override;
+            const SuccessCallback& success_callback,
+            const FailureCallback& failure_callback) override;
 
- private:
   class PendingLoad;
 
   void CompletePendingLoads();

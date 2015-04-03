@@ -9,7 +9,7 @@
 #include "base/stl_util.h"
 #include "base/strings/stringprintf.h"
 #include "core/application_host/application_host_impl.h"
-#include "core/common/application_connection_impl.h"
+ #include "core/common/application_connection_impl.h"
 #include "core/public/common/core_client.h"
 #include "url/gurl.h"
 
@@ -46,18 +46,25 @@ class ShellImpl::ApplicationInstance : public mojo::ErrorHandler,
   // mojo::ErrorHandler:
   void OnConnectionError() override;
 
+  void OnApplicationLaunched(LaunchError result);
+
   ShellImpl* shell_;
   GURL url_;
   mojo::Binding<mojo::Shell> binding_;
   mojo::ApplicationPtr proxy_;
+
+  base::WeakPtrFactory<ApplicationInstance> weak_factory_;
 };
 
 ShellImpl::ApplicationInstance::ApplicationInstance(ShellImpl* shell,
                                                     const GURL& url)
-    : shell_(shell), url_(url), binding_(this) {
+    : shell_(shell), url_(url), binding_(this), weak_factory_(this) {
   binding_.set_error_handler(this);
   shell_->in_process_application_host_->LaunchApplication(
-      url_, mojo::GetProxy(&proxy_));
+      mojo::String::From(url_.spec()),
+      mojo::GetProxy(&proxy_),
+      base::Bind(&ApplicationInstance::OnApplicationLaunched,
+                 weak_factory_.GetWeakPtr()));
   mojo::ScopedMessagePipeHandle handle(proxy_.PassMessagePipe());
   proxy_.Bind(handle.Pass());
 }
@@ -73,6 +80,11 @@ void ShellImpl::ApplicationInstance::Initialize() {
 }
 
 void ShellImpl::ApplicationInstance::OnConnectionError() {
+  shell_->DestroyApplicationInstance(url_.spec());
+}
+
+void ShellImpl::ApplicationInstance::OnApplicationLaunched(LaunchError result) {
+  LOG(ERROR) << "Failed to launch " << url_.spec() << ": " << result;
   shell_->DestroyApplicationInstance(url_.spec());
 }
 

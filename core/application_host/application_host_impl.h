@@ -9,9 +9,8 @@
 #include "base/macros.h"
 #include "base/memory/scoped_ptr.h"
 #include "base/memory/weak_ptr.h"
-#include "core/public/application_host/application_host.h"
 #include "core/public/application_host/application_loader.h"
-#include "core/public/interfaces/application_host_service.mojom.h"
+#include "core/public/interfaces/application_host.mojom.h"
 
 namespace core {
 
@@ -24,16 +23,22 @@ class ApplicationHostImpl : public ApplicationHost {
   ApplicationHostImpl();
   ~ApplicationHostImpl() override;
 
+  // ApplicationHost:
   void LaunchApplication(
-      const GURL& url,
-      mojo::InterfaceRequest<mojo::Application> request) override;
+      const mojo::String& application_url,
+      mojo::InterfaceRequest<mojo::Application> application,
+      const LaunchApplicationCallback& callback) override;
 
  private:
   class ApplicationContainer;
   friend class ApplicationContainer;
 
-  void OnApplicationLoaded(const GURL& url,
-                           scoped_ptr<ApplicationLoader::Result> result);
+  void OnApplicationLoadSuccess(
+      const GURL& url,
+      scoped_ptr<EntryPoint> entry_point);
+  void OnApplicationLoadFailure(
+      const GURL& url,
+      mojo::InterfaceRequest<mojo::Application> application);
 
   void DestroyApplicationContainer(ApplicationContainer* container);
 

@@ -61,20 +61,25 @@ EntryPoint::MainFunction BindMainFunction(RawMainFunctionType main_function) {
 class LibraryApplicationLoader::PendingLoad {
  public:
   PendingLoad(mojo::InterfaceRequest<mojo::Application> application_request,
-              const LoadCallback& callback);
+              const SuccessCallback& success_callback,
+              const FailureCallback& failure_callback);
   ~PendingLoad();
 
   void Complete(EntryPoint::MainFunction main_function);
 
  private:
   mojo::InterfaceRequest<mojo::Application> application_request_;
-  LoadCallback callback_;
+  SuccessCallback success_callback_;
+  FailureCallback failure_callback_;
 };
 
 LibraryApplicationLoader::PendingLoad::PendingLoad(
     mojo::InterfaceRequest<mojo::Application> application_request,
-    const LoadCallback& callback)
-    : application_request_(application_request.Pass()), callback_(callback) {
+    const SuccessCallback& success_callback,
+    const FailureCallback& failure_callback)
+    : application_request_(application_request.Pass()),
+      success_callback_(success_callback),
+      failure_callback_(failure_callback) {
 }
 
 LibraryApplicationLoader::PendingLoad::~PendingLoad() {
@@ -82,11 +87,12 @@ LibraryApplicationLoader::PendingLoad::~PendingLoad() {
 
 void LibraryApplicationLoader::PendingLoad::Complete(
     EntryPoint::MainFunction main_function) {
-  if (main_function.is_null())
-    callback_.Run(CreateFailureResult(application_request_.Pass()));
-  else
-    callback_.Run(
-        CreateSuccessResult(application_request_.Pass(), main_function));
+  if (main_function.is_null()) {
+    failure_callback_.Run(application_request_.Pass());
+  } else {
+    success_callback_.Run(make_scoped_ptr(new EntryPoint(
+        application_request_.Pass(), main_function)));
+  }
 }
 
 scoped_ptr<ApplicationLoader> ApplicationLoader::CreateForLibrary(
@@ -108,16 +114,18 @@ LibraryApplicationLoader::~LibraryApplicationLoader() {
 
 void LibraryApplicationLoader::Load(
     mojo::InterfaceRequest<mojo::Application> application_request,
-    const LoadCallback& callback) {
+    const SuccessCallback& success_callback,
+    const FailureCallback& failure_callback) {
   if (library_.is_valid()) {
     DCHECK(!main_function_.is_null());
-    callback.Run(
-        CreateSuccessResult(application_request.Pass(), main_function_));
+    success_callback.Run(make_scoped_ptr(new EntryPoint(
+        application_request.Pass(), main_function_)));
     return;
   }
 
   pending_loads_.push_back(
-      new PendingLoad(application_request.Pass(), callback));
+      new PendingLoad(application_request.Pass(), success_callback,
+                      failure_callback));
   // If this isn't the only pending load, there's already one in progress.
   if (pending_loads_.size() > 1)
     return;

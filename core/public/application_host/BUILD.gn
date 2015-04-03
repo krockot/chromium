@@ -6,9 +6,7 @@ assert(enable_chrome_core)
 
 source_set("application_host") {
   sources = [
-    "application_host.h",
     "application_loader.h",
-    "application_loader.cc",
     "application_registry.h",
     "core_application_host_client.cc",
     "core_application_host_client.h",

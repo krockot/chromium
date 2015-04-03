@@ -9,7 +9,7 @@ import("//third_party/mojo/src/mojo/public/tools/bindings/mojom.gni")
 mojom("interfaces") {
   sources = [
     "application_broker.mojom",
-    "application_host_service.mojom",
+    "application_host.mojom",
     "process.mojom",
     "sandbox.mojom",
     "shell_private.mojom",

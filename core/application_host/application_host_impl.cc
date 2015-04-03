@@ -76,29 +76,35 @@ ApplicationHostImpl::~ApplicationHostImpl() {
 }
 
 void ApplicationHostImpl::LaunchApplication(
-    const GURL& url,
-    mojo::InterfaceRequest<mojo::Application> request) {
+    const mojo::String& application_url,
+    mojo::InterfaceRequest<mojo::Application> application,
+    const LaunchApplicationCallback& callback) {
+  GURL url = GURL(application_url.To<std::string>());
   ApplicationLoader* loader = registry_->GetApplicationLoader(url);
   if (!loader) {
     LOG(ERROR) << "Unable to launch unregistered application: " << url.spec();
     return;
   }
-
-  loader->Load(request.Pass(),
-               base::Bind(&ApplicationHostImpl::OnApplicationLoaded,
+  loader->Load(application.Pass(),
+               base::Bind(&ApplicationHostImpl::OnApplicationLoadSuccess,
+                          weak_factory_.GetWeakPtr(), url),
+               base::Bind(&ApplicationHostImpl::OnApplicationLoadFailure,
                           weak_factory_.GetWeakPtr(), url));
 }
 
-void ApplicationHostImpl::OnApplicationLoaded(
+void ApplicationHostImpl::OnApplicationLoadSuccess(
     const GURL& url,
-    scoped_ptr<ApplicationLoader::Result> result) {
-  if (result->Failed()) {
-    LOG(ERROR) << "Failed to load application: " << url.spec();
-    return;
-  }
+    scoped_ptr<EntryPoint> entry_point) {
   ApplicationContainer* container = new ApplicationContainer(this, url);
   running_applications_.insert(container);
-  container->Run(result->PassEntryPoint());
+  container->Run(entry_point.Pass());
+}
+
+void ApplicationHostImpl::OnApplicationLoadFailure(
+    const GURL& url,
+    mojo::InterfaceRequest<mojo::Application> application) {
+  // TODO(core): Fallback behavior?
+  LOG(ERROR) << "Failed to load application: " << url.spec();
 }
 
 void ApplicationHostImpl::DestroyApplicationContainer(

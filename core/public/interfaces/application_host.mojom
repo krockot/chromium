@@ -17,7 +17,10 @@ enum LaunchError {
   INVAILD_APPLICATION,
 };
 
-interface ApplicationHostService {
-  LaunchApplication(string url)
-      => (LaunchError result, mojo.Application? application);
+interface ApplicationHost {
+  // Requests that the host launch a new instance of the Application identified
+  // by |url|. The lifetime of this instance within the host is strongly bound
+  // to the lifetime of the |application| request.
+  LaunchApplication(string url, mojo.Application& application)
+      => (LaunchError result);
 };

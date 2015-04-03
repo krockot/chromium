@@ -8,11 +8,12 @@
 #include "base/containers/hash_tables.h"
 #include "base/macros.h"
 #include "base/memory/scoped_ptr.h"
-#include "core/public/application_host/application_host.h"
 #include "core/public/shell/shell.h"
 #include "third_party/mojo/src/mojo/public/interfaces/application/shell.mojom.h"
 
 namespace core {
+
+class ApplicationHostImpl;
 
 class ShellImpl : public Shell {
  public:
@@ -32,7 +33,7 @@ class ShellImpl : public Shell {
                const GURL& from_url);
   void DestroyApplicationInstance(const std::string& url_spec);
 
-  scoped_ptr<ApplicationHost> in_process_application_host_;
+  scoped_ptr<ApplicationHostImpl> in_process_application_host_;
 
   base::hash_map<std::string, ApplicationInstance*> running_applications_;
 
