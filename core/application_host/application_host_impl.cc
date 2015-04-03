@@ -87,24 +87,29 @@ void ApplicationHostImpl::LaunchApplication(
   }
   loader->Load(application.Pass(),
                base::Bind(&ApplicationHostImpl::OnApplicationLoadSuccess,
-                          weak_factory_.GetWeakPtr(), url),
+                          weak_factory_.GetWeakPtr(), url, callback),
                base::Bind(&ApplicationHostImpl::OnApplicationLoadFailure,
-                          weak_factory_.GetWeakPtr(), url));
+                          weak_factory_.GetWeakPtr(), url, callback));
 }
 
 void ApplicationHostImpl::OnApplicationLoadSuccess(
     const GURL& url,
+    const LaunchApplicationCallback& response_callback,
     scoped_ptr<EntryPoint> entry_point) {
   ApplicationContainer* container = new ApplicationContainer(this, url);
   running_applications_.insert(container);
   container->Run(entry_point.Pass());
+  response_callback.Run(LAUNCH_ERROR_OK);
 }
 
 void ApplicationHostImpl::OnApplicationLoadFailure(
     const GURL& url,
+    const LaunchApplicationCallback& response_callback,
     mojo::InterfaceRequest<mojo::Application> application) {
-  // TODO(core): Fallback behavior?
+  // TODO(core): Real error propagation from loader.
+  // TODO(core): Fallback behavior.
   LOG(ERROR) << "Failed to load application: " << url.spec();
+  response_callback.Run(LAUNCH_ERROR_NOT_FOUND);
 }
 
 void ApplicationHostImpl::DestroyApplicationContainer(

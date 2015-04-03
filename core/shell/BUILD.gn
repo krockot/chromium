@@ -16,6 +16,7 @@ source_set("shell") {
     # TODO(core): Remove this. It's a hack for in-process app hosting.
     "//core/application_host",
     "//core/common",
+    "//core/process",
     "//url",
   ]
 

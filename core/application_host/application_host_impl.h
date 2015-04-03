@@ -35,9 +35,11 @@ class ApplicationHostImpl : public ApplicationHost {
 
   void OnApplicationLoadSuccess(
       const GURL& url,
+      const LaunchApplicationCallback& response_callback,
       scoped_ptr<EntryPoint> entry_point);
   void OnApplicationLoadFailure(
       const GURL& url,
+      const LaunchApplicationCallback& response_callback,
       mojo::InterfaceRequest<mojo::Application> application);
 
   void DestroyApplicationContainer(ApplicationContainer* container);

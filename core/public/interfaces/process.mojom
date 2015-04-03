@@ -4,7 +4,7 @@
 
 module core;
 
-import "core/public/interfaces/application_host_service.mojom";
+import "core/public/interfaces/application_host.mojom";
 
 enum TerminationStatus {
   STILL_RUNNING,
@@ -14,7 +14,7 @@ enum TerminationStatus {
 };
 
 interface Process {
-  GetApplicationHost(ApplicationHostService& application_host);
+  GetApplicationHost(ApplicationHost& application_host);
   Kill(int32 exit_code, bool wait) => ();
   WaitForExit() => (int32 exit_code);
   GetTerminationStatus() => (TerminationStatus status);

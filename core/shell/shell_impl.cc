@@ -9,7 +9,8 @@
 #include "base/stl_util.h"
 #include "base/strings/stringprintf.h"
 #include "core/application_host/application_host_impl.h"
- #include "core/common/application_connection_impl.h"
+#include "core/common/application_connection_impl.h"
+#include "core/process/shell_process.h"
 #include "core/public/common/core_client.h"
 #include "url/gurl.h"
 
@@ -84,8 +85,10 @@ void ShellImpl::ApplicationInstance::OnConnectionError() {
 }
 
 void ShellImpl::ApplicationInstance::OnApplicationLaunched(LaunchError result) {
-  LOG(ERROR) << "Failed to launch " << url_.spec() << ": " << result;
-  shell_->DestroyApplicationInstance(url_.spec());
+  if (result != LAUNCH_ERROR_OK) {
+    LOG(ERROR) << "Failed to launch " << url_.spec() << ": " << result;
+    shell_->DestroyApplicationInstance(url_.spec());
+  }
 }
 
 void ShellImpl::ApplicationInstance::ConnectToApplication(
@@ -101,7 +104,10 @@ scoped_ptr<Shell> Shell::Create() {
   return scoped_ptr<Shell>(g_shell);
 }
 
-ShellImpl::ShellImpl() : in_process_application_host_(new ApplicationHostImpl) {
+ShellImpl::ShellImpl() : process_(new ShellProcess) {
+  process_->BindRequest(mojo::GetProxy(&process_proxy_));
+  process_proxy_->GetApplicationHost(
+      mojo::GetProxy(&in_process_application_host_));
 }
 
 ShellImpl::~ShellImpl() {
