@@ -6,7 +6,11 @@ assert(enable_chrome_core)
 
 import("//core/core_application.gni")
 
-core_application("init") {
+group("init") {
+  deps = [ ":chrome_init" ]
+}
+
+core_application("chrome_init") {
   sources = [
     "init.cc",
     "init.h",

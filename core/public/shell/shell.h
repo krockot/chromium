@@ -25,8 +25,6 @@ class Shell {
   static Shell* Get();
 
   static scoped_ptr<Shell> Create();
-
-  virtual void Launch(const GURL& url) = 0;
 };
 
 }  // namespace core

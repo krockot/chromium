@@ -16,6 +16,11 @@ Init::~Init() {
 
 void Init::InitializeApplication(mojo::Shell* shell,
                                  const std::vector<std::string>& args) {
+  // TODO(core): Let tests configure Init to connect to system:test here, but
+  // don't connect to it by default.
+  shell->ConnectToApplication("system:test",
+      mojo::InterfaceRequest<mojo::ServiceProvider>(),
+      mojo::ServiceProviderPtr());
 }
 
 void Init::AcceptConnection(const GURL& requestor_url,

@@ -148,7 +148,6 @@ void CoreAppTest::SetUp() {
   IN_PROC_BROWSER_TEST_(                                                     \
       test_fixture, test_name, test_fixture##_CoreAppTestWrapper,            \
       ::testing::internal::GetTypeId<test_fixture##_CoreAppTestWrapper>()) { \
-    core::Shell::Get()->Launch(GURL("system:test"));                         \
     WaitForAppExit();                                                        \
   }                                                                          \
   void test_fixture##_CoreAppTestWrapper::RunApplication()
@@ -172,7 +171,6 @@ class HostResolverRequestClient
   void ReportResult(int32_t error,
                     net::interfaces::AddressListPtr addresses) override {
     completion_callback_.Run();
-
     // TODO(rockot): Maybe some real testing with a mock resolver.
     ASSERT_EQ(0, error);
   }

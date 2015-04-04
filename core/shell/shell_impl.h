@@ -8,27 +8,36 @@
 #include "base/containers/hash_tables.h"
 #include "base/macros.h"
 #include "base/memory/scoped_ptr.h"
+#include "base/memory/weak_ptr.h"
 #include "core/public/interfaces/application_host.mojom.h"
 #include "core/public/interfaces/process.mojom.h"
 #include "core/public/shell/shell.h"
+#include "third_party/mojo/src/mojo/public/cpp/bindings/binding.h"
+#include "third_party/mojo/src/mojo/public/interfaces/application/application.mojom.h"
+#include "third_party/mojo/src/mojo/public/interfaces/application/service_provider.mojom.h"
 #include "third_party/mojo/src/mojo/public/interfaces/application/shell.mojom.h"
 
 namespace core {
 
 class ShellProcess;
 
-class ShellImpl : public Shell {
+class ShellImpl : public Shell, public mojo::ServiceProvider {
  public:
   ShellImpl();
   ~ShellImpl() override;
 
-  // Shell:
-  void Launch(const GURL& url) override;
-
  private:
+  class ShellPrivateImpl;
+  friend class ShellPrivateImpl;
+
   class ApplicationInstance;
   friend class ApplicationInstance;
 
+  // mojo::ServiceProvider:
+  void ConnectToService(const mojo::String& interface_name,
+                        mojo::ScopedMessagePipeHandle handle) override;
+
+  ApplicationInstance* Launch(const GURL& url);
   void Connect(const GURL& to_url,
                mojo::InterfaceRequest<mojo::ServiceProvider> services,
                mojo::ServiceProviderPtr exposed_services,
@@ -39,7 +48,13 @@ class ShellImpl : public Shell {
   ProcessPtr process_proxy_;
   ApplicationHostPtr in_process_application_host_;
 
+  mojo::ServiceProviderPtr init_services_;
+  scoped_ptr<ShellPrivateImpl> private_;
+  mojo::Binding<mojo::ServiceProvider> private_services_binding_;
+
   base::hash_map<std::string, ApplicationInstance*> running_applications_;
+
+  base::WeakPtrFactory<ShellImpl> weak_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(ShellImpl);
 };
