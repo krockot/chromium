@@ -828,7 +828,7 @@ void WebContentsViewAura::PrepareOverscrollWindow() {
   overscroll_window_.reset(new aura::Window(overscroll_delegate));
   overscroll_window_->SetType(ui::wm::WINDOW_TYPE_CONTROL);
   overscroll_window_->SetTransparent(true);
-  overscroll_window_->Init(aura::WINDOW_LAYER_TEXTURED);
+  overscroll_window_->Init(ui::LAYER_TEXTURED);
   overscroll_window_->layer()->SetMasksToBounds(false);
   overscroll_window_->SetName("OverscrollOverlay");
 
@@ -1083,7 +1083,7 @@ void WebContentsViewAura::CreateView(
   window_->set_owned_by_parent(false);
   window_->SetType(ui::wm::WINDOW_TYPE_CONTROL);
   window_->SetTransparent(false);
-  window_->Init(aura::WINDOW_LAYER_NOT_DRAWN);
+  window_->Init(ui::LAYER_NOT_DRAWN);
   window_->AddObserver(this);
   aura::Window* root_window = context ? context->GetRootWindow() : NULL;
   if (root_window) {
@@ -1201,6 +1201,11 @@ void WebContentsViewAura::ShowContextMenu(RenderFrameHost* render_frame_host,
     touch_editable_->EndTouchEditing(false);
   }
   if (delegate_) {
+    RenderWidgetHostViewAura* view = ToRenderWidgetHostViewAura(
+        web_contents_->GetRenderWidgetHostView());
+    if (view)
+      view->OnShowContextMenu();
+
     delegate_->ShowContextMenu(render_frame_host, params);
     // WARNING: we may have been deleted during the call to ShowContextMenu().
   }
@@ -1472,7 +1477,7 @@ bool WebContentsViewAura::CanFocus() {
 void WebContentsViewAura::OnCaptureLost() {
 }
 
-void WebContentsViewAura::OnPaint(gfx::Canvas* canvas) {
+void WebContentsViewAura::OnPaint(const ui::PaintContext& context) {
 }
 
 void WebContentsViewAura::OnDeviceScaleFactorChanged(

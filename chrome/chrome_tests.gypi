@@ -1025,6 +1025,7 @@
       'browser/ui/views/bookmarks/bookmark_bar_view_test_helper.h',
       'browser/ui/views/certificate_selector_browsertest.cc',
       'browser/ui/views/constrained_window_views_browsertest.cc',
+      'browser/ui/views/extensions/extension_dialog_interactive_uitest.cc',
       'browser/ui/views/find_bar_controller_interactive_uitest.cc',
       'browser/ui/views/find_bar_host_interactive_uitest.cc',
       'browser/ui/views/frame/browser_view_focus_uitest.cc',
@@ -3103,6 +3104,25 @@
               },
             },
             {
+              'target_name': 'telemetry_isolate_base',
+              'type': 'none',
+              'dependencies': [
+                '../tools/telemetry/telemetry.gyp:bitmaptools#host',
+              ],
+              'conditions': [
+                ['OS=="linux" or OS=="mac"', {
+                  'dependencies': [
+                    '../breakpad/breakpad.gyp:dump_syms',
+                  ],
+                }],
+                ['OS=="mac"', {
+                  'dependencies': [
+                    '../third_party/crashpad/crashpad/tools/tools.gyp:crashpad_database_util',
+                  ],
+                }],
+              ],
+            },
+            {
               'target_name': 'angle_unittests_run',
               'type': 'none',
               'dependencies': [
@@ -3140,8 +3160,8 @@
               'type': 'none',
               'dependencies': [
                 'chrome_run',
-                '../tools/telemetry/telemetry.gyp:bitmaptools#host',
                 'gpu_tests_base',
+                'telemetry_isolate_base',
               ],
               'sources': [
                 'telemetry_gpu_test.isolate',

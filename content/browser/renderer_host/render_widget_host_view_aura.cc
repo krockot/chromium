@@ -233,58 +233,6 @@ BOOL CALLBACK DismissOwnedPopups(HWND window, LPARAM arg) {
 }
 #endif
 
-bool CanRendererHandleEvent(const ui::MouseEvent* event,
-                            bool mouse_locked,
-                            bool selection_popup) {
-  if (event->type() == ui::ET_MOUSE_CAPTURE_CHANGED)
-    return false;
-
-  if ((mouse_locked || selection_popup) &&
-      (event->type() == ui::ET_MOUSE_EXITED))
-    return false;
-
-#if defined(OS_WIN)
-  // Renderer cannot handle WM_XBUTTON or NC events.
-  switch (event->native_event().message) {
-    case WM_XBUTTONDOWN:
-    case WM_XBUTTONUP:
-    case WM_XBUTTONDBLCLK:
-    case WM_NCMOUSELEAVE:
-    case WM_NCMOUSEMOVE:
-    case WM_NCLBUTTONDOWN:
-    case WM_NCLBUTTONUP:
-    case WM_NCLBUTTONDBLCLK:
-    case WM_NCRBUTTONDOWN:
-    case WM_NCRBUTTONUP:
-    case WM_NCRBUTTONDBLCLK:
-    case WM_NCMBUTTONDOWN:
-    case WM_NCMBUTTONUP:
-    case WM_NCMBUTTONDBLCLK:
-    case WM_NCXBUTTONDOWN:
-    case WM_NCXBUTTONUP:
-    case WM_NCXBUTTONDBLCLK:
-      return false;
-    default:
-      break;
-  }
-#elif defined(USE_X11)
-  // Renderer only supports standard mouse buttons, so ignore programmable
-  // buttons.
-  switch (event->type()) {
-    case ui::ET_MOUSE_PRESSED:
-    case ui::ET_MOUSE_RELEASED: {
-      const int kAllowedButtons = ui::EF_LEFT_MOUSE_BUTTON |
-                                  ui::EF_MIDDLE_MOUSE_BUTTON |
-                                  ui::EF_RIGHT_MOUSE_BUTTON;
-      return (event->flags() & kAllowedButtons) != 0;
-    }
-    default:
-      break;
-  }
-#endif
-  return true;
-}
-
 // We don't mark these as handled so that they're sent back to the
 // DefWindowProc so it can generate WM_APPCOMMAND as necessary.
 bool IsXButtonUpEvent(const ui::MouseEvent* event) {
@@ -321,19 +269,6 @@ void GetScreenInfoForWindow(WebScreenInfo* results, aura::Window* window) {
 
   results->orientationType =
       RenderWidgetHostViewBase::GetOrientationTypeForDesktop(display);
-}
-
-bool PointerEventActivates(const ui::Event& event) {
-  if (event.type() == ui::ET_MOUSE_PRESSED)
-    return true;
-
-  if (event.type() == ui::ET_GESTURE_BEGIN) {
-    const ui::GestureEvent& gesture =
-        static_cast<const ui::GestureEvent&>(event);
-    return gesture.details().touch_points() == 1;
-  }
-
-  return false;
 }
 
 bool IsFractionalScaleFactor(float scale_factor) {
@@ -450,6 +385,7 @@ RenderWidgetHostViewAura::RenderWidgetHostViewAura(RenderWidgetHost* host,
 #if defined(OS_WIN)
       legacy_render_widget_host_HWND_(NULL),
       legacy_window_destroyed_(false),
+      showing_context_menu_(false),
 #endif
       has_snapped_to_boundary_(false),
       touch_editing_client_(NULL),
@@ -461,7 +397,6 @@ RenderWidgetHostViewAura::RenderWidgetHostViewAura(RenderWidgetHost* host,
   window_observer_.reset(new WindowObserver(this));
   aura::client::SetTooltipText(window_, &tooltip_);
   aura::client::SetActivationDelegate(window_, this);
-  aura::client::SetActivationChangeObserver(window_, this);
   aura::client::SetFocusChangeObserver(window_, this);
   window_->set_layer_owner_delegate(delegated_frame_host_.get());
   gfx::Screen::GetScreenFor(window_)->AddObserver(this);
@@ -491,7 +426,7 @@ bool RenderWidgetHostViewAura::OnMessageReceived(
 void RenderWidgetHostViewAura::InitAsChild(
     gfx::NativeView parent_view) {
   window_->SetType(ui::wm::WINDOW_TYPE_CONTROL);
-  window_->Init(aura::WINDOW_LAYER_SOLID_COLOR);
+  window_->Init(ui::LAYER_SOLID_COLOR);
   window_->SetName("RenderWidgetHostViewAura");
   window_->layer()->SetColor(background_color_);
 }
@@ -520,7 +455,7 @@ void RenderWidgetHostViewAura::InitAsPopup(
   }
   popup_parent_host_view_->popup_child_host_view_ = this;
   window_->SetType(ui::wm::WINDOW_TYPE_MENU);
-  window_->Init(aura::WINDOW_LAYER_SOLID_COLOR);
+  window_->Init(ui::LAYER_SOLID_COLOR);
   window_->SetName("RenderWidgetHostViewAura");
   window_->layer()->SetColor(background_color_);
 
@@ -548,7 +483,7 @@ void RenderWidgetHostViewAura::InitAsFullscreen(
     RenderWidgetHostView* reference_host_view) {
   is_fullscreen_ = true;
   window_->SetType(ui::wm::WINDOW_TYPE_NORMAL);
-  window_->Init(aura::WINDOW_LAYER_SOLID_COLOR);
+  window_->Init(ui::LAYER_SOLID_COLOR);
   window_->SetName("RenderWidgetHostViewAura");
   window_->SetProperty(aura::client::kShowStateKey, ui::SHOW_STATE_FULLSCREEN);
   window_->layer()->SetColor(background_color_);
@@ -732,6 +667,71 @@ RenderFrameHostImpl* RenderWidgetHostViewAura::GetFocusedFrame() {
     return NULL;
 
   return focused_frame->current_frame_host();
+}
+
+bool RenderWidgetHostViewAura::CanRendererHandleEvent(
+    const ui::MouseEvent* event,
+    bool mouse_locked,
+    bool selection_popup) {
+#if defined(OS_WIN)
+  bool showing_context_menu = showing_context_menu_;
+  showing_context_menu_ = false;
+#endif
+
+  if (event->type() == ui::ET_MOUSE_CAPTURE_CHANGED)
+    return false;
+
+  if ((mouse_locked || selection_popup) &&
+      (event->type() == ui::ET_MOUSE_EXITED))
+    return false;
+
+#if defined(OS_WIN)
+  // Don't forward the mouse leave message which is received when the context
+  // menu is displayed by the page. This confuses the page and causes state
+  // changes.
+  if (showing_context_menu) {
+    if (event->type() == ui::ET_MOUSE_EXITED)
+      return false;
+  }
+  // Renderer cannot handle WM_XBUTTON or NC events.
+  switch (event->native_event().message) {
+    case WM_XBUTTONDOWN:
+    case WM_XBUTTONUP:
+    case WM_XBUTTONDBLCLK:
+    case WM_NCMOUSELEAVE:
+    case WM_NCMOUSEMOVE:
+    case WM_NCLBUTTONDOWN:
+    case WM_NCLBUTTONUP:
+    case WM_NCLBUTTONDBLCLK:
+    case WM_NCRBUTTONDOWN:
+    case WM_NCRBUTTONUP:
+    case WM_NCRBUTTONDBLCLK:
+    case WM_NCMBUTTONDOWN:
+    case WM_NCMBUTTONUP:
+    case WM_NCMBUTTONDBLCLK:
+    case WM_NCXBUTTONDOWN:
+    case WM_NCXBUTTONUP:
+    case WM_NCXBUTTONDBLCLK:
+      return false;
+    default:
+      break;
+  }
+#elif defined(USE_X11)
+  // Renderer only supports standard mouse buttons, so ignore programmable
+  // buttons.
+  switch (event->type()) {
+    case ui::ET_MOUSE_PRESSED:
+    case ui::ET_MOUSE_RELEASED: {
+      const int kAllowedButtons = ui::EF_LEFT_MOUSE_BUTTON |
+                                  ui::EF_MIDDLE_MOUSE_BUTTON |
+                                  ui::EF_RIGHT_MOUSE_BUTTON;
+      return (event->flags() & kAllowedButtons) != 0;
+    }
+    default:
+      break;
+  }
+#endif
+  return true;
 }
 
 void RenderWidgetHostViewAura::MovePluginWindows(
@@ -1771,7 +1771,7 @@ void RenderWidgetHostViewAura::OnCaptureLost() {
     touch_editing_client_->EndTouchEditing(false);
 }
 
-void RenderWidgetHostViewAura::OnPaint(gfx::Canvas* canvas) {
+void RenderWidgetHostViewAura::OnPaint(const ui::PaintContext& context) {
   NOTREACHED();
 }
 
@@ -2133,15 +2133,6 @@ void RenderWidgetHostViewAura::OnGestureEvent(ui::GestureEvent* event) {
   if (event->type() == ui::ET_GESTURE_TAP)
     FinishImeCompositionSession();
 
-  RenderViewHostDelegate* delegate = NULL;
-  if (host_->IsRenderView())
-    delegate = RenderViewHost::From(host_)->GetDelegate();
-
-  if (delegate && event->type() == ui::ET_GESTURE_BEGIN &&
-      event->details().touch_points() == 1) {
-    delegate->HandleGestureBegin();
-  }
-
   blink::WebGestureEvent gesture = MakeWebGestureEvent(*event);
   if (event->type() == ui::ET_GESTURE_TAP_DOWN) {
     // Webkit does not stop a fling-scroll on tap-down. So explicitly send an
@@ -2164,11 +2155,6 @@ void RenderWidgetHostViewAura::OnGestureEvent(ui::GestureEvent* event) {
     }
   }
 
-  if (delegate && event->type() == ui::ET_GESTURE_END &&
-      event->details().touch_points() == 1) {
-    delegate->HandleGestureEnd();
-  }
-
   // If a gesture is not processed by the webpage, then WebKit processes it
   // (e.g. generates synthetic mouse events).
   event->SetHandled();
@@ -2185,20 +2171,6 @@ bool RenderWidgetHostViewAura::ShouldActivate() const {
   if (!event)
     return true;
   return is_fullscreen_;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// RenderWidgetHostViewAura,
-//     aura::client::ActivationChangeObserver implementation:
-
-void RenderWidgetHostViewAura::OnWindowActivated(aura::Window* gained_active,
-                                                 aura::Window* lost_active) {
-  DCHECK(window_ == gained_active || window_ == lost_active);
-  if (window_ == gained_active) {
-    const ui::Event* event = window_->GetHost()->dispatcher()->current_event();
-    if (event && PointerEventActivates(*event))
-      host_->OnPointerEventActivate();
-  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2480,6 +2452,12 @@ void RenderWidgetHostViewAura::SnapToPhysicalPixelBoundary() {
     ui::SnapLayerToPhysicalPixelBoundary(snapped->layer(), window_->layer());
 
   has_snapped_to_boundary_ = true;
+}
+
+void RenderWidgetHostViewAura::OnShowContextMenu() {
+#if defined(OS_WIN)
+  showing_context_menu_ = true;
+#endif
 }
 
 void RenderWidgetHostViewAura::InternalSetBounds(const gfx::Rect& rect) {

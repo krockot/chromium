@@ -410,8 +410,9 @@ SubDirectoryItem.prototype.updateSharedStatusIcon = function() {
  * A TreeItem which represents a volume. Volume items are displayed as
  * top-level children of DirectoryTree.
  *
- * @param {NavigationModelItem} modelItem NavigationModelItem of this volume.
- * @param {DirectoryTree} tree Current tree, which contains this item.
+ * @param {!NavigationModelVolumeItem} modelItem NavigationModelItem of this
+ *     volume.
+ * @param {!DirectoryTree} tree Current tree, which contains this item.
  * @extends {DirectoryItem}
  * @constructor
  */
@@ -562,8 +563,9 @@ VolumeItem.prototype.setupEjectButton_ = function(rowElement) {
  * A TreeItem which represents a Drive volume. Drive volume has fake entries
  * such as Recent, Shared with me, and Offline in it.
  *
- * @param {NavigationModelItem} modelItem NavigationModelItem of this volume.
- * @param {DirectoryTree} tree Current tree, which contains this item.
+ * @param {!NavigationModelVolumeItem} modelItem NavigationModelItem of this
+ *     volume.
+ * @param {!DirectoryTree} tree Current tree, which contains this item.
  * @extends {VolumeItem}
  * @constructor
  */
@@ -673,8 +675,9 @@ DriveVolumeItem.prototype.selectByEntry = function(entry) {
  * A TreeItem which represents a shortcut for Drive folder.
  * Shortcut items are displayed as top-level children of DirectoryTree.
  *
- * @param {NavigationModelItem} modelItem NavigationModelItem of this volume.
- * @param {DirectoryTree} tree Current tree, which contains this item.
+ * @param {!NavigationModelShortcutItem} modelItem NavigationModelItem of this
+ *     volume.
+ * @param {!DirectoryTree} tree Current tree, which contains this item.
  * @extends {cr.ui.TreeItem}
  * @constructor
  */
@@ -985,7 +988,7 @@ DirectoryTree.prototype.updateSubElementsFromList = function(recursive) {
     } else {
       var modelItem = this.dataModel.item(modelIndex);
       switch (modelItem.type) {
-        case NavigationModelItem.Type.VOLUME:
+        case NavigationModelItemType.VOLUME:
           if (modelItem.volumeInfo.volumeType ===
               VolumeManagerCommon.VolumeType.DRIVE) {
             this.addAt(new DriveVolumeItem(modelItem, this), itemIndex);
@@ -993,10 +996,10 @@ DirectoryTree.prototype.updateSubElementsFromList = function(recursive) {
             this.addAt(new VolumeItem(modelItem, this), itemIndex);
           }
           break;
-        case NavigationModelItem.Type.SHORTCUT:
+        case NavigationModelItemType.SHORTCUT:
           this.addAt(new ShortcutItem(modelItem, this), itemIndex);
           break;
-        case NavigationModelItem.Type.COMMAND:
+        case NavigationModelItemType.COMMAND:
           this.addAt(new CommandItem(modelItem, this), itemIndex);
           break;
       }

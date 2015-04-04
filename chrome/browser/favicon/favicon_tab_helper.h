@@ -16,11 +16,14 @@
 #include "content/public/common/favicon_url.h"
 
 class GURL;
-class Profile;
 class SkBitmap;
 
 namespace gfx {
 class Image;
+}
+
+namespace bookmarks {
+class BookmarkModel;
 }
 
 namespace content {
@@ -30,6 +33,11 @@ struct FaviconStatus;
 namespace favicon {
 class FaviconDriverObserver;
 class FaviconHandler;
+class FaviconService;
+}
+
+namespace history {
+class HistoryService;
 }
 
 // FaviconTabHelper works with favicon::FaviconHandlers to fetch the favicons.
@@ -43,6 +51,8 @@ class FaviconTabHelper : public content::WebContentsObserver,
                          public content::WebContentsUserData<FaviconTabHelper> {
  public:
   ~FaviconTabHelper() override;
+
+  static void CreateForWebContents(content::WebContents* web_contents);
 
   // Initiates loading the favicon for the specified url.
   void FetchFavicon(const GURL& url);
@@ -58,7 +68,7 @@ class FaviconTabHelper : public content::WebContentsObserver,
 
   // Returns whether the favicon should be displayed. If this returns false, no
   // space is provided for the favicon, and the favicon is never displayed.
-  virtual bool ShouldDisplayFavicon();
+  bool ShouldDisplayFavicon();
 
   // Returns the current tab's favicon urls. If this is empty,
   // DidUpdateFaviconURL has not yet been called for the current navigation.
@@ -81,10 +91,14 @@ class FaviconTabHelper : public content::WebContentsObserver,
   int StartDownload(const GURL& url, int max_bitmap_size) override;
   bool IsOffTheRecord() override;
   bool IsBookmarked(const GURL& url) override;
-  const gfx::Image GetActiveFaviconImage() override;
-  const GURL GetActiveFaviconURL() override;
+  GURL GetActiveURL() override;
+  base::string16 GetActiveTitle() override;
   bool GetActiveFaviconValidity() override;
-  const GURL GetActiveURL() override;
+  void SetActiveFaviconValidity(bool valid) override;
+  GURL GetActiveFaviconURL() override;
+  void SetActiveFaviconURL(const GURL& url) override;
+  gfx::Image GetActiveFaviconImage() override;
+  void SetActiveFaviconImage(const gfx::Image& image) override;
   void OnFaviconAvailable(const gfx::Image& image,
                           const GURL& url,
                           bool is_active_favicon) override;
@@ -101,7 +115,13 @@ class FaviconTabHelper : public content::WebContentsObserver,
   friend class content::WebContentsUserData<FaviconTabHelper>;
   friend class FaviconTabHelperTest;
 
-  explicit FaviconTabHelper(content::WebContents* web_contents);
+  // Creates a new FaviconTabHelper bound to |web_contents|. Initialize
+  // |favicon_service_|, |bookmark_model_| and |history_service_| from the
+  // corresponding parameter.
+  FaviconTabHelper(content::WebContents* web_contents,
+                   favicon::FaviconService* favicon_service,
+                   history::HistoryService* history_service,
+                   bookmarks::BookmarkModel* bookmark_model);
 
   // content::WebContentsObserver overrides.
   void DidStartNavigationToPendingEntry(
@@ -111,20 +131,14 @@ class FaviconTabHelper : public content::WebContentsObserver,
       const content::LoadCommittedDetails& details,
       const content::FrameNavigateParams& params) override;
 
-  // Sets whether the page's favicon is valid (if false, the default favicon is
-  // being used). Requires GetActiveURL() to be valid.
-  void SetActiveFaviconValidity(bool validity);
-
-  // Sets the URL of the favicon's bitmap.
-  void SetActiveFaviconURL(GURL url);
-
-  // Sets the bitmap of the current page's favicon.
-  void SetActiveFaviconImage(gfx::Image image);
-
   // Helper method that returns the active navigation entry's favicon.
   content::FaviconStatus& GetFaviconStatus();
 
-  Profile* profile_;
+  // KeyedService used by FaviconTabHelper. They may be null during testing, but
+  // if they are defined, they must outlive the FaviconTabHelper.
+  favicon::FaviconService* favicon_service_;
+  history::HistoryService* history_service_;
+  bookmarks::BookmarkModel* bookmark_model_;
 
   std::vector<content::FaviconURL> favicon_urls_;
 

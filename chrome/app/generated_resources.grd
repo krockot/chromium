@@ -476,7 +476,7 @@ are declared in build/common.gypi.
       </message>
 
       <message name="IDS_PERMISSIONS_BUBBLE_PROMPT" desc="The label that is used to introduce permission request details to the user in a papup.">
-        <ph name="SITE_NAME">$1<ex>google.com</ex></ph> would like to use your:
+        <ph name="SITE_NAME">$1<ex>google.com</ex></ph> wants to:
       </message>
       <message name="IDS_PERMISSION_ALLOW" desc="Label on button to allow a permissions request.">
         Allow
@@ -1506,6 +1506,9 @@ Psst! Incognito mode <ph name="SHORTCUT_KEY">$1<ex>(Ctrl+Shift+N)</ex></ph> may 
       </if>
 
       <!-- App menu -->
+      <message name="IDS_VIEW_INCOMPATIBILITIES" desc="The text label of the View incompatibilities menu item">
+        Software incompatibility: Learn more
+      </message>
       <if expr="chromeos">
         <message name="IDS_TOGGLE_REQUEST_TABLET_SITE" desc="The toggle to request tablet site on a touch dev.">
           Request tablet site
@@ -1548,11 +1551,6 @@ Psst! Incognito mode <ph name="SHORTCUT_KEY">$1<ex>(Ctrl+Shift+N)</ex></ph> may 
         <message name="IDS_HELP_MENU" desc="The text label of the Help sub-menu item">
           H&amp;elp
         </message>
-        <if expr="is_win">
-          <message name="IDS_VIEW_INCOMPATIBILITIES" desc="The text label of the View incompatibilities menu item">
-            Software incompatibility: Learn more
-          </message>
-        </if>
         <message name="IDS_EXIT" desc="The text label of the Exit menu item">
           E&amp;xit
         </message>
@@ -4371,13 +4369,13 @@ Even if you have downloaded files from this website before, the website might ha
         Add "<ph name="EXTENSION_NAME">$1<ex>Gmail Checker</ex></ph>"?
       </message>
       <message name="IDS_EXTENSION_BUNDLE_INSTALL_PROMPT_HEADING_EXTENSIONS" desc="First bold line in the content area of the extension bundle installation prompt. Asks the user if they want to install the set of extensions.">
-        Install these extensions?
+        "<ph name="BUNDLE_NAME">$1<ex>My Awesome Bundle</ex></ph>" adds these extensions:
       </message>
       <message name="IDS_EXTENSION_BUNDLE_INSTALL_PROMPT_HEADING_APPS" desc="First bold line in the content area of the app bundle installation prompt. Asks the user if they want to install the set of apps.">
-        Install these apps?
+        "<ph name="BUNDLE_NAME">$1<ex>My Awesome Bundle</ex></ph>" adds these apps:
       </message>
       <message name="IDS_EXTENSION_BUNDLE_INSTALL_PROMPT_HEADING_EXTENSION_APPS" desc="First bold line in the content area of the extension and app bundle installation prompt. Asks the user if they want to install the set of apps and extensions.">
-        Install these apps and extensions?
+        "<ph name="BUNDLE_NAME">$1<ex>My Awesome Bundle</ex></ph>" adds these apps and extensions:
       </message>
       <message name="IDS_EXTENSION_UNINSTALL_PROMPT_HEADING" desc="First bold line in the content area of the extension or app uninstallation prompt. Asks the user if they want to uninstall a particular extension or app.">
         Remove "<ph name="EXTENSION_NAME">$1<ex>Gmail Checker</ex></ph>"?
@@ -6266,6 +6264,27 @@ Keep your key file in a safe place. You will need it to create new versions of y
       </message>
       <message name="IDS_FLAGS_ENABLE_THREADED_GPU_RASTERIZATION_DESCRIPTION" desc="Description for the flag to enable threaded GPU rasterizer.">
         Use secondary thread for GPU rasterization of web content. Requires GPU rasterization to be enabled.
+      </message>
+      <message name="IDS_FLAGS_GPU_RASTERIZATION_MSAA_SAMPLE_COUNT_NAME" desc="Name of about:flags option for number of GPU rasterization MSAA samples.">
+        GPU rasterization MSAA sample count.
+      </message>
+      <message name="IDS_FLAGS_GPU_RASTERIZATION_MSAA_SAMPLE_COUNT_DESCRIPTION" desc="Description of about:flags option for number of GPU rasterization MSAA samples.">
+        Specify the number of MSAA samples for GPU rasterization.
+      </message>
+      <message name="IDS_FLAGS_GPU_RASTERIZATION_MSAA_SAMPLE_COUNT_ZERO" desc="">
+        0
+      </message>
+      <message name="IDS_FLAGS_GPU_RASTERIZATION_MSAA_SAMPLE_COUNT_TWO" desc="">
+        2
+      </message>
+      <message name="IDS_FLAGS_GPU_RASTERIZATION_MSAA_SAMPLE_COUNT_FOUR" desc="">
+        4
+      </message>
+      <message name="IDS_FLAGS_GPU_RASTERIZATION_MSAA_SAMPLE_COUNT_EIGHT" desc="">
+        8
+      </message>
+      <message name="IDS_FLAGS_GPU_RASTERIZATION_MSAA_SAMPLE_COUNT_SIXTEEN" desc="">
+        16
       </message>
       <message name="IDS_FLAGS_ENABLE_SLIMMING_PAINT_NAME" desc="Title for the flag to enable slimming paint.">
         Enable slimming paint.
@@ -9127,9 +9146,16 @@ I don't think this site should be blocked!
       <message name="IDS_ERRORPAGES_BUTTON_SHOW_SAVED_COPY" desc="Label for the button on an error page to show a saved entry from the cache">
         Show saved copy
       </message>
-      <message name="IDS_ERRORPAGES_BUTTON_SHOW_SAVED_COPY_HELP" desc="Explanation for the BUTTON_SHOW_SAVED button">
-        Show a saved (i.e. known to be out of date) copy of this page.
-      </message>
+      <if expr="not is_android">
+        <message name="IDS_ERRORPAGES_BUTTON_SHOW_SAVED_COPY_HELP" desc="Explanation for the BUTTON_SHOW_SAVED button">
+          Show a saved (i.e. known to be out of date) copy of this page.
+        </message>
+      </if>
+      <if expr="is_android">
+        <message name="IDS_ERRORPAGES_BUTTON_SHOW_SAVED_COPY_HELP" desc="Mobile: Explanation for the BUTTON_SHOW_SAVED button">
+          Show saved copy
+        </message>
+      </if>
       <message name="IDS_ERRORPAGE_FUN_DISABLED" desc="Explanation for when easter egg has been disabled by administrator">
         The owner of this device turned off the dinosaur game.
       </message>
@@ -12387,9 +12413,6 @@ The following application will be launched if you accept this request:
       <message name="IDS_OPTIONS_ENABLE_LOGGING" desc="The label of the checkbox to enable/disable crash and user metrics logging">
         Automatically send usage statistics and crash reports to Google
       </message>
-      <message name="IDS_OPTIONS_ENABLE_RAPPOR" desc="The label of the checkbox to enable/disable rappor metrics logging">
-        Send <ph name="BEGIN_LINK">&lt;a target="_blank" href="$1"&gt;</ph>RAPPOR<ph name="END_LINK">&lt;/a&gt;<ex>&lt;/a&gt;</ex></ph> statistics to Google
-      </message>
       <message name="IDS_OPTIONS_ENABLE_LOGGING_RESTART" desc="The restart string after changing crash and user metrics logging. The text within the | symbols will be made into a link that should indicate to the user that clicking on it will cause Chrome to restart.">
         (requires Chrome |restart|)
       </message>
@@ -13061,8 +13084,8 @@ Some features may be unavailable.  Please check that the profile exists and you 
         <message name="IDS_NOTIFICATION_PERMISSIONS" desc="Text requesting permission for Web Notifications.">
           <ph name="site">$1<ex>mail.google.com</ex></ph> wants to send you notifications.
         </message>
-        <message name="IDS_NOTIFICATION_PERMISSIONS_FRAGMENT" desc="Permission sentence fragment to show following the prompt 'This site would like to:' in a permissions request">
-          Notifications
+        <message name="IDS_NOTIFICATION_PERMISSIONS_FRAGMENT" desc="Permission sentence fragment to show following the prompt 'This site wants to:' in a permissions request">
+          Send notifications
         </message>
         <message name="IDS_NOTIFICATION_PERMISSION_YES" desc="The label of the 'allow' button on the notification permission infobar.">
           Allow
@@ -13498,8 +13521,8 @@ Some features may be unavailable.  Please check that the profile exists and you 
           </ph> wants to use your device's location.
         </message>
       </if>
-      <message name="IDS_GEOLOCATION_INFOBAR_PERMISSION_FRAGMENT" desc="Permission fragment used in the permission bubble, after 'This site would like to:' asking for permission to access the user's physical location.">
-        Location
+      <message name="IDS_GEOLOCATION_INFOBAR_PERMISSION_FRAGMENT" desc="Permission fragment used in the permission bubble, after 'This site wants to:' asking for permission to access the user's physical location.">
+        Know your location
       </message>
       <message name="IDS_GEOLOCATION_ALLOW_BUTTON" desc="A button in geolocation infobar for allowing access to geolocation for a given domain.">
         Allow
@@ -13561,7 +13584,7 @@ Some features may be unavailable.  Please check that the profile exists and you 
         </ph> wants to get full control of your MIDI devices.
       </message>
       <message name="IDS_MIDI_SYSEX_PERMISSION_FRAGMENT" desc="Permission asked in the permission bubble when a URL wants to access MIDI devices with system exclusive messages, along with other permissions requests. Preceded by the prompt 'This site would like to:'">
-        MIDI (sound) devices
+        Use your MIDI devices
       </message>
       <message name="IDS_MIDI_SYSEX_ALLOW_BUTTON" desc="A button in MIDI access infobar for allowing full access to MIDI devices for a given domain.">
         Allow
@@ -13625,7 +13648,7 @@ Some features may be unavailable.  Please check that the profile exists and you 
       <!-- Proteced media identifier permission infobar -->
       <if expr="is_android or chromeos">
         <message name="IDS_PROTECTED_MEDIA_IDENTIFIER_PERMISSION_FRAGMENT" desc="Permission fragment shown in the permissions bubble when a web page requests access to the computer's protected media identifier.">
-          Protected content identifier.
+          Know your unique device identifier
         </message>
         <message name="IDS_PROTECTED_MEDIA_IDENTIFIER_INFOBAR_QUESTION" desc="Question asked on the infobar whenever URL wants to access protected media identifier. It shows the origin of the URL.">
           <ph name="URL">$1<ex>https://www.youtube.com</ex></ph> needs to uniquely identify your device to play premium content.
@@ -13934,10 +13957,10 @@ Some features may be unavailable.  Please check that the profile exists and you 
         Allow <ph name="HANDLER_HOSTNAME">$1<ex>google.com</ex></ph> to open all <ph name="PROTOCOL">$2<ex>search</ex></ph> links instead of <ph name="REPLACED_HANDLER_TITLE">$3<ex>Elgoog Search</ex></ph>?
       </message>
       <message name="IDS_REGISTER_PROTOCOL_HANDLER_CONFIRM_FRAGMENT" desc="The permission fragment to display when asking a user to confirm the registration of a protocol handler in a permission bubble. Follows a prompt 'This site would like to:'.">
-        <ph name="PROTOCOL">$3<ex>search</ex></ph> links
+        Open <ph name="PROTOCOL">$3<ex>search</ex></ph> links
       </message>
       <message name="IDS_REGISTER_PROTOCOL_HANDLER_CONFIRM_REPLACE_FRAGMENT" desc="The permission fragment to display when asking a user to confirm the registration of a protocol handler. Follows a prompt 'This site would like to:'.">
-        <ph name="PROTOCOL">$3<ex>search</ex></ph> links instead of <ph name="REPLACED_HANDLER_TITLE">$4<ex>Elgoog Search</ex></ph>
+        Open <ph name="PROTOCOL">$3<ex>search</ex></ph> links instead of <ph name="REPLACED_HANDLER_TITLE">$4<ex>Elgoog Search</ex></ph>
       </message>
       <message name="IDS_REGISTER_PROTOCOL_HANDLER_ACCEPT" desc="Text to show for the accept button for the register protocol handler request infobar.">
         Allow
@@ -14008,13 +14031,13 @@ Some features may be unavailable.  Please check that the profile exists and you 
         <ph name="HOST">$1<ex>html5rocks.com</ex></ph> wants to use your camera.
       </message>
       <message name="IDS_MEDIA_CAPTURE_AUDIO_AND_VIDEO_PERMISSION_FRAGMENT" desc="Permission fragment shown in the permissions bubble when a web page requests access to the computer's microphone and camera.">
-        Camera and microphone
+        Use your camera and microphone
       </message>
       <message name="IDS_MEDIA_CAPTURE_AUDIO_ONLY_PERMISSION_FRAGMENT" desc="Permission fragment shown in the permissions bubble when a web page requests access to the computer's microphone.">
-        Microphone
+        Use your microphone
       </message>
       <message name="IDS_MEDIA_CAPTURE_VIDEO_ONLY_PERMISSION_FRAGMENT" desc="Permission fragment shown in the permissions bubble when a web page requests access to the computer's camera.">
-        Camera
+        Use your camera
       </message>
       <message name="IDS_MEDIA_CAPTURE_ALLOW" desc="Label for a button that grants access to a web page, so they can use a camera and/or a microphone.">
         Allow
@@ -14049,7 +14072,7 @@ Some features may be unavailable.  Please check that the profile exists and you 
         </message>
       </if>
       <message name="IDS_REQUEST_QUOTA_PERMISSION_FRAGMENT" desc="Permission fragment presented in the permission bubble when the webapp requests new larger quota to persistently store data on the device. Follows a 'This site would like to:' prompt.">
-        Local data storage
+        Store files on this device
       </message>
 
       <!-- Android does not support multiple profiles and supervised users -->
@@ -15266,6 +15289,15 @@ Do you accept?
           Adds a button to the toolbar for viewing a more readable version of the current page.
         </message>
       </if>
+      <if expr="is_android">
+        <message name="IDS_FLAGS_READER_MODE_BUTTON_ANIMATION" desc="Title for flag enabling the reader mode button animation">
+          Enable Reader Mode Button Animation
+        </message>
+        <message name="IDS_FLAGS_READER_MODE_BUTTON_ANIMATION_DESCRIPTION" desc="Describes the flag to enable reading mode UI button animation">
+          If enabled, a reader mode button click slides up the reader mode version of a web page instead of navigating to it
+        </message>
+      </if>
+
       <!-- Prefetch search results experiment flags -->
       <message name="IDS_FLAGS_PREFETCH_SEARCH_RESULTS_NAME" desc="An about::flags experiment title to prefetch search results">
         Prefetch search results
@@ -15365,7 +15397,7 @@ Do you accept?
         Do not allow any sites to send push messages
       </message>
       <message name="IDS_PUSH_MESSAGES_BUBBLE_FRAGMENT" desc="Question asked on the info bar whenever a domain wants to send push messages">
-          Push notifications
+          Receive push messages
       </message>
       <if expr="enable_notifications">
         <message name="IDS_PUSH_MESSAGING_GENERIC_NOTIFICATION_BODY" desc="Body text of an auto-generated notification informing the user that the site may have received an update in the background, in case the site did not satisfy the visible notification requirement itself.">
@@ -15873,6 +15905,23 @@ Do you accept?
       <message name="IDS_ENABLE_INVALID_CERT_COLLECTION_DESCRIPTION" desc="Description of the 'Enable invalid certificate collection' flag.">
         Allows users to opt in to the collection of invalid TLS/SSL certificate chains.
       </message>
+
+      <!-- Printer detected notification -->
+      <if expr="chromeos">
+        <message name="IDS_PRINTER_DETECTED_NOTIFICATION_TITLE" desc="Title for notification shown to the user when a printer gets plugged in to a Chrome OS device.">
+          Printer from <ph name="VENDOR_NAME">$1<ex>Google</ex></ph> detected
+        </message>
+        <message name="IDS_PRINTER_DETECTED_NOTIFICATION_TITLE_UNKNOWN_VENDOR" desc="Title for notification shown to the user when a printer gets plugged in to a Chrome OS device in the case the printer manufacturer name is unknown.">
+          Printer detected
+        </message>
+        <message name="IDS_PRINTER_DETECTED_NOTIFICATION_NO_PRINT_APP_BODY" desc="Content for notification shown to the user when a printer gets plugged in to a Chrome OS device if the active user does not have an app that supports the printer installed.">
+          Click to find a print app to use this printer.
+        </message>
+        <message name="IDS_PRINTER_DETECTED_NOTIFICATION_PRINT_APP_FOUND_BODY" desc="Content for notification shown to the user when a printer gets plugged in to a Chrome OS device if the active user already has a print app that supports the printer installed.">
+          Your printer is ready.
+        </message>
+      </if>
+
     </messages>
   </release>
 </grit>

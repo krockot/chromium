@@ -9,6 +9,8 @@
 #include "chrome/browser/ui/autofill/autofill_dialog_types.h"
 #include "chrome/browser/ui/autofill/card_unmask_prompt_controller.h"
 #include "chrome/browser/ui/chrome_style.h"
+#import "chrome/browser/ui/cocoa/autofill/autofill_pop_up_button.h"
+#import "chrome/browser/ui/cocoa/autofill/autofill_textfield.h"
 #import "chrome/browser/ui/cocoa/autofill/autofill_tooltip_controller.h"
 #include "chrome/browser/ui/cocoa/autofill/card_unmask_prompt_view_bridge.h"
 #import "chrome/browser/ui/cocoa/constrained_window/constrained_window_button.h"
@@ -17,6 +19,7 @@
 #import "chrome/browser/ui/cocoa/constrained_window/constrained_window_custom_window.h"
 #import "chrome/browser/ui/cocoa/key_equivalent_constants.h"
 #import "chrome/browser/ui/cocoa/l10n_util.h"
+#import "chrome/browser/ui/cocoa/spinner_view.h"
 #include "grit/generated_resources.h"
 #include "grit/theme_resources.h"
 #include "skia/ext/skia_utils_mac.h"
@@ -26,18 +29,28 @@
 namespace {
 
 const CGFloat kButtonGap = 6.0f;
+const CGFloat kButtonsToRetriableErrorGap = 12.0f;
 const CGFloat kCvcInputWidth = 64.0f;
+const CGFloat kCvcInputToImageGap = 8.0f;
 const CGFloat kDialogContentMinWidth = 210.0f;
+const CGFloat kInputRowToInstructionsGap = 16.0f;
 const CGFloat kInstructionsToTitleGap = 8.0f;
 const CGFloat kPermanentErrorExteriorPadding = 12.0f;
 const CGFloat kPermanentErrorHorizontalPadding = 16.0f;
 const CGFloat kPermanentErrorVerticalPadding = 12.0f;
+const CGFloat kProgressToInstructionsGap = 24.0f;
+const CGFloat kRetriableErrorToInputRowGap = 4.0f;
+const CGFloat kSeparatorHeight = 1.0f;
+const CGFloat kSpinnerSize = 16.0f;
+const CGFloat kSpinnerToProgressTextGap = 8.0f;
+const CGFloat kYearToCvcGap = 12.0f;
+
 const SkColor kPermanentErrorTextColor = SK_ColorWHITE;
-const SkColor kPermanentErrorBackgroundColor = SkColorSetRGB(0xd3, 0x2f, 0x2f);
-const ui::ResourceBundle::FontStyle kProgressFontStyle =
-    chrome_style::kTitleFontStyle;
-const ui::ResourceBundle::FontStyle kErrorFontStyle =
-    chrome_style::kTextFontStyle;
+// Material blue. TODO(bondd): share with Views version.
+const SkColor kProgressTextColor = SkColorSetRGB(0x42, 0x85, 0xf4);
+// TODO(bondd): Unify colors with Views version and AutofillMessageView.
+const SkColor kShadingColor = SkColorSetRGB(0xf2, 0xf2, 0xf2);
+const SkColor kSubtleBorderColor = SkColorSetRGB(0xdf, 0xdf, 0xdf);
 
 }  // namespace
 
@@ -78,7 +91,8 @@ void CardUnmaskPromptViewBridge::ControllerGone() {
 void CardUnmaskPromptViewBridge::DisableAndWaitForVerification() {
   [view_controller_ setProgressOverlayText:
                         l10n_util::GetStringUTF16(
-                            IDS_AUTOFILL_CARD_UNMASK_VERIFICATION_IN_PROGRESS)];
+                            IDS_AUTOFILL_CARD_UNMASK_VERIFICATION_IN_PROGRESS)
+                               showSpinner:YES];
 }
 
 void CardUnmaskPromptViewBridge::GotVerificationResult(
@@ -87,14 +101,15 @@ void CardUnmaskPromptViewBridge::GotVerificationResult(
   if (error_message.empty()) {
     [view_controller_ setProgressOverlayText:
                           l10n_util::GetStringUTF16(
-                              IDS_AUTOFILL_CARD_UNMASK_VERIFICATION_SUCCESS)];
+                              IDS_AUTOFILL_CARD_UNMASK_VERIFICATION_SUCCESS)
+                                 showSpinner:NO];
 
     base::MessageLoop::current()->PostDelayedTask(
         FROM_HERE, base::Bind(&CardUnmaskPromptViewBridge::PerformClose,
                               weak_ptr_factory_.GetWeakPtr()),
         base::TimeDelta::FromSeconds(1));
   } else {
-    [view_controller_ setProgressOverlayText:base::string16()];
+    [view_controller_ setProgressOverlayText:base::string16() showSpinner:NO];
 
     if (allow_retry) {
       // TODO(bondd): Views version never hides |errorLabel_|. When Views
@@ -128,20 +143,22 @@ void CardUnmaskPromptViewBridge::PerformClose() {
 @implementation CardUnmaskPromptViewCocoa {
   base::scoped_nsobject<NSBox> permanentErrorBox_;
   base::scoped_nsobject<NSView> inputRowView_;
+  base::scoped_nsobject<NSView> progressOverlayView_;
   base::scoped_nsobject<NSView> storageView_;
 
   base::scoped_nsobject<NSTextField> titleLabel_;
   base::scoped_nsobject<NSTextField> permanentErrorLabel_;
   base::scoped_nsobject<NSTextField> instructionsLabel_;
-  base::scoped_nsobject<NSTextField> cvcInput_;
-  base::scoped_nsobject<NSPopUpButton> monthPopup_;
-  base::scoped_nsobject<NSPopUpButton> yearPopup_;
+  base::scoped_nsobject<AutofillTextField> cvcInput_;
+  base::scoped_nsobject<AutofillPopUpButton> monthPopup_;
+  base::scoped_nsobject<AutofillPopUpButton> yearPopup_;
   base::scoped_nsobject<NSButton> cancelButton_;
   base::scoped_nsobject<NSButton> verifyButton_;
   base::scoped_nsobject<NSButton> storageCheckbox_;
   base::scoped_nsobject<AutofillTooltipController> storageTooltip_;
   base::scoped_nsobject<NSTextField> errorLabel_;
   base::scoped_nsobject<NSTextField> progressOverlayLabel_;
+  base::scoped_nsobject<SpinnerView> progressOverlaySpinner_;
 
   int monthPopupDefaultIndex_;
   int yearPopupDefaultIndex_;
@@ -150,15 +167,23 @@ void CardUnmaskPromptViewBridge::PerformClose() {
   autofill::CardUnmaskPromptViewBridge* bridge_;
 }
 
-+ (NSPopUpButton*)buildDatePopupWithModel:(ui::ComboboxModel&)model {
-  NSPopUpButton* popup =
-      [[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:NO];
++ (AutofillPopUpButton*)buildDatePopupWithModel:(ui::ComboboxModel&)model {
+  AutofillPopUpButton* popup =
+      [[AutofillPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:NO];
 
   for (int i = 0; i < model.GetItemCount(); ++i) {
     [popup addItemWithTitle:base::SysUTF16ToNSString(model.GetItemAt(i))];
   }
   [popup sizeToFit];
   return popup;
+}
+
++ (base::scoped_nsobject<NSBox>)createPlainBox {
+  base::scoped_nsobject<NSBox> box([[NSBox alloc] initWithFrame:NSZeroRect]);
+  [box setBoxType:NSBoxCustom];
+  [box setBorderType:NSNoBorder];
+  [box setTitlePosition:NSNoTitle];
+  return box;
 }
 
 // Set |view|'s frame to the minimum dimensions required to contain all of its
@@ -189,18 +214,44 @@ void CardUnmaskPromptViewBridge::PerformClose() {
   return self;
 }
 
-- (void)setProgressOverlayText:(const base::string16&)text {
+- (void)updateProgressOverlayOrigin {
+  // Center progressOverlayView_ horizontally in the dialog, and position it a
+  // fixed distance below instructionsLabel_.
+  CGFloat viewMinY = NSMinY([instructionsLabel_ frame]) -
+                     kProgressToInstructionsGap -
+                     NSHeight([progressOverlayView_ frame]);
+  [progressOverlayView_
+      setFrameOrigin:NSMakePoint(
+                         NSMidX([[self view] frame]) -
+                             NSWidth([progressOverlayView_ frame]) / 2.0,
+                         viewMinY)];
+}
+
+- (void)setProgressOverlayText:(const base::string16&)text
+                   showSpinner:(BOOL)showSpinner {
   if (!text.empty()) {
     NSAttributedString* attributedString =
         constrained_window::GetAttributedLabelString(
-            SysUTF16ToNSString(text), kProgressFontStyle, NSCenterTextAlignment,
-            NSLineBreakByWordWrapping);
+            SysUTF16ToNSString(text), chrome_style::kTextFontStyle,
+            NSNaturalTextAlignment, NSLineBreakByWordWrapping);
     [progressOverlayLabel_ setAttributedStringValue:attributedString];
+    [progressOverlayLabel_ sizeToFit];
+    CGFloat labelMinX = showSpinner
+                            ? NSMaxX([progressOverlaySpinner_ frame]) +
+                                  kSpinnerToProgressTextGap
+                            : 0;
+    [progressOverlayLabel_ setFrameOrigin:NSMakePoint(labelMinX, 0)];
+
+    [CardUnmaskPromptViewCocoa sizeToFitView:progressOverlayView_];
+    [self updateProgressOverlayOrigin];
   }
 
-  [progressOverlayLabel_ setHidden:text.empty()];
+  [progressOverlayView_ setHidden:text.empty()];
+  [progressOverlaySpinner_ setHidden:!showSpinner];
   [inputRowView_ setHidden:!text.empty()];
-  [storageView_ setHidden:!text.empty()];
+  [errorLabel_ setHidden:!text.empty()];
+  [storageCheckbox_ setHidden:!text.empty()];
+  [[storageTooltip_ view] setHidden:!text.empty()];
   [self updateVerifyButtonEnabled];
 }
 
@@ -214,21 +265,24 @@ void CardUnmaskPromptViewBridge::PerformClose() {
 - (void)setRetriableErrorMessage:(const base::string16&)text {
   NSAttributedString* attributedString =
       constrained_window::GetAttributedLabelString(
-          SysUTF16ToNSString(text), kErrorFontStyle, NSNaturalTextAlignment,
-          NSLineBreakByWordWrapping);
+          SysUTF16ToNSString(text), chrome_style::kTextFontStyle,
+          NSNaturalTextAlignment, NSLineBreakByWordWrapping);
   [errorLabel_ setAttributedStringValue:attributedString];
+
+  // If there is more than one input showing, don't mark anything as
+  // invalid since we don't know the location of the problem.
+  if (!text.empty() && !bridge_->GetController()->ShouldRequestExpirationDate())
+    [cvcInput_ setValidityMessage:@"invalid"];
+
   [self performLayoutAndDisplay:YES];
 }
 
 - (void)setPermanentErrorMessage:(const base::string16&)text {
   if (!text.empty()) {
     if (!permanentErrorBox_) {
-      permanentErrorBox_.reset([[NSBox alloc] initWithFrame:NSZeroRect]);
-      [permanentErrorBox_ setBoxType:NSBoxCustom];
-      [permanentErrorBox_ setBorderType:NSNoBorder];
-      [permanentErrorBox_ setTitlePosition:NSNoTitle];
+      permanentErrorBox_ = [CardUnmaskPromptViewCocoa createPlainBox];
       [permanentErrorBox_ setFillColor:gfx::SkColorToCalibratedNSColor(
-                                           kPermanentErrorBackgroundColor)];
+                                           autofill::kWarningColor)];
       [permanentErrorBox_
           setContentViewMargins:NSMakeSize(kPermanentErrorHorizontalPadding,
                                            kPermanentErrorVerticalPadding)];
@@ -244,8 +298,8 @@ void CardUnmaskPromptViewBridge::PerformClose() {
 
     NSAttributedString* attributedString =
         constrained_window::GetAttributedLabelString(
-            SysUTF16ToNSString(text), kErrorFontStyle, NSNaturalTextAlignment,
-            NSLineBreakByWordWrapping);
+            SysUTF16ToNSString(text), chrome_style::kTextFontStyle,
+            NSNaturalTextAlignment, NSLineBreakByWordWrapping);
     [permanentErrorLabel_ setAttributedStringValue:attributedString];
   }
 
@@ -288,9 +342,15 @@ void CardUnmaskPromptViewBridge::PerformClose() {
 
 - (void)onExpirationDateChanged:(id)sender {
   if ([self expirationDateIsValid]) {
-    [self setRetriableErrorMessage:base::string16()];
+    if ([monthPopup_ invalid]) {
+      [monthPopup_ setValidityMessage:@""];
+      [yearPopup_ setValidityMessage:@""];
+      [self setRetriableErrorMessage:base::string16()];
+    }
   } else if ([monthPopup_ indexOfSelectedItem] != monthPopupDefaultIndex_ &&
              [yearPopup_ indexOfSelectedItem] != yearPopupDefaultIndex_) {
+    [monthPopup_ setValidityMessage:@"invalid"];
+    [yearPopup_ setValidityMessage:@"invalid"];
     [self setRetriableErrorMessage:
               l10n_util::GetStringUTF16(
                   IDS_AUTOFILL_CARD_UNMASK_INVALID_EXPIRATION_DATE)];
@@ -301,12 +361,24 @@ void CardUnmaskPromptViewBridge::PerformClose() {
 
 // Called when text in CVC input field changes.
 - (void)controlTextDidChange:(NSNotification*)notification {
+  if (bridge_->GetController()->InputCvcIsValid(
+          base::SysNSStringToUTF16([cvcInput_ stringValue])))
+    [cvcInput_ setValidityMessage:@""];
+
   [self updateVerifyButtonEnabled];
 }
 
 - (base::scoped_nsobject<NSView>)createStorageViewWithController:
         (autofill::CardUnmaskPromptController*)controller {
   base::scoped_nsobject<NSView> view([[NSView alloc] initWithFrame:NSZeroRect]);
+  [view setAutoresizingMask:NSViewWidthSizable];
+
+  base::scoped_nsobject<NSBox> box = [CardUnmaskPromptViewCocoa createPlainBox];
+  [box setAutoresizingMask:NSViewWidthSizable];
+  [box setFillColor:gfx::SkColorToCalibratedNSColor(kShadingColor)];
+  [box setContentViewMargins:NSMakeSize(chrome_style::kHorizontalPadding,
+                                        chrome_style::kClientBottomPadding)];
+  [view addSubview:box];
 
   // Add "Store card on this device" checkbox.
   storageCheckbox_.reset([[NSButton alloc] initWithFrame:NSZeroRect]);
@@ -318,7 +390,7 @@ void CardUnmaskPromptViewBridge::PerformClose() {
       setState:(controller->GetStoreLocallyStartState() ? NSOnState
                                                         : NSOffState)];
   [storageCheckbox_ sizeToFit];
-  [view addSubview:storageCheckbox_];
+  [box addSubview:storageCheckbox_];
 
   // Add "?" icon with tooltip.
   storageTooltip_.reset([[AutofillTooltipController alloc]
@@ -329,12 +401,21 @@ void CardUnmaskPromptViewBridge::PerformClose() {
   [storageTooltip_
       setMessage:base::SysUTF16ToNSString(l10n_util::GetStringUTF16(
                      IDS_AUTOFILL_CARD_UNMASK_PROMPT_STORAGE_TOOLTIP))];
-  [view addSubview:[storageTooltip_ view]];
+  [box addSubview:[storageTooltip_ view]];
   [[storageTooltip_ view] setFrameOrigin:
       NSMakePoint(NSMaxX([storageCheckbox_ frame]) + kButtonGap, 0)];
 
+  // Add horizontal separator.
+  base::scoped_nsobject<NSBox> separator =
+      [CardUnmaskPromptViewCocoa createPlainBox];
+  [separator setAutoresizingMask:NSViewWidthSizable];
+  [separator setFillColor:gfx::SkColorToCalibratedNSColor(kSubtleBorderColor)];
+  [view addSubview:separator];
+
+  [box sizeToFit];
+  [separator setFrame:NSMakeRect(0, NSMaxY([box frame]), NSWidth([box frame]),
+                                 kSeparatorHeight)];
   [CardUnmaskPromptViewCocoa sizeToFitView:view];
-  [CardUnmaskPromptViewCocoa verticallyCenterSubviewsInView:view];
   return view;
 }
 
@@ -349,27 +430,36 @@ void CardUnmaskPromptViewBridge::PerformClose() {
 // |     (All enclosed in inputRowView_. Month and year may be hidden.)        |
 // |---------------------------------------------------------------------------|
 // | errorLabel_ (Multiline. Always takes up space for one line even if        |
-// |                 empty.)                                                   |
+// |                 empty. Hidden when progressOverlayView_ is displayed.)    |
 // |---------------------------------------------------------------------------|
 // |                                                         [Cancel] [Verify] |
 // |---------------------------------------------------------------------------|
-// | storageCheckbox_ storageTooltip_                                          |
-// |     (Both enclosed in storageView_. May be hidden but still taking up     |
-// |         layout space. Will all be nil if !CanStoreLocally()).             |
+// | separator (NSBox.)                                                        |
+// | storageCheckbox_ storageTooltip_ (Both enclosed in another NSBox.         |
+// |                                   Checkbox and tooltip may be hidden.)    |
+// |     (Both NSBoxes are enclosed in storageView_. Will all be nil if        |
+// |          !CanStoreLocally()).                                             |
+// +---------------------------------------------------------------------------+
+//
+// progressOverlayView_:
+//     (Displayed below instructionsLabel_, may be hidden.
+//         progressOverlaySpinner_ may be hidden while progressOverlayLabel_
+//         is shown.)
+// +---------------------------------------------------------------------------+
+// | progressOverlaySpinner_ progressOverlayLabel_                             |
 // +---------------------------------------------------------------------------+
 - (void)performLayoutAndDisplay:(BOOL)display {
   // Calculate dialog content width.
   CGFloat contentWidth =
       std::max(NSWidth([titleLabel_ frame]), NSWidth([inputRowView_ frame]));
-  contentWidth = std::max(contentWidth, NSWidth([storageView_ frame]));
+  contentWidth = std::max(contentWidth,
+                          NSWidth(NSUnionRect([storageCheckbox_ frame],
+                                              [[storageTooltip_ view] frame])));
   contentWidth = std::max(contentWidth, kDialogContentMinWidth);
 
   CGFloat contentMinX = chrome_style::kHorizontalPadding;
   CGFloat contentMaxX = contentMinX + contentWidth;
   CGFloat dialogWidth = contentMaxX + chrome_style::kHorizontalPadding;
-
-  [storageView_ setFrameOrigin:NSMakePoint(contentMinX,
-                                           chrome_style::kClientBottomPadding)];
 
   CGFloat verifyMinY =
       storageView_ ? NSMaxY([storageView_ frame]) + chrome_style::kRowPadding
@@ -384,17 +474,17 @@ void CardUnmaskPromptViewBridge::PerformClose() {
                                  NSMinY([verifyButton_ frame]))];
 
   [errorLabel_ setFrame:NSMakeRect(contentMinX, NSMaxY([cancelButton_ frame]) +
-                                                    chrome_style::kRowPadding,
+                                                    kButtonsToRetriableErrorGap,
                                    contentWidth, 0)];
   cocoa_l10n_util::WrapOrSizeToFit(errorLabel_);
 
-  [inputRowView_
-      setFrameOrigin:NSMakePoint(contentMinX, NSMaxY([errorLabel_ frame]) +
-                                                  chrome_style::kRowPadding)];
+  [inputRowView_ setFrameOrigin:NSMakePoint(contentMinX,
+                                            NSMaxY([errorLabel_ frame]) +
+                                                kRetriableErrorToInputRowGap)];
 
   [instructionsLabel_
       setFrame:NSMakeRect(contentMinX, NSMaxY([inputRowView_ frame]) +
-                                           chrome_style::kRowPadding,
+                                           kInputRowToInstructionsGap,
                           contentWidth, 0)];
   cocoa_l10n_util::WrapOrSizeToFit(instructionsLabel_);
 
@@ -415,19 +505,12 @@ void CardUnmaskPromptViewBridge::PerformClose() {
 
   [titleLabel_ setFrameOrigin:NSMakePoint(contentMinX, titleMinY)];
 
-  // Center progressOverlayLabel_ vertically within inputRowView_ frame.
-  CGFloat progressHeight = ui::ResourceBundle::GetSharedInstance()
-                               .GetFont(kProgressFontStyle)
-                               .GetHeight();
-  [progressOverlayLabel_
-      setFrame:NSMakeRect(contentMinX, ceil(NSMidY([inputRowView_ frame]) -
-                                            progressHeight / 2.0),
-                          contentWidth, progressHeight)];
-
   // Set dialog size.
   [[self view]
       setFrameSize:NSMakeSize(dialogWidth, NSMaxY([titleLabel_ frame]) +
                                                chrome_style::kTitleTopPadding)];
+
+  [self updateProgressOverlayOrigin];
 
   NSRect frameRect =
       [[[self view] window] frameRectForContentRect:[[self view] frame]];
@@ -449,9 +532,19 @@ void CardUnmaskPromptViewBridge::PerformClose() {
     [mainView addSubview:storageView_];
   }
 
+  // Add progress overlay.
+  progressOverlayView_.reset([[NSView alloc] initWithFrame:NSZeroRect]);
+  [progressOverlayView_ setHidden:YES];
+  [mainView addSubview:progressOverlayView_];
+
   progressOverlayLabel_.reset([constrained_window::CreateLabel() retain]);
-  [progressOverlayLabel_ setHidden:YES];
-  [mainView addSubview:progressOverlayLabel_];
+  [progressOverlayLabel_
+      setTextColor:gfx::SkColorToCalibratedNSColor(kProgressTextColor)];
+  [progressOverlayView_ addSubview:progressOverlayLabel_];
+
+  progressOverlaySpinner_.reset([[SpinnerView alloc]
+      initWithFrame:NSMakeRect(0, 0, kSpinnerSize, kSpinnerSize)]);
+  [progressOverlayView_ addSubview:progressOverlaySpinner_];
 
   // Add title label.
   titleLabel_.reset([constrained_window::CreateLabel() retain]);
@@ -488,6 +581,19 @@ void CardUnmaskPromptViewBridge::PerformClose() {
     [monthPopup_ setAction:@selector(onExpirationDateChanged:)];
     [expirationView addSubview:monthPopup_];
 
+    // Add separator between month and year.
+    base::scoped_nsobject<NSTextField> separatorLabel(
+        [constrained_window::CreateLabel() retain]);
+    NSAttributedString* separatorString =
+        constrained_window::GetAttributedLabelString(
+            SysUTF16ToNSString(l10n_util::GetStringUTF16(
+                IDS_AUTOFILL_CARD_UNMASK_EXPIRATION_DATE_SEPARATOR)),
+            chrome_style::kTextFontStyle, NSNaturalTextAlignment,
+            NSLineBreakByWordWrapping);
+    [separatorLabel setAttributedStringValue:separatorString];
+    [separatorLabel sizeToFit];
+    [expirationView addSubview:separatorLabel];
+
     // Add expiration year.
     autofill::YearComboboxModel yearModel;
     yearPopupDefaultIndex_ = yearModel.GetDefaultIndex();
@@ -497,19 +603,19 @@ void CardUnmaskPromptViewBridge::PerformClose() {
     [yearPopup_ setAction:@selector(onExpirationDateChanged:)];
     [expirationView addSubview:yearPopup_];
 
-    // Layout month and year within expirationView.
-    [yearPopup_
-        setFrameOrigin:NSMakePoint(NSMaxX([monthPopup_ frame]) + kButtonGap,
-                                   0)];
+    // Layout month, separator, and year within expirationView.
+    [separatorLabel setFrameOrigin:NSMakePoint(NSMaxX([monthPopup_ frame]), 0)];
+    [yearPopup_ setFrameOrigin:NSMakePoint(NSMaxX([separatorLabel frame]), 0)];
     NSRect expirationFrame =
         NSUnionRect([monthPopup_ frame], [yearPopup_ frame]);
-    expirationFrame.size.width += kButtonGap;
+    expirationFrame.size.width += kYearToCvcGap;
     [expirationView setFrame:expirationFrame];
+    [CardUnmaskPromptViewCocoa verticallyCenterSubviewsInView:expirationView];
     [inputRowView_ addSubview:expirationView];
   }
 
   // Add CVC text input.
-  cvcInput_.reset([[NSTextField alloc] initWithFrame:NSZeroRect]);
+  cvcInput_.reset([[AutofillTextField alloc] initWithFrame:NSZeroRect]);
   [[cvcInput_ cell]
       setPlaceholderString:l10n_util::GetNSString(
                                IDS_AUTOFILL_DIALOG_PLACEHOLDER_CVC)];
@@ -529,7 +635,8 @@ void CardUnmaskPromptViewBridge::PerformClose() {
   [cvcImageView setImage:cvcImage];
   [cvcImageView setFrameSize:[cvcImage size]];
   [cvcImageView
-      setFrameOrigin:NSMakePoint(NSMaxX([cvcInput_ frame]) + kButtonGap, 0)];
+      setFrameOrigin:NSMakePoint(
+                         NSMaxX([cvcInput_ frame]) + kCvcInputToImageGap, 0)];
   [inputRowView_ addSubview:cvcImageView];
 
   // Add error message label.
@@ -551,8 +658,8 @@ void CardUnmaskPromptViewBridge::PerformClose() {
   // Add verify button.
   verifyButton_.reset(
       [[ConstrainedWindowButton alloc] initWithFrame:NSZeroRect]);
-  // TODO(bondd): use l10n string.
-  [verifyButton_ setTitle:@"Verify"];
+  [verifyButton_ setTitle:l10n_util::GetNSStringWithFixup(
+                              IDS_AUTOFILL_CARD_UNMASK_CONFIRM_BUTTON)];
   [verifyButton_ setKeyEquivalent:kKeyEquivalentReturn];
   [verifyButton_ setTarget:self];
   [verifyButton_ setAction:@selector(onVerify:)];

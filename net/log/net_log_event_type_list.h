@@ -494,6 +494,15 @@ EVENT_TYPE(SSL_WRITE_ERROR)
 //   }
 EVENT_TYPE(SSL_VERSION_FALLBACK)
 
+// An SSL connection needs to be retried with more cipher suites because the
+// server may require a deprecated cipher suite. The following parameters are
+// attached to the event:
+//   {
+//     "host_and_port": <String encoding the host and port>,
+//     "net_error": <Net integer error code>,
+//   }
+EVENT_TYPE(SSL_CIPHER_FALLBACK)
+
 // We found that our prediction of the server's certificates was correct and
 // we merged the verification with the SSLHostInfo. (Note: now obsolete.)
 EVENT_TYPE(SSL_VERIFICATION_MERGED)
@@ -1721,6 +1730,13 @@ EVENT_TYPE(QUIC_HTTP_STREAM_SEND_REQUEST_HEADERS)
 //     "headers": <The list of header:value pairs>
 //   }
 EVENT_TYPE(QUIC_HTTP_STREAM_READ_RESPONSE_HEADERS)
+
+// Identifies the NetLog::Source() for the QuicSesssion that handled the stream.
+// The event parameters are:
+//   {
+//      "source_dependency": <Source identifier for session that was used>,
+//   }
+EVENT_TYPE(HTTP_STREAM_REQUEST_BOUND_TO_QUIC_SESSION)
 
 // ------------------------------------------------------------------------
 // HttpStreamParser

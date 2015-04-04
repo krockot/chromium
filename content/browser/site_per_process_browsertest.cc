@@ -281,6 +281,46 @@ IN_PROC_BROWSER_TEST_F(SitePerProcessBrowserTest, CrossSiteIframe) {
   EXPECT_TRUE(child->current_frame_host()->GetRenderWidgetHost());
 }
 
+// Tests OOPIF rendering by checking that the RWH of the iframe generates
+// OnSwapCompositorFrame message.
+#if defined(OS_ANDROID)
+// http://crbug.com/471850
+#define MAYBE_CompositorFrameSwapped DISABLED_CompositorFrameSwapped
+#else
+#define MAYBE_CompositorFrameSwapped CompositorFrameSwapped
+#endif
+IN_PROC_BROWSER_TEST_F(SitePerProcessBrowserTest,
+                       MAYBE_CompositorFrameSwapped) {
+  GURL main_url(
+      embedded_test_server()->GetURL("/frame_tree/page_with_one_frame.html"));
+  NavigateToURL(shell(), main_url);
+
+  // It is safe to obtain the root frame tree node here, as it doesn't change.
+  FrameTreeNode* root = static_cast<WebContentsImpl*>(shell()->web_contents())
+                            ->GetFrameTree()
+                            ->root();
+  ASSERT_EQ(1U, root->child_count());
+
+  FrameTreeNode* child_node = root->child_at(0);
+  GURL site_url(embedded_test_server()->GetURL("baz.com", "/title1.html"));
+  EXPECT_EQ(site_url, child_node->current_url());
+  EXPECT_NE(shell()->web_contents()->GetSiteInstance(),
+            child_node->current_frame_host()->GetSiteInstance());
+  RenderWidgetHostViewBase* rwhv_base = static_cast<RenderWidgetHostViewBase*>(
+      child_node->current_frame_host()->GetRenderWidgetHost()->GetView());
+
+  // Wait for OnSwapCompositorFrame message.
+  while (rwhv_base->RendererFrameNumber() <= 0) {
+    // TODO(lazyboy): Find a better way to avoid sleeping like this. See
+    // http://crbug.com/405282 for details.
+    base::RunLoop run_loop;
+    base::MessageLoop::current()->PostDelayedTask(
+        FROM_HERE, run_loop.QuitClosure(),
+        base::TimeDelta::FromMilliseconds(10));
+    run_loop.Run();
+  }
+}
+
 // Disabled for flaky crashing: crbug.com/446575
 IN_PROC_BROWSER_TEST_F(SitePerProcessBrowserTest,
                        NavigateRemoteFrame) {
@@ -709,6 +749,40 @@ IN_PROC_BROWSER_TEST_F(SitePerProcessBrowserTest, DISABLED_CrashSubframe) {
   }
   EXPECT_EQ(0U, root->child_count());
   EXPECT_EQ(GURL(), root->current_url());
+}
+
+// When a new subframe is added, related SiteInstances that can reach the
+// subframe should create proxies for it (https://crbug.com/423587).  This test
+// checks that if A embeds B and later adds a new subframe A2, A2 gets a proxy
+// in B's process.
+IN_PROC_BROWSER_TEST_F(SitePerProcessBrowserTest, CreateProxiesForNewFrames) {
+  GURL main_url(
+      embedded_test_server()->GetURL("/frame_tree/page_with_one_frame.html"));
+  EXPECT_TRUE(NavigateToURL(shell(), main_url));
+
+  // It is safe to obtain the root frame tree node here, as it doesn't change.
+  FrameTreeNode* root = static_cast<WebContentsImpl*>(shell()->web_contents())
+                            ->GetFrameTree()
+                            ->root();
+  ASSERT_EQ(1U, root->child_count());
+
+  // Make sure the frame starts out at the correct cross-site URL.
+  EXPECT_EQ(embedded_test_server()->GetURL("baz.com", "/title1.html"),
+            root->child_at(0)->current_url());
+
+  // Add a new child frame to the top-level frame.
+  RenderFrameHostCreatedObserver frame_observer(shell()->web_contents(), 1);
+  EXPECT_TRUE(ExecuteScript(shell()->web_contents(),
+                            "window.domAutomationController.send("
+                            "    addFrame('data:text/html,foo'));"));
+  frame_observer.Wait();
+  ASSERT_EQ(2U, root->child_count());
+
+  // The new child frame should now have a proxy in first frame's process.
+  RenderFrameProxyHost* proxy =
+      root->child_at(1)->render_manager()->GetRenderFrameProxyHost(
+          root->child_at(0)->current_frame_host()->GetSiteInstance());
+  EXPECT_TRUE(proxy);
 }
 
 // TODO(nasko): Disable this test until out-of-process iframes is ready and the

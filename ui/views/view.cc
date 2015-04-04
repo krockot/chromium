@@ -23,6 +23,7 @@
 #include "ui/compositor/dip_util.h"
 #include "ui/compositor/layer.h"
 #include "ui/compositor/layer_animator.h"
+#include "ui/compositor/paint_context.h"
 #include "ui/events/event_target_iterator.h"
 #include "ui/gfx/canvas.h"
 #include "ui/gfx/geometry/point3_f.h"
@@ -731,28 +732,34 @@ void View::SchedulePaintInRect(const gfx::Rect& rect) {
   }
 }
 
-void View::Paint(const PaintContext& context) {
+void View::Paint(const ui::PaintContext& parent_context) {
   if (!visible_)
     return;
 
-#if DCHECK_IS_ON()
-  context.Visited(this);
-#endif
+  gfx::Vector2d offset_to_parent;
+  if (!layer()) {
+    // If the View has a layer() then it is a paint root. Otherwise, we need to
+    // add the offset from the parent into the total offset from the paint root.
+    DCHECK_IMPLIES(!parent(), bounds().origin() == gfx::Point());
+    offset_to_parent = GetMirroredPosition().OffsetFromOrigin();
+  }
+  ui::PaintContext context =
+      parent_context.CloneWithPaintOffset(offset_to_parent);
 
   if (context.CanCheckInvalidated()) {
-    // This computes the bounds of the current view in the space of the view's
-    // paint root (ie the ancestor View at which this Paint() walk started), in
-    // order to tell if the View needs to be painted.
-    gfx::Rect bounds_in_paint_root = GetLocalBounds();
+#if DCHECK_IS_ON()
+    gfx::Vector2d offset;
+    context.Visited(this);
     View* view = this;
-    // TODO(danakj): This is O(n^2) we can do better by storing an offset in the
-    // PaintContext.
     while (view->parent() && !view->layer()) {
       DCHECK(view->GetTransform().IsIdentity());
-      bounds_in_paint_root += view->GetMirroredPosition().OffsetFromOrigin();
+      offset += view->GetMirroredPosition().OffsetFromOrigin();
       view = view->parent();
     }
-#if DCHECK_IS_ON()
+    // The offset in the PaintContext should be the offset up to the paint root,
+    // which we compute and verify here.
+    DCHECK_EQ(context.PaintOffset().x(), offset.x());
+    DCHECK_EQ(context.PaintOffset().y(), offset.y());
     // The above loop will stop when |view| is the paint root, which should be
     // the root of the current paint walk, as verified by storing the root in
     // the PaintContext.
@@ -761,7 +768,7 @@ void View::Paint(const PaintContext& context) {
 
     // If the View wasn't invalidated, don't waste time painting it, the output
     // would be culled.
-    if (!context.IsRectInvalidated(bounds_in_paint_root))
+    if (!context.IsRectInvalidated(GetLocalBounds()))
       return;
   }
 
@@ -773,22 +780,18 @@ void View::Paint(const PaintContext& context) {
   // If the view is backed by a layer, it should paint with itself as the origin
   // rather than relative to its parent.
   if (!layer()) {
-    // Set the clip rect to the bounds of this View and translating the origin
-    // to the local bounds' top left point.
-    //
-    // Note that the X (or left) position we pass to ClipRectInt takes into
-    // consideration whether or not the view uses a right-to-left layout so that
-    // we paint our view in its mirrored position if need be.
+    // Set the clip rect to the bounds of this View. Note that the X (or left)
+    // position we pass to ClipRect takes into consideration whether or not the
+    // View uses a right-to-left layout so that we paint the View in its
+    // mirrored position if need be.
     gfx::Rect clip_rect = bounds();
     clip_rect.Inset(clip_insets_);
     if (parent_)
       clip_rect.set_x(parent_->GetMirroredXForRect(clip_rect));
     canvas->ClipRect(clip_rect);
-    if (canvas->IsClipEmpty())
-      return;
 
-    // Non-empty clip, translate the graphics such that 0,0 corresponds to where
-    // this view is located (related to its parent).
+    // Translate the graphics such that 0,0 corresponds to where
+    // this View is located relative to its parent.
     canvas->Translate(GetMirroredPosition().OffsetFromOrigin());
     canvas->Transform(GetTransform());
   }
@@ -1334,7 +1337,7 @@ void View::NativeViewHierarchyChanged() {
 
 // Painting --------------------------------------------------------------------
 
-void View::PaintChildren(const PaintContext& context) {
+void View::PaintChildren(const ui::PaintContext& context) {
   TRACE_EVENT1("views", "View::PaintChildren", "class", GetClassName());
   for (int i = 0, count = child_count(); i < count; ++i)
     if (!child_at(i)->layer())
@@ -1444,12 +1447,12 @@ void View::UpdateChildLayerBounds(const gfx::Vector2d& offset) {
   }
 }
 
-void View::OnPaintLayer(gfx::Canvas* canvas) {
+void View::OnPaintLayer(const ui::PaintContext& context) {
   if (!layer()->fills_bounds_opaquely())
-    canvas->DrawColor(SK_ColorBLACK, SkXfermode::kClear_Mode);
+    context.canvas()->DrawColor(SK_ColorBLACK, SkXfermode::kClear_Mode);
   if (!visible_)
     return;
-  Paint(PaintContext(canvas, layer()->PaintRect()));
+  Paint(context);
 }
 
 void View::OnDelegatedFrameDamage(

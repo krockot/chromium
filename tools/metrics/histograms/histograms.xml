@@ -702,6 +702,33 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   </summary>
 </histogram>
 
+<histogram name="Ash.Shelf.NumberOfItems" units="Icons">
+  <owner>bruthig@google.com</owner>
+  <owner>tdanderson@google.com</owner>
+  <summary>
+    The number of icons in the shelf, not including the App Launcher icon. This
+    metric is recorded every 30 minutes.
+  </summary>
+</histogram>
+
+<histogram name="Ash.Shelf.NumberOfPinnedItems" units="Icons">
+  <owner>bruthig@google.com</owner>
+  <owner>tdanderson@google.com</owner>
+  <summary>
+    The number of pinned icons in the shelf, not including the App Launcher
+    icon. This metric is recorded every 30 minutes.
+  </summary>
+</histogram>
+
+<histogram name="Ash.Shelf.NumberOfUnpinnedItems" units="Icons">
+  <owner>bruthig@google.com</owner>
+  <owner>tdanderson@google.com</owner>
+  <summary>
+    The number of unpinned icons in the shelf. This metric is recorded every 30
+    minutes.
+  </summary>
+</histogram>
+
 <histogram name="Ash.ShelfAlignmentOverTime" enum="ShelfAlignmentValue">
   <owner>kuscher@google.com</owner>
   <summary>
@@ -1944,6 +1971,16 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   </summary>
 </histogram>
 
+<histogram name="Autofill.PasswordFormQueryVolume"
+    enum="PasswordFormQueryVolume">
+  <owner>dvadym@chromium.org</owner>
+  <owner>gcasto@chromium.org</owner>
+  <summary>
+    Tracks the increased load on the Autofill server if the restriction on
+    querying for password forms with fewer than 3 fields were omitted.
+  </summary>
+</histogram>
+
 <histogram name="AutoFill.ProfileCount">
   <obsolete>
     Deprecated as of 3/2011, replaced by Autofill.StoredProfileCount.
@@ -2261,6 +2298,14 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 <histogram name="BlinkGC.CollectGarbage" units="milliseconds">
   <owner>haraken@chromium.org</owner>
   <summary>Duration of time taken to run Heap::collectGarbage().</summary>
+</histogram>
+
+<histogram name="BlinkGC.CommittedSize" units="MB">
+  <owner>haraken@chromium.org</owner>
+  <summary>
+    The committed memory size in Blink GC. The value is reported when we see the
+    highest memory usage we've ever seen in the renderer process.
+  </summary>
 </histogram>
 
 <histogram name="BlinkGC.CompleteSweep" units="milliseconds">
@@ -3785,6 +3830,11 @@ Therefore, the affected-histogram name has to have at least one dot in it.
     The amount of time (ms) to parse the domains already loaded from the cookies
     database and put them in the domain map.
   </summary>
+</histogram>
+
+<histogram name="Cookie.Type" enum="CookieType">
+  <owner>mkwst@chromium.org</owner>
+  <summary>For each cookie added to the store, record it's type(s).</summary>
 </histogram>
 
 <histogram name="Cras.StreamTimeoutMilliSeconds" units="milliseconds">
@@ -6681,6 +6731,19 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   </summary>
 </histogram>
 
+<histogram name="EasyUnlock.AuthEvent.DidUserManuallyUnlockPhone"
+    enum="EasyUnlockDidUserManuallyUnlockPhone">
+  <owner>isherman@google.com</owner>
+  <owner>xiaowenx@google.com</owner>
+  <owner>xiyuan@google.com</owner>
+  <summary>
+    Upon a successful Smart Lock unlock or signin, records whether the user's
+    phone was locked during any point while the lock screen was up. This can be
+    used to get a sense for whether users are using Smart Lock for Chrome
+    without something like Smart Lock for Android to keep their phones unlocked.
+  </summary>
+</histogram>
+
 <histogram name="EasyUnlock.AuthEvent.SignIn" enum="EasyUnlockAuthEvent">
   <owner>isherman@google.com</owner>
   <owner>xiaowenx@google.com</owner>
@@ -7047,6 +7110,14 @@ Therefore, the affected-histogram name has to have at least one dot in it.
     Captures the state the enhanced bookmark experiment is in. Recorded on
     startup. To be removed once the enhanced bookmark experiment is finished.
     see crbug/323423.
+  </summary>
+</histogram>
+
+<histogram name="EnhancedBookmarks.ViewMode" enum="EnhancedBookmarkViewMode">
+  <owner>ianwen@chromium.org</owner>
+  <summary>
+    Record which Enhanced Bookmark UI mode users are in. This will be recorded
+    everytime the user opens the bookmark manager UI.
   </summary>
 </histogram>
 
@@ -11439,6 +11510,23 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   </summary>
 </histogram>
 
+<histogram name="History.FaviconDatabaseAdvancedMetricsTime" units="ticks">
+  <owner>rogerm@chromium.org</owner>
+  <summary>
+    The wall-clock time taken to gather favicon database metrics. Metrics are
+    logged on initialization of the Favicon DB on 1% of starts.
+  </summary>
+</histogram>
+
+<histogram name="History.FaviconDatabaseSizeMB" units="MB">
+  <owner>rogerm@chromium.org</owner>
+  <summary>
+    Size of the Favicons database in MB. This is calculated as the number of
+    pages consumed by the database multiplied by the page size. Logged on
+    initialization of the Favicon DB on 1% of starts.
+  </summary>
+</histogram>
+
 <histogram name="History.FaviconsRecoveredPercentage" units="%">
   <owner>rpop@google.com</owner>
   <summary>
@@ -11473,6 +11561,55 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   <owner>rpop@google.com</owner>
   <summary>
     Track results of SQLite database recovery code in thumbnail_database.cc.
+  </summary>
+</histogram>
+
+<histogram name="History.NumFaviconBitmapsInDB">
+  <owner>rogerm@chromium.org</owner>
+  <summary>
+    The total number of favicon bitmaps (of all sizes) cached in a user's
+    Favicon database. A given favicon URL may be associated with multiple
+    bitmaps (of different sizes). Logged on initialization of the Favicon DB on
+    1% of starts.
+  </summary>
+</histogram>
+
+<histogram name="History.NumFaviconMappingsInDB">
+  <owner>rogerm@chromium.org</owner>
+  <summary>
+    The number of page URL (e.g., http://www.google.com) to favicon URL (e.g.,
+    http://www.google.com/favicon.ico) mappings stored in a user's Favicon
+    database. Logged on initialization of the Favicon DB on 1% of starts.
+  </summary>
+</histogram>
+
+<histogram name="History.NumFaviconsInDB">
+  <owner>rogerm@chromium.org</owner>
+  <summary>
+    The total number of favicon URLs (e.g. http://www.google.com/favicon.ico)
+    tracked in a user's Favicon database. This metric tracks knowledge of a
+    favicon URL not whether there are cached bitmaps for that favicon URL. See
+    History.NumFaviconBitmapsInDB for that. Logged on initialization of the
+    Favicon DB on 1% of starts.
+  </summary>
+</histogram>
+
+<histogram name="History.NumLargeFaviconBitmapsInDB">
+  <owner>rogerm@chromium.org</owner>
+  <summary>
+    The total number of large (&gt;= 64 pixels wide) favicons being tracked in a
+    user's Favicon database. This is a subset of History.NumFaviconBitmapsInDB,
+    which includes all sizes in its count. Logged on initialization of the
+    Favicon DB on 1% of starts.
+  </summary>
+</histogram>
+
+<histogram name="History.NumTouchIconsInDB">
+  <owner>rogerm@chromium.org</owner>
+  <summary>
+    The total number of touch icons being tracked in a user's Favicon database.
+    This is a subset of History.NumFaviconsInDB, which includes all icon types
+    in its count. Logged on initialization of the Favicon DB on 1% of starts.
   </summary>
 </histogram>
 
@@ -17263,6 +17400,15 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   <summary>
     Each bucket is the number of failed connections of a particular type that
     the user has had during the session.
+  </summary>
+</histogram>
+
+<histogram name="Net.ConnectionUsedSSLDeprecatedCipherFallback"
+    enum="BooleanDeprecatedCiphers">
+  <owner>davidben@chromium.org</owner>
+  <summary>
+    True if an HTTPS connection was made using the deprecated cipher suite
+    fallback.
   </summary>
 </histogram>
 
@@ -24858,6 +25004,14 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   </summary>
 </histogram>
 
+<histogram name="PartitionAlloc.CommittedSize" units="MB">
+  <owner>haraken@chromium.org</owner>
+  <summary>
+    The committed memory size in PartitionAlloc. The value is reported when we
+    see the highest memory usage we've ever seen in the renderer process.
+  </summary>
+</histogram>
+
 <histogram name="PasswordBubble.DisplayDisposition"
     enum="PasswordBubbleDisplayDisposition">
   <owner>mkwst@chromium.org</owner>
@@ -25151,6 +25305,16 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   <summary>
     Indicates whether submitting a password login form changes the registry
     controlled domain of the main frame.
+  </summary>
+</histogram>
+
+<histogram name="PasswordManager.SubmittedFormType" enum="PasswordFormType">
+  <owner>gcasto@chromium.org</owner>
+  <owner>vabr@chromium.org</owner>
+  <summary>
+    The type (e.g. signup, login, change password) of all submitted password
+    forms. This is logged on form submission, but doesn't require that the
+    password manager saves.
   </summary>
 </histogram>
 
@@ -26722,6 +26886,11 @@ Therefore, the affected-histogram name has to have at least one dot in it.
     The fraction of compressed memory that consists of zero-filled pages.
     Snapshot every 30s.
   </summary>
+</histogram>
+
+<histogram name="PlatformFile.FlushTime" units="milliseconds">
+  <owner>tnagel@chromium.org</owner>
+  <summary>The time it takes to run File::Flush().</summary>
 </histogram>
 
 <histogram name="PlatformFile.UnknownCreateFileErrors" units="code">
@@ -34095,6 +34264,22 @@ Therefore, the affected-histogram name has to have at least one dot in it.
     each time a read from the filter is called, assuming 1430 bytes of data per
     packet since the last boundary calculation.  This *tends* to properly count
     small packets, but can err if small packets come at roughly the same time.
+  </summary>
+</histogram>
+
+<histogram name="Sdch3.NetworkBytesSavedByCompression" units="bytes">
+  <owner>ellyjones@chromium.org</owner>
+  <summary>
+    The absolute difference in bytes between the amount of data entering the
+    SDCH filter and the amount of data exiting the SDCH filter.
+  </summary>
+</histogram>
+
+<histogram name="Sdch3.NetworkBytesSpent" units="bytes">
+  <owner>ellyjones@chromium.org</owner>
+  <summary>
+    Absolute sizes, in bytes, of SDCH dictionaries fetched over the network.
+    These are logged in SdchOwner when dictionary fetches complete.
   </summary>
 </histogram>
 
@@ -45931,6 +46116,11 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   <int value="1" label="Deleted"/>
 </enum>
 
+<enum name="BooleanDeprecatedCiphers" type="int">
+  <int value="0" label="Deprecated ciphers disabled"/>
+  <int value="1" label="Deprecated ciphers enabled"/>
+</enum>
+
 <enum name="BooleanDidEvict" type="int">
   <int value="0" label="Did not evict"/>
   <int value="1" label="Did evict"/>
@@ -46971,6 +47161,18 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   </int>
 </enum>
 
+<enum name="CookieType" type="int">
+  <summary>The type of a cookie when its added to the cookie store.</summary>
+  <int value="0" label="Default"/>
+  <int value="1" label="First-Party-Only"/>
+  <int value="2" label="HttpOnly"/>
+  <int value="3" label="First-Party-Only, HttpOnly"/>
+  <int value="4" label="Secure"/>
+  <int value="5" label="First-Party-Only, Secure"/>
+  <int value="6" label="HttpOnly, Secure"/>
+  <int value="7" label="First-Party-Only, HttpOnly, Secure"/>
+</enum>
+
 <enum name="CorruptExtensionDisabledReason" type="int">
   <summary>
     The reason why content verification flagged an extension as corrupted. See
@@ -47963,10 +48165,19 @@ Therefore, the affected-histogram name has to have at least one dot in it.
 </enum>
 
 <enum name="EasyUnlockDeviceModelHash" type="int">
+  <int value="-1829584143" label="Motorola XT1097"/>
+  <int value="-1429808627" label="HTC One"/>
   <int value="-1168032746" label="Motorola Nexus 6"/>
   <int value="-617422855" label="LGE Nexus 4"/>
+  <int value="684891985" label="Motorola Moto X"/>
   <int value="1286382027" label="Motorola XT1095"/>
+  <int value="1412446710" label="Motorola XT1096"/>
   <int value="1881443083" label="LGE Nexus 5"/>
+</enum>
+
+<enum name="EasyUnlockDidUserManuallyUnlockPhone" type="int">
+  <int value="0" label="Never locked"/>
+  <int value="1" label="Manually unlocked"/>
 </enum>
 
 <enum name="EasyUnlockHasSecureScreenLock" type="int">
@@ -48033,6 +48244,12 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   <int value="4" label="SCRIPT_DOWNLOADING"/>
   <int value="5" label="SCRIPT_LOADED"/>
   <int value="6" label="SCRIPT_EVALUATED"/>
+</enum>
+
+<enum name="EnhancedBookmarkViewMode" type="int">
+  <int value="0" label="Default view mode"/>
+  <int value="1" label="List view mode"/>
+  <int value="2" label="Grid view mode"/>
 </enum>
 
 <enum name="EnrollmentStatus" type="int">
@@ -49989,6 +50206,8 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   <int value="993" label="WEBVIEWINTERNAL_SETZOOMMODE"/>
   <int value="994" label="WEBVIEWINTERNAL_GETZOOMMODE"/>
   <int value="995" label="LAUNCHERSEARCHPROVIDER_SETSEARCHRESULTS"/>
+  <int value="996" label="DATAREDUCTIONPROXY_CLEARDATASAVINGS"/>
+  <int value="997" label="BLUETOOTHPRIVATE_SETDISCOVERYFILTER"/>
 </enum>
 
 <enum name="ExtensionInstallCause" type="int">
@@ -53783,6 +54002,7 @@ To add a new entry, add it with any value and run test to compute valid value.
   <int value="-1692384483" label="disambiguate-autofill-server-name-types"/>
   <int value="-1691668194" label="enable-new-bookmark-apps"/>
   <int value="-1662447331" label="wake-on-packets"/>
+  <int value="-1660972490" label="gpu-rasterization-msaa-sample-count"/>
   <int value="-1654344175" label="disable-extension-info-dialog"/>
   <int value="-1630419335" label="enable-download-notification"/>
   <int value="-1619757314" label="touch-scrolling-mode"/>
@@ -53936,6 +54156,7 @@ To add a new entry, add it with any value and run test to compute valid value.
     Command-line flag doesn't start with two dashes.
   </int>
   <int value="7533886" label="disable-offer-store-unmasked-wallet-cards"/>
+  <int value="11698808" label="enable-dom-distiller-button-animation"/>
   <int value="27507364" label="apps-keep-chrome-alive"/>
   <int value="37024318" label="disable-affiliation-based-matching"/>
   <int value="48159177" label="reduced-referrer-granularity"/>
@@ -54061,6 +54282,7 @@ To add a new entry, add it with any value and run test to compute valid value.
   <int value="1361047396" label="disable-click-delay"/>
   <int value="1367671275" label="enable-proximity-auth-proximity-detection"/>
   <int value="1371907429" label="enable-wallet-card-import"/>
+  <int value="1372680885" label="enable-mtp-write-support"/>
   <int value="1373777956" label="disable-threaded-gpu-rasterization"/>
   <int value="1378310092" label="disable-suggestions-service"/>
   <int value="1381746642" label="enable-automatic-password-saving"/>
@@ -55635,6 +55857,7 @@ To add a new entry, add it with any value and run test to compute valid value.
   <int value="9" label="Both Buttons Shown"/>
   <int value="10" label="Both Buttons Shown, Show Saved Copy Clicked"/>
   <int value="11" label="Both Buttons Shown, Reload Clicked"/>
+  <int value="12" label="Easter egg activated"/>
 </enum>
 
 <enum name="NetInternalsUiFeature" type="int">
@@ -56716,6 +56939,24 @@ To add a new entry, add it with any value and run test to compute valid value.
   <int value="6" label="Opened automatically / Auto-signin toast"/>
 </enum>
 
+<enum name="PasswordFormQueryVolume" type="int">
+  <int value="0" label="New password query"/>
+  <int value="1" label="Current query"/>
+</enum>
+
+<enum name="PasswordFormType" type="int">
+  <int value="0" label="Login form"/>
+  <int value="1" label="Login form without username"/>
+  <int value="2"
+      label="Enabled change password form (saved credentials match username)"/>
+  <int value="3"
+      label="Disabled change password form (no matching credentials)"/>
+  <int value="4" label="Disabled change password form without username"/>
+  <int value="5" label="Signup form"/>
+  <int value="6" label="Signup form without username"/>
+  <int value="7" label="Combined login and signup form"/>
+</enum>
+
 <enum name="PasswordGenerationEvent" type="int">
   <int value="0" label="No sign up form"/>
   <int value="1" label="Local heuristics found sign up form"/>
@@ -56729,6 +56970,7 @@ To add a new entry, add it with any value and run test to compute valid value.
   <int value="9" label="Generated password deleted"/>
   <int value="10" label="Generated popup shown (limit once per page)"/>
   <int value="11" label="Editing popup shown (limit once per page)"/>
+  <int value="12" label="Generation triggered by autocomplete attributes"/>
 </enum>
 
 <enum name="PasswordGenerationSubmissionEvent" type="int">
@@ -65762,6 +66004,23 @@ To add a new entry, add it with any value and run test to compute valid value.
   <affected-histogram name="ContentSettings.PermissionActions"/>
   <affected-histogram name="ContentSettings.PermissionActionsInsecureOrigin"/>
   <affected-histogram name="ContentSettings.PermissionActionsSecureOrigin"/>
+</histogram_suffixes>
+
+<histogram_suffixes name="PNaClTranslatorTypes" separator=".">
+  <suffix name="" label="All translator types"/>
+  <suffix name="LLC" label="LLC-based translator"/>
+  <suffix name="Subzero" label="Subzero-based translator"/>
+  <affected-histogram name="NaCl.Options.PNaCl.OptLevel"/>
+  <affected-histogram name="NaCl.Perf.PNaClCache.IsHit"/>
+  <affected-histogram name="NaCl.Perf.PNaClLoadTime.CompileKBPerSec"/>
+  <affected-histogram name="NaCl.Perf.PNaClLoadTime.CompileTime"/>
+  <affected-histogram name="NaCl.Perf.PNaClLoadTime.LoadCompiler"/>
+  <affected-histogram
+      name="NaCl.Perf.PNaClLoadTime.PctCompiledWhenFullyDownloaded"/>
+  <affected-histogram name="NaCl.Perf.PNaClLoadTime.TotalUncachedKBPerSec"/>
+  <affected-histogram name="NaCl.Perf.PNaClLoadTime.TotalUncachedTime"/>
+  <affected-histogram name="NaCl.Perf.Size.PexeNexeSizePct"/>
+  <affected-histogram name="NaCl.Perf.Size.PNaClTranslatedNexe"/>
 </histogram_suffixes>
 
 <histogram_suffixes name="PpapiPluginName">

@@ -12,6 +12,7 @@
     <color name="input_underline_color">#e5e5e5</color>
     <color name="input_underline_error_color">#d32f2f</color>
     <color name="explanation_text_color">#909090</color>
+    <color name="text_highlight_color">#C6DAFC</color>
 
     <!-- Infobar colors -->
     <color name="infobar_background">#fff</color>
@@ -78,4 +79,8 @@
 
     <!-- Signin promo screen colors -->
     <color name="illustration_background_color">#4FC3F7</color>
+
+    <!-- Contextual Search colors -->
+    <color name="contextual_search_promo_text_color">#343434</color>
+    <color name="contextual_search_promo_background_color">#EEEEEE</color>
 </resources>

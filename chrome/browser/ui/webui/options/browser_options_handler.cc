@@ -553,11 +553,6 @@ void BrowserOptionsHandler::GetLocalizedValues(base::DictionaryValue* values) {
 
   values->SetString("privacyLearnMoreURL", chrome::kPrivacyLearnMoreURL);
 
-  values->SetBoolean("hasRapporOption", HasRapporOption());
-
-  base::string16 rappor_url = base::ASCIIToUTF16(chrome::kRapporLearnMoreURL);
-  values->SetString("enableRappor",
-      l10n_util::GetStringFUTF16(IDS_OPTIONS_ENABLE_RAPPOR, rappor_url));
   values->SetString("doNotTrackLearnMoreURL", chrome::kDoNotTrackLearnMoreURL);
 
 #if !defined(OS_CHROMEOS)
@@ -1729,7 +1724,7 @@ void BrowserOptionsHandler::HandleRequestGoogleNowAvailable(
     }
   }
 
-  std::string group = base::FieldTrialList::FindFullName("GoogleNowLauncher");
+  std::string group = base::FieldTrialList::FindFullName("GoogleNowExtension");
   bool has_field_trial = !group.empty() && group != "Disabled";
 
   bool should_show = is_search_provider_google && has_field_trial;

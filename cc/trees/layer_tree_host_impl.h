@@ -30,7 +30,6 @@
 #include "cc/output/output_surface_client.h"
 #include "cc/output/renderer.h"
 #include "cc/quads/render_pass.h"
-#include "cc/resources/rasterizer.h"
 #include "cc/resources/resource_provider.h"
 #include "cc/resources/tile_manager.h"
 #include "cc/resources/ui_resource_client.h"
@@ -120,6 +119,9 @@ class LayerTreeHostImplClient {
 
   // Called when page scale animation has completed on the impl thread.
   virtual void DidCompletePageScaleAnimationOnImplThread() = 0;
+
+  // Called when output surface asks for a draw.
+  virtual void OnDrawForOutputSurface() = 0;
 
  protected:
   virtual ~LayerTreeHostImplClient() {}
@@ -295,6 +297,7 @@ class CC_EXPORT LayerTreeHostImpl
   void ReclaimResources(const CompositorFrameAck* ack) override;
   void SetMemoryPolicy(const ManagedMemoryPolicy& policy) override;
   void SetTreeActivationCallback(const base::Closure& callback) override;
+  void OnDraw() override;
 
   // Called from LayerTreeImpl.
   void OnCanDrawStateChangedForTree();
@@ -327,7 +330,6 @@ class CC_EXPORT LayerTreeHostImpl
   }
   ResourcePool* resource_pool() { return resource_pool_.get(); }
   Renderer* renderer() { return renderer_.get(); }
-  Rasterizer* rasterizer() { return rasterizer_.get(); }
   const RendererCapabilitiesImpl& GetRendererCapabilities() const;
 
   virtual bool SwapBuffers(const FrameData& frame);
@@ -515,7 +517,6 @@ class CC_EXPORT LayerTreeHostImpl
   // Only valid for synchronous (non-scheduled) single-threaded case.
   void SynchronouslyInitializeAllTiles();
 
-  virtual scoped_ptr<Rasterizer> CreateRasterizer();
   virtual void CreateResourceAndTileTaskWorkerPool(
       scoped_ptr<TileTaskWorkerPool>* tile_task_worker_pool,
       scoped_ptr<ResourcePool>* resource_pool,
@@ -531,6 +532,19 @@ class CC_EXPORT LayerTreeHostImpl
                              const gfx::Vector2dF& delta,
                              const gfx::Point& viewport_point,
                              bool is_wheel_scroll);
+
+  // Record main frame timing information.
+  // |start_of_main_frame_args| is the BeginFrameArgs of the beginning of the
+  // main frame (ie the frame that kicked off the main frame).
+  // |expected_next_main_frame_args| is the BeginFrameArgs of the frame that
+  // follows the completion of the main frame (whether it is activation or some
+  // other completion, such as early out). Note that if there is a main frame
+  // scheduled in that frame, then this BeginFrameArgs will become the main
+  // frame args. However, if no such frame is scheduled, then this _would_ be
+  // the main frame args if it was scheduled.
+  void RecordMainFrameTiming(
+      const BeginFrameArgs& start_of_main_frame_args,
+      const BeginFrameArgs& expected_next_main_frame_args);
 
  protected:
   LayerTreeHostImpl(
@@ -639,7 +653,6 @@ class CC_EXPORT LayerTreeHostImpl
   bool use_gpu_rasterization_;
   GpuRasterizationStatus gpu_rasterization_status_;
   scoped_ptr<TileTaskWorkerPool> tile_task_worker_pool_;
-  scoped_ptr<Rasterizer> rasterizer_;
   scoped_ptr<ResourcePool> resource_pool_;
   scoped_ptr<ResourcePool> staging_resource_pool_;
   scoped_ptr<Renderer> renderer_;

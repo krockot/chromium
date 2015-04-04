@@ -91,7 +91,7 @@ public class CardUnmaskPrompt
 
     public CardUnmaskPrompt(Context context, CardUnmaskPromptDelegate delegate, String title,
             String instructions, int drawableId, boolean shouldRequestExpirationDate,
-            boolean defaultToStoringLocally) {
+            boolean canStoreLocally, boolean defaultToStoringLocally) {
         mDelegate = delegate;
 
         LayoutInflater inflater = LayoutInflater.from(context);
@@ -106,16 +106,17 @@ public class CardUnmaskPrompt
         mExpirationContainer = v.findViewById(R.id.expiration_container);
         mErrorMessage = (TextView) v.findViewById(R.id.error_message);
         mStoreLocallyCheckbox = (CheckBox) v.findViewById(R.id.store_locally_checkbox);
-        mStoreLocallyCheckbox.setChecked(defaultToStoringLocally);
+        mStoreLocallyCheckbox.setChecked(canStoreLocally && defaultToStoringLocally);
         mStoreLocallyTooltipIcon = (ImageView) v.findViewById(R.id.store_locally_tooltip_icon);
         mStoreLocallyTooltipIcon.setOnClickListener(this);
+        if (!canStoreLocally) v.findViewById(R.id.store_locally_container).setVisibility(View.GONE);
         mControlsContainer = (ViewGroup) v.findViewById(R.id.controls_container);
         mVerificationOverlay = v.findViewById(R.id.verification_overlay);
         mVerificationProgressBar = (ProgressBar) v.findViewById(R.id.verification_progress_bar);
         mVerificationView = (TextView) v.findViewById(R.id.verification_message);
         ((ImageView) v.findViewById(R.id.cvc_hint_image)).setImageResource(drawableId);
 
-        mDialog = new AlertDialog.Builder(context)
+        mDialog = new AlertDialog.Builder(context, R.style.AlertDialogTheme)
                           .setTitle(title)
                           .setView(v)
                           .setNegativeButton(R.string.cancel, null)
@@ -145,7 +146,7 @@ public class CardUnmaskPrompt
                 mDelegate.onUserInput(mCardUnmaskInput.getText().toString(),
                         mMonthInput.getText().toString(),
                         Integer.toString(getFourDigitYear()),
-                        mStoreLocallyCheckbox.isChecked());
+                        mStoreLocallyCheckbox != null && mStoreLocallyCheckbox.isChecked());
             }
         });
 

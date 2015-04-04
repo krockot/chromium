@@ -138,7 +138,6 @@
       'browser/metrics/chrome_metrics_service_accessor_unittest.cc',
       'browser/metrics/cloned_install_detector_unittest.cc',
       'browser/metrics/drive_metrics_provider_unittest.cc',
-      'browser/metrics/metrics_services_manager_unittest.cc',
       'browser/metrics/signin_status_metrics_provider_chromeos_unittest.cc',
       'browser/metrics/signin_status_metrics_provider_unittest.cc',
       'browser/metrics/thread_watcher_android_unittest.cc',
@@ -173,6 +172,7 @@
       'browser/password_manager/password_store_mac_unittest.cc',
       'browser/password_manager/password_store_win_unittest.cc',
       'browser/password_manager/password_store_x_unittest.cc',
+      'browser/password_manager/save_password_infobar_delegate_unittest.cc',
       'browser/permissions/permission_manager_unittest.cc',
       'browser/predictors/autocomplete_action_predictor_table_unittest.cc',
       'browser/predictors/autocomplete_action_predictor_unittest.cc',
@@ -1361,6 +1361,7 @@
       'browser/ui/views/frame/test_with_browser_view.cc',
       'browser/ui/views/frame/test_with_browser_view.h',
       'browser/ui/views/frame/web_contents_close_handler_unittest.cc',
+      'browser/ui/views/omnibox/omnibox_view_views_unittest.cc',
       'browser/ui/views/status_icons/status_tray_win_unittest.cc',
       'browser/ui/views/tab_contents/chrome_web_contents_view_delegate_views_unittest.cc',
       'browser/ui/views/tabs/fake_base_tab_strip_controller.cc',
@@ -1698,6 +1699,7 @@
         'browser/sync/profile_sync_service_mock.cc',
         'browser/sync/profile_sync_service_mock.h',
         'browser/ui/browser.h',
+        'browser/ui/cocoa/extensions/browser_action_test_util_mac.mm',
         'browser/ui/cocoa/find_bar/find_bar_host_unittest_util_cocoa.mm',
         'browser/ui/cocoa/run_loop_testing.h',
         'browser/ui/cocoa/run_loop_testing.mm',
@@ -1718,6 +1720,7 @@
         'browser/ui/toolbar/test_toolbar_action_view_controller.cc',
         'browser/ui/toolbar/test_toolbar_action_view_controller.h',
         'browser/ui/views/find_bar_host_unittest_util_views.cc',
+        'browser/ui/views/toolbar/browser_action_test_util_views.cc',
         'browser/ui/website_settings/mock_permission_bubble_request.cc',
         'browser/ui/website_settings/mock_permission_bubble_request.h',
         'browser/ui/webui/signin/login_ui_test_utils.cc',
@@ -1983,6 +1986,9 @@
             'app/chrome_crash_reporter_client_mac.mm',
             'app/chrome_main_mac.mm',
           ],
+          'sources!': [
+            'browser/ui/views/toolbar/browser_action_test_util_views.cc',
+          ]
         }],
         ['enable_mdns==1', {
           'sources': [

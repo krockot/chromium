@@ -109,7 +109,7 @@ class KeyboardWindowDelegate : public aura::WindowDelegate {
   }
   bool CanFocus() override { return false; }
   void OnCaptureLost() override {}
-  void OnPaint(gfx::Canvas* canvas) override {}
+  void OnPaint(const ui::PaintContext& context) override {}
   void OnDeviceScaleFactorChanged(float device_scale_factor) override {}
   void OnWindowDestroying(aura::Window* window) override {}
   void OnWindowDestroyed(aura::Window* window) override { delete this; }
@@ -281,7 +281,7 @@ aura::Window* KeyboardController::GetContainerWindow() {
         new KeyboardContainerTargeter(container_.get(), proxy_.get())));
     container_->SetName("KeyboardContainer");
     container_->set_owned_by_parent(false);
-    container_->Init(aura::WINDOW_LAYER_NOT_DRAWN);
+    container_->Init(ui::LAYER_NOT_DRAWN);
     container_->AddObserver(this);
     container_->SetLayoutManager(new KeyboardLayoutManager(this));
   }

@@ -4,7 +4,10 @@
 
 #include "ash/metrics/user_metrics_recorder.h"
 
+#include "ash/shelf/shelf_delegate.h"
+#include "ash/shelf/shelf_item_types.h"
 #include "ash/shelf/shelf_layout_manager.h"
+#include "ash/shelf/shelf_model.h"
 #include "ash/shelf/shelf_view.h"
 #include "ash/shelf/shelf_widget.h"
 #include "ash/shell.h"
@@ -121,6 +124,29 @@ int GetNumVisibleWindowsInPrimaryDisplay() {
   return visible_window_count;
 }
 
+void RecordShelfItemCounts() {
+  ShelfDelegate* shelf_delegate = Shell::GetInstance()->GetShelfDelegate();
+  int pinned_item_count = 0;
+  int unpinned_item_count = 0;
+
+  for (const ShelfItem& shelf_item :
+       Shell::GetInstance()->shelf_model()->items()) {
+    if (shelf_item.type != TYPE_APP_LIST) {
+      if (shelf_delegate->IsAppPinned(
+              shelf_delegate->GetAppIDForShelfID(shelf_item.id)))
+        ++pinned_item_count;
+      else
+        ++unpinned_item_count;
+    }
+  }
+
+  UMA_HISTOGRAM_COUNTS_100("Ash.Shelf.NumberOfItems",
+                           pinned_item_count + unpinned_item_count);
+  UMA_HISTOGRAM_COUNTS_100("Ash.Shelf.NumberOfPinnedItems", pinned_item_count);
+  UMA_HISTOGRAM_COUNTS_100("Ash.Shelf.NumberOfUnpinnedItems",
+                           unpinned_item_count);
+}
+
 }  // namespace
 
 UserMetricsRecorder::UserMetricsRecorder() {
@@ -185,12 +211,23 @@ void UserMetricsRecorder::RecordUserMetricsAction(UserMetricsAction action) {
     case ash::UMA_GESTURE_OVERVIEW:
       base::RecordAction(base::UserMetricsAction("Gesture_Overview"));
       break;
+    case ash::UMA_LAUNCHER_BUTTON_PRESSED_WITH_MOUSE:
+      base::RecordAction(
+          base::UserMetricsAction("Launcher_ButtonPressed_Mouse"));
+      break;
+    case ash::UMA_LAUNCHER_BUTTON_PRESSED_WITH_TOUCH:
+      base::RecordAction(
+          base::UserMetricsAction("Launcher_ButtonPressed_Touch"));
+      break;
     case ash::UMA_LAUNCHER_CLICK_ON_APP:
       base::RecordAction(base::UserMetricsAction("Launcher_ClickOnApp"));
       break;
     case ash::UMA_LAUNCHER_CLICK_ON_APPLIST_BUTTON:
       base::RecordAction(
           base::UserMetricsAction("Launcher_ClickOnApplistButton"));
+      break;
+    case ash::UMA_LAUNCHER_LAUNCH_TASK:
+      base::RecordAction(base::UserMetricsAction("Launcher_LaunchTask"));
       break;
     case UMA_MAXIMIZE_MODE_DISABLED:
       base::RecordAction(base::UserMetricsAction("Touchview_Disabled"));
@@ -524,6 +561,8 @@ void UserMetricsRecorder::RecordPeriodicMetrics() {
   UMA_HISTOGRAM_ENUMERATION("Ash.ActiveWindowShowTypeOverTime",
                             GetActiveWindowState(),
                             ACTIVE_WINDOW_STATE_TYPE_COUNT);
+
+  RecordShelfItemCounts();
 }
 
 }  // namespace ash

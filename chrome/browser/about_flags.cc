@@ -297,6 +297,22 @@ const Experiment::Choice kNumRasterThreadsChoices[] = {
   { IDS_FLAGS_NUM_RASTER_THREADS_FOUR, switches::kNumRasterThreads, "4" }
 };
 
+const Experiment::Choice kGpuRasterizationMSAASampleCountChoices[] = {
+  { IDS_GENERIC_EXPERIMENT_CHOICE_DEFAULT,
+    "",
+    "" },
+  { IDS_FLAGS_GPU_RASTERIZATION_MSAA_SAMPLE_COUNT_ZERO,
+    switches::kGpuRasterizationMSAASampleCount, "0" },
+  { IDS_FLAGS_GPU_RASTERIZATION_MSAA_SAMPLE_COUNT_TWO,
+    switches::kGpuRasterizationMSAASampleCount, "2" },
+  { IDS_FLAGS_GPU_RASTERIZATION_MSAA_SAMPLE_COUNT_FOUR,
+    switches::kGpuRasterizationMSAASampleCount, "4" },
+  { IDS_FLAGS_GPU_RASTERIZATION_MSAA_SAMPLE_COUNT_EIGHT,
+    switches::kGpuRasterizationMSAASampleCount, "8" },
+  { IDS_FLAGS_GPU_RASTERIZATION_MSAA_SAMPLE_COUNT_SIXTEEN,
+    switches::kGpuRasterizationMSAASampleCount, "16" },
+};
+
 const Experiment::Choice kEnableGpuRasterizationChoices[] = {
   { IDS_GENERIC_EXPERIMENT_CHOICE_DEFAULT, "", "" },
   { IDS_GENERIC_EXPERIMENT_CHOICE_ENABLED,
@@ -763,13 +779,11 @@ const Experiment kExperiments[] = {
     MULTI_VALUE_TYPE(kEnableGpuRasterizationChoices)
   },
   {
-    "enable-threaded-gpu-rasterization",
-    IDS_FLAGS_ENABLE_THREADED_GPU_RASTERIZATION_NAME,
-    IDS_FLAGS_ENABLE_THREADED_GPU_RASTERIZATION_DESCRIPTION,
+    "gpu-rasterization-msaa-sample-count",
+    IDS_FLAGS_GPU_RASTERIZATION_MSAA_SAMPLE_COUNT_NAME,
+    IDS_FLAGS_GPU_RASTERIZATION_MSAA_SAMPLE_COUNT_DESCRIPTION,
     kOsAll,
-    ENABLE_DISABLE_VALUE_TYPE(
-        switches::kEnableThreadedGpuRasterization,
-        switches::kDisableThreadedGpuRasterization)
+    MULTI_VALUE_TYPE(kGpuRasterizationMSAASampleCountChoices)
   },
   {
     "enable-slimming-paint",
@@ -1716,6 +1730,13 @@ const Experiment kExperiments[] = {
     kOsAndroid,
     SINGLE_VALUE_TYPE(switches::kEnableReaderModeToolbarIcon)
   },
+  {
+    "enable-dom-distiller-button-animation",
+    IDS_FLAGS_READER_MODE_BUTTON_ANIMATION,
+    IDS_FLAGS_READER_MODE_BUTTON_ANIMATION_DESCRIPTION,
+    kOsAndroid,
+    SINGLE_VALUE_TYPE(switches::kEnableDomDistillerButtonAnimation)
+  },
 #endif
   {
     "num-raster-threads",
@@ -2287,13 +2308,6 @@ const Experiment kExperiments[] = {
     kOsAll,
     SINGLE_VALUE_TYPE(switches::kEnableMediaRouter)
   },
-  {
-    "enable-cert-collection",
-    IDS_ENABLE_INVALID_CERT_COLLECTION,
-    IDS_ENABLE_INVALID_CERT_COLLECTION_DESCRIPTION,
-    kOsAll,
-    SINGLE_VALUE_TYPE(switches::kEnableInvalidCertCollection)
-  },
 // Since kEnableLauncherSearchProviderApi is not available when app list is
 // disabled, flag guard enable-launcher-search-provider-api.
 #if defined(ENABLE_APP_LIST)
@@ -2305,7 +2319,15 @@ const Experiment kExperiments[] = {
     SINGLE_VALUE_TYPE(app_list::switches::kEnableLauncherSearchProviderApi)
   },
 #endif  // defined(ENABLE_APP_LIST)
-
+#if defined(OS_CHROMEOS)
+  {
+    "enable-mtp-write-support",
+    IDS_FLAG_ENABLE_MTP_WRITE_SUPPORT_NAME,
+    IDS_FLAG_ENABLE_MTP_WRITE_SUPPORT_DESCRIPTION,
+    kOsCrOS,
+    SINGLE_VALUE_TYPE(chromeos::switches::kEnableMtpWriteSupport)
+  },
+#endif  // defined(OS_CHROMEOS)
   // NOTE: Adding new command-line switches requires adding corresponding
   // entries to enum "LoginCustomFlags" in histograms.xml. See note in
   // histograms.xml and don't forget to run AboutFlagsHistogramTest unit test.

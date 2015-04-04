@@ -137,6 +137,7 @@
 #include "third_party/WebKit/public/web/WebSearchableFormData.h"
 #include "third_party/WebKit/public/web/WebSecurityOrigin.h"
 #include "third_party/WebKit/public/web/WebSecurityPolicy.h"
+#include "third_party/WebKit/public/web/WebSettings.h"
 #include "third_party/WebKit/public/web/WebSurroundingText.h"
 #include "third_party/WebKit/public/web/WebUserGestureIndicator.h"
 #include "third_party/WebKit/public/web/WebView.h"
@@ -671,6 +672,7 @@ RenderFrameImpl::RenderFrameImpl(RenderViewImpl* render_view, int routing_id)
 #if defined(ENABLE_BROWSER_CDMS)
       cdm_manager_(NULL),
 #endif
+      cdm_factory_(NULL),
 #if defined(VIDEO_HOLE)
       contains_media_player_(false),
 #endif
@@ -1045,6 +1047,8 @@ bool RenderFrameImpl::OnMessageReceived(const IPC::Message& msg) {
     IPC_MESSAGE_HANDLER(FrameMsg_DisownOpener, OnDisownOpener)
     IPC_MESSAGE_HANDLER(FrameMsg_CommitNavigation, OnCommitNavigation)
     IPC_MESSAGE_HANDLER(FrameMsg_DidUpdateSandboxFlags, OnDidUpdateSandboxFlags)
+    IPC_MESSAGE_HANDLER(FrameMsg_SetTextTrackSettings,
+                        OnTextTrackSettingsChanged)
 #if defined(OS_ANDROID)
     IPC_MESSAGE_HANDLER(FrameMsg_SelectPopupMenuItems, OnSelectPopupMenuItems)
 #elif defined(OS_MACOSX)
@@ -1577,6 +1581,27 @@ void RenderFrameImpl::OnDidUpdateSandboxFlags(SandboxFlags flags) {
   frame_->setFrameOwnerSandboxFlags(ContentToWebSandboxFlags(flags));
 }
 
+void RenderFrameImpl::OnTextTrackSettingsChanged(
+    const FrameMsg_TextTrackSettings_Params& params) {
+  DCHECK(!frame_->parent());
+  if (!render_view_->webview())
+    return;
+  render_view_->webview()->settings()->setTextTrackBackgroundColor(
+      WebString::fromUTF8(params.text_track_background_color));
+  render_view_->webview()->settings()->setTextTrackFontFamily(
+      WebString::fromUTF8(params.text_track_font_family));
+  render_view_->webview()->settings()->setTextTrackFontStyle(
+      WebString::fromUTF8(params.text_track_font_style));
+  render_view_->webview()->settings()->setTextTrackFontVariant(
+      WebString::fromUTF8(params.text_track_font_variant));
+  render_view_->webview()->settings()->setTextTrackTextColor(
+      WebString::fromUTF8(params.text_track_text_color));
+  render_view_->webview()->settings()->setTextTrackTextShadow(
+      WebString::fromUTF8(params.text_track_text_shadow));
+  render_view_->webview()->settings()->setTextTrackTextSize(
+      WebString::fromUTF8(params.text_track_text_size));
+}
+
 #if defined(OS_ANDROID)
 void RenderFrameImpl::OnSelectPopupMenuItems(
     bool canceled,
@@ -1920,37 +1945,22 @@ blink::WebMediaPlayer* RenderFrameImpl::createMediaPlayer(
   if (!web_stream.isNull())
     return CreateWebMediaPlayerForMediaStream(url, client);
 
-  if (!media_permission_dispatcher_)
-    media_permission_dispatcher_ = new MediaPermissionDispatcher(this);
-
 #if defined(OS_ANDROID)
-  return CreateAndroidWebMediaPlayer(url, client, media_permission_dispatcher_,
+  return CreateAndroidWebMediaPlayer(url, client, GetMediaPermission(),
                                      initial_cdm);
 #else
   scoped_refptr<media::MediaLog> media_log(new RenderMediaLog());
-
 
   RenderThreadImpl* render_thread = RenderThreadImpl::current();
   media::WebMediaPlayerParams params(
       base::Bind(&ContentRendererClient::DeferMediaLoad,
                  base::Unretained(GetContentClient()->renderer()),
                  static_cast<RenderFrame*>(this)),
-      render_thread->GetAudioRendererMixerManager()->CreateInput(
-          render_view_->routing_id_, routing_id_),
+      render_thread->GetAudioRendererMixerManager()->CreateInput(routing_id_),
       media_log, render_thread->GetMediaThreadTaskRunner(),
       render_thread->compositor_message_loop_proxy(),
-      base::Bind(&GetSharedMainThreadContext3D), media_permission_dispatcher_,
+      base::Bind(&GetSharedMainThreadContext3D), GetMediaPermission(),
       initial_cdm);
-
-#if defined(ENABLE_PEPPER_CDMS)
-  scoped_ptr<media::CdmFactory> cdm_factory(
-      new RenderCdmFactory(base::Bind(&PepperCdmWrapperImpl::Create, frame)));
-#elif defined(ENABLE_BROWSER_CDMS)
-  scoped_ptr<media::CdmFactory> cdm_factory(
-      new RenderCdmFactory(GetCdmManager()));
-#else
-  scoped_ptr<media::CdmFactory> cdm_factory(new RenderCdmFactory());
-#endif
 
 #if defined(ENABLE_MEDIA_MOJO_RENDERER)
   scoped_ptr<media::RendererFactory> media_renderer_factory(
@@ -1970,7 +1980,7 @@ blink::WebMediaPlayer* RenderFrameImpl::createMediaPlayer(
 
   return new media::WebMediaPlayerImpl(
       frame, client, weak_factory_.GetWeakPtr(), media_renderer_factory.Pass(),
-      cdm_factory.Pass(), params);
+      GetCdmFactory(), params);
 #endif  // defined(OS_ANDROID)
 }
 
@@ -3542,21 +3552,8 @@ blink::WebUserMediaClient* RenderFrameImpl::userMediaClient() {
 
 blink::WebEncryptedMediaClient* RenderFrameImpl::encryptedMediaClient() {
   if (!web_encrypted_media_client_) {
-#if defined(ENABLE_PEPPER_CDMS)
-    scoped_ptr<media::CdmFactory> cdm_factory(
-        new RenderCdmFactory(base::Bind(PepperCdmWrapperImpl::Create, frame_)));
-#elif defined(ENABLE_BROWSER_CDMS)
-    scoped_ptr<media::CdmFactory> cdm_factory(
-        new RenderCdmFactory(GetCdmManager()));
-#else
-    scoped_ptr<media::CdmFactory> cdm_factory(new RenderCdmFactory());
-#endif
-
-    if (!media_permission_dispatcher_)
-      media_permission_dispatcher_ = new MediaPermissionDispatcher(this);
-
     web_encrypted_media_client_.reset(new media::WebEncryptedMediaClientImpl(
-        cdm_factory.Pass(), media_permission_dispatcher_));
+        GetCdmFactory(), GetMediaPermission()));
   }
   return web_encrypted_media_client_.get();
 }
@@ -4670,14 +4667,8 @@ WebMediaPlayer* RenderFrameImpl::CreateAndroidWebMediaPlayer(
   }
 
   return new WebMediaPlayerAndroid(
-      frame_,
-      client,
-      weak_factory_.GetWeakPtr(),
-      GetMediaPlayerManager(),
-      GetCdmManager(),
-      media_permission,
-      initial_cdm,
-      stream_texture_factory,
+      frame_, client, weak_factory_.GetWeakPtr(), GetMediaPlayerManager(),
+      GetCdmFactory(), media_permission, initial_cdm, stream_texture_factory,
       RenderThreadImpl::current()->GetMediaThreadTaskRunner(),
       new RenderMediaLog());
 }
@@ -4690,12 +4681,30 @@ RendererMediaPlayerManager* RenderFrameImpl::GetMediaPlayerManager() {
 
 #endif  // defined(OS_ANDROID)
 
+media::MediaPermission* RenderFrameImpl::GetMediaPermission() {
+  if (!media_permission_dispatcher_)
+    media_permission_dispatcher_ = new MediaPermissionDispatcher(this);
+  return media_permission_dispatcher_;
+}
+
+media::CdmFactory* RenderFrameImpl::GetCdmFactory() {
 #if defined(ENABLE_BROWSER_CDMS)
-RendererCdmManager* RenderFrameImpl::GetCdmManager() {
   if (!cdm_manager_)
     cdm_manager_ = new RendererCdmManager(this);
-  return cdm_manager_;
-}
 #endif  // defined(ENABLE_BROWSER_CDMS)
+
+  if (!cdm_factory_) {
+    DCHECK(frame_);
+    cdm_factory_ = new RenderCdmFactory(
+#if defined(ENABLE_PEPPER_CDMS)
+        base::Bind(&PepperCdmWrapperImpl::Create, frame_),
+#elif defined(ENABLE_BROWSER_CDMS)
+        cdm_manager_,
+#endif
+        this);
+  }
+
+  return cdm_factory_;
+}
 
 }  // namespace content

@@ -34,7 +34,7 @@ vars = {
   'llvm_url': 'http://src.chromium.org/llvm-project',
   'llvm_git': 'https://llvm.googlesource.com',
   'webkit_trunk': 'http://src.chromium.org/blink/trunk',
-  'webkit_revision': '18c0088af9af1b8d5db75cd5d69bd49056f608a5', # from svn revision 192997
+  'webkit_revision': '54ac8d7272b177ae0d94ca8de98bd236c7b8dbea', # from svn revision 193137
   'chromium_git': 'https://chromium.googlesource.com',
   'chromiumos_git': 'https://chromium.googlesource.com/chromiumos',
   'pdfium_git': 'https://pdfium.googlesource.com',
@@ -42,12 +42,12 @@ vars = {
   'boringssl_git': 'https://boringssl.googlesource.com',
   'libvpx_revision': '861f35b01c87a021540aace739cb7415c08e987b',
   'sfntly_revision': '1bdaae8fc788a5ac8936d68bf24f37d977a13dac',
-  'skia_revision': '599ea40cec8da11da7ad7c37a2ff0ef4797dbd4a',
+  'skia_revision': 'aa4c7a704289b7adcbfbd23580667a1950a9ca6e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
   'v8_branch': 'trunk',
-  'v8_revision': '89756fbd938a0037296cf62e88ea6aa67bac87ea',
+  'v8_revision': 'f5c0a23a505616796a628d64f4ffe377d1fc4bcf',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
@@ -58,7 +58,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '90a09b56ce44e0f67cb7ab7f8d9bbc179f325597',
+  'angle_revision': '99f075dade7cfb0b56e80a065de3218745e4c177',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling build tools
   # and whatever else without interference from each other.
@@ -66,7 +66,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': 'e3dd159edee8cf2eec3f30f77ef6830597c1bc2f',
+  'pdfium_revision': '9bf1f76771e04c20cb8a0f1c3d1938bdb965882e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openmax_dl
   # and whatever else without interference from each other.
@@ -74,11 +74,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'e2e13265ff9cb637f8d0cdefc27b13370848472f',
+  'boringssl_revision': '40acdaeb86c516b68e3442f3a008e8d21e514bda',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling nss
   # and whatever else without interference from each other.
-  'nss_revision': 'bb4e75a43d007518ae7d618665ea2f25b0c60b63',
+  'nss_revision': 'd1edb68688b91a380fb2025b3420fad68db54ed6', # from svn revision 294684
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling google-toolbox-for-mac
   # and whatever else without interference from each other.
@@ -94,7 +94,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling NaCl
   # and whatever else without interference from each other.
-  'nacl_revision': '6af02746e0fe59308afb793799976a0a3e4a7641',
+  'nacl_revision': 'bd095c3ad5f1f25a9c6f44b7f38cec89383a5c33',
 }
 
 # Only these hosts are allowed for dependencies in this DEPS file.
@@ -129,7 +129,7 @@ deps = {
    Var('chromium_git') + '/external/colorama.git' + '@' + '799604a1041e9b3bc5d2789ecbd7e8db2e18e6b8',
 
   'src/third_party/crashpad/crashpad':
-   Var('chromium_git') + '/crashpad/crashpad.git' + '@' + '5d0a133ecd6625f30c6491d502f12f26a0bef32d',
+   Var('chromium_git') + '/crashpad/crashpad.git' + '@' + 'e1347a740c051d9a44aa2dd0b9d11067a53e0447',
 
   'src/third_party/trace-viewer':
    Var('chromium_git') + '/external/trace-viewer.git' + '@' + 'ff20313e37892c3c7f20c88bb22ab6f6e65659ae',
@@ -138,7 +138,7 @@ deps = {
    Var('chromium_git') + '/chromium/blink.git' + '@' +  Var('webkit_revision'),
 
   'src/third_party/icu':
-   Var('chromium_git') + '/chromium/deps/icu.git' + '@' + '46be516de5c83aa0b7b3b75be669b48e7a803290',
+   Var('chromium_git') + '/chromium/deps/icu.git' + '@' + 'e4c31439828d356525b71ef81a6d61ea50d7d673',
 
   'src/third_party/libexif/sources':
    Var('chromium_git') + '/chromium/deps/libexif/sources.git' + '@' + 'ed98343daabd7b4497f97fda972e132e6877c48a',
@@ -234,7 +234,7 @@ deps = {
    Var('chromium_git') + '/native_client/src/third_party/scons-2.0.1.git' + '@' + '1c1550e17fc26355d08627fbdec13d8291227067',
 
   'src/third_party/webrtc':
-    Var('chromium_git') + '/external/webrtc/trunk/webrtc.git' + '@' + '9c4441b162635cee7d0a27abd95d2ea27177e4d0', # commit position 8924
+    Var('chromium_git') + '/external/webrtc/trunk/webrtc.git' + '@' + '5727038f572c517204e1642b8bc69b25381c4e9f', # commit position 8926
 
   'src/third_party/openmax_dl':
     Var('chromium_git') + '/external/webrtc/deps/third_party/openmax.git' + '@' +  Var('openmax_dl_revision'),

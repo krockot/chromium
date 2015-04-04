@@ -77,10 +77,13 @@ CommandUtil.getCommandEntry = function(element) {
  * @private
  */
 CommandUtil.getEntryFromNavigationModelItem_ = function(item) {
-  if (item.isVolume)
-    return item.volumeInfo.displayRoot;
-  if (item.isShortcut)
-    return item.entry;
+  switch (item.type) {
+    case NavigationModelItemType.VOLUME:
+      return /** @type {!NavigationModelVolumeItem} */ (
+          item).volumeInfo.displayRoot;
+    case NavigationModelItemType.SHORTCUT:
+      return /** @type {!NavigationModelShortcutItem} */ (item).entry;
+  }
   return null;
 };
 
@@ -1250,7 +1253,13 @@ CommandHandler.COMMANDS_['add-new-services'] = /** @type {Command} */ ({
    * @param {!FileManager} fileManager FileManager to use.
    */
   execute: function(event, fileManager) {
-    fileManager.ui.suggestAppsDialog.showProviders(function() {});
+    fileManager.ui.suggestAppsDialog.showProviders(
+        function(result, itemId) {
+          // If a new provider is installed, then launch it so the configuration
+          // dialog is shown (if it's available).
+          if (result === SuggestAppsDialog.Result.INSTALL_SUCCESSFUL)
+            chrome.management.launchApp(assert(itemId), function() {});
+        });
   },
   canExecute: CommandUtil.canExecuteAlways
 });

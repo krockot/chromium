@@ -14,6 +14,7 @@ import org.chromium.base.CalledByNative;
 import org.chromium.base.CommandLine;
 import org.chromium.base.JNINamespace;
 import org.chromium.base.TraceEvent;
+import org.chromium.base.VisibleForTesting;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -127,6 +128,7 @@ public class LibraryLoader {
      *
      * @throws ProcessInitException
      */
+    @VisibleForTesting
     public void ensureInitialized() throws ProcessInitException {
         ensureInitialized(null, false);
     }
@@ -353,9 +355,14 @@ public class LibraryLoader {
                         } else {
                             // The library is in its own file.
                             Log.i(TAG, "Loading " + library);
-                            ApplicationInfo applicationInfo = context.getApplicationInfo();
-                            mLoadedFrom.put(library, new File(applicationInfo.nativeLibraryDir,
-                                                              libFilePath).getAbsolutePath());
+                            if (context != null) {
+                                ApplicationInfo applicationInfo = context.getApplicationInfo();
+                                File file = new File(applicationInfo.nativeLibraryDir, libFilePath);
+                                mLoadedFrom.put(library, file.getAbsolutePath());
+                            } else {
+                                Log.i(TAG, "No context, cannot locate the native library file for "
+                                        + library);
+                            }
                         }
 
                         // Load the library.

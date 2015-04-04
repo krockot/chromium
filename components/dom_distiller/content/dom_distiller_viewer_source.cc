@@ -15,6 +15,7 @@
 #include "base/strings/utf_string_conversions.h"
 #include "components/dom_distiller/core/distilled_page_prefs.h"
 #include "components/dom_distiller/core/dom_distiller_service.h"
+#include "components/dom_distiller/core/feedback_reporter.h"
 #include "components/dom_distiller/core/task_tracker.h"
 #include "components/dom_distiller/core/url_constants.h"
 #include "components/dom_distiller/core/viewer.h"
@@ -191,6 +192,7 @@ void DomDistillerViewerSource::RequestViewerHandle::DidFinishLoad(
   if (is_error_page_) {
     waiting_for_page_ready_ = false;
     SendJavaScript(viewer::GetErrorPageJs());
+    SendJavaScript(viewer::GetShowFeedbackFormJs());
     Cancel(); // This will cause the object to clean itself up.
     return;
   }
@@ -218,6 +220,8 @@ void DomDistillerViewerSource::RequestViewerHandle::OnArticleReady(
     callback_.Run(base::RefCountedString::TakeString(&unsafe_page_html));
     // Send first page to client.
     SendJavaScript(viewer::GetUnsafeArticleContentJs(article_proto));
+    // If any content was loaded, show the feedback form.
+    SendJavaScript(viewer::GetShowFeedbackFormJs());
   } else if (page_count_ == article_proto->pages_size()) {
     // We may still be showing the "Loading" indicator.
     SendJavaScript(viewer::GetToggleLoadingIndicatorJs(true));
@@ -242,6 +246,10 @@ void DomDistillerViewerSource::RequestViewerHandle::OnArticleUpdated(
        page_count_++) {
     const DistilledPageProto& page =
         article_update.GetDistilledPage(page_count_);
+    // Send the page content to the client. This will execute after the page is
+    // ready.
+    SendJavaScript(viewer::GetUnsafeIncrementalDistilledPageJs(&page, false));
+
     if (page_count_ == 0) {
       // This is the first page, so send Viewer page scaffolding too.
       std::string unsafe_page_html = viewer::GetUnsafeArticleTemplateHtml(
@@ -249,9 +257,9 @@ void DomDistillerViewerSource::RequestViewerHandle::OnArticleUpdated(
           distilled_page_prefs_->GetTheme(),
           distilled_page_prefs_->GetFontFamily());
       callback_.Run(base::RefCountedString::TakeString(&unsafe_page_html));
+      // If any content was loaded, show the feedback form.
+      SendJavaScript(viewer::GetShowFeedbackFormJs());
     }
-    // Send the page content to the client.
-    SendJavaScript(viewer::GetUnsafeIncrementalDistilledPageJs(&page, false));
   }
 }
 
@@ -300,15 +308,19 @@ void DomDistillerViewerSource::StartDataRequest(
     std::string css = viewer::GetCss();
     callback.Run(base::RefCountedString::TakeString(&css));
     return;
-  }
-  if (kViewerJsPath == path) {
+  } else if (kViewerJsPath == path) {
     std::string js = viewer::GetJavaScript();
     callback.Run(base::RefCountedString::TakeString(&js));
     return;
-  }
-  if (kViewerViewOriginalPath == path) {
+  } else if (kViewerViewOriginalPath == path) {
     content::RecordAction(base::UserMetricsAction("DomDistiller_ViewOriginal"));
     callback.Run(NULL);
+    return;
+  } else if (kFeedbackBad == path) {
+    FeedbackReporter::ReportQuality(false);
+    return;
+  } else if (kFeedbackGood == path) {
+    FeedbackReporter::ReportQuality(true);
     return;
   }
   content::WebContents* web_contents =

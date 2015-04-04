@@ -60,7 +60,6 @@
 #include "cc/resources/prioritized_resource_manager.h"
 #include "cc/resources/raster_tile_priority_queue.h"
 #include "cc/resources/resource_pool.h"
-#include "cc/resources/software_rasterizer.h"
 #include "cc/resources/texture_mailbox_deleter.h"
 #include "cc/resources/tile_task_worker_pool.h"
 #include "cc/resources/ui_resource_bitmap.h"
@@ -1445,6 +1444,10 @@ void LayerTreeHostImpl::ReclaimResources(const CompositorFrameAck* ack) {
   }
 }
 
+void LayerTreeHostImpl::OnDraw() {
+  client_->OnDrawForOutputSurface();
+}
+
 void LayerTreeHostImpl::OnCanDrawStateChangedForTree() {
   client_->OnCanDrawStateChanged(CanDraw());
 }
@@ -1999,7 +2002,6 @@ void LayerTreeHostImpl::CreateAndSetTileManager() {
   DCHECK(output_surface_);
   DCHECK(resource_provider_);
 
-  rasterizer_ = CreateRasterizer();
   CreateResourceAndTileTaskWorkerPool(&tile_task_worker_pool_, &resource_pool_,
                                       &staging_resource_pool_);
   DCHECK(tile_task_worker_pool_);
@@ -2012,23 +2014,11 @@ void LayerTreeHostImpl::CreateAndSetTileManager() {
   size_t scheduled_raster_task_limit =
       IsSynchronousSingleThreaded() ? std::numeric_limits<size_t>::max()
                                     : settings_.scheduled_raster_task_limit;
-  tile_manager_ =
-      TileManager::Create(this, task_runner, resource_pool_.get(),
-                          tile_task_worker_pool_->AsTileTaskRunner(),
-                          rasterizer_.get(), scheduled_raster_task_limit);
+  tile_manager_ = TileManager::Create(
+      this, task_runner, resource_pool_.get(),
+      tile_task_worker_pool_->AsTileTaskRunner(), scheduled_raster_task_limit);
 
   UpdateTileManagerMemoryPolicy(ActualManagedMemoryPolicy());
-}
-
-scoped_ptr<Rasterizer> LayerTreeHostImpl::CreateRasterizer() {
-  ContextProvider* context_provider = output_surface_->context_provider();
-  if (use_gpu_rasterization_ && context_provider) {
-    return GpuRasterizer::Create(context_provider, resource_provider_.get(),
-                                 settings_.use_distance_field_text,
-                                 settings_.threaded_gpu_rasterization_enabled,
-                                 settings_.gpu_rasterization_msaa_sample_count);
-  }
-  return SoftwareRasterizer::Create();
 }
 
 void LayerTreeHostImpl::CreateResourceAndTileTaskWorkerPool(
@@ -2064,8 +2054,9 @@ void LayerTreeHostImpl::CreateResourceAndTileTaskWorkerPool(
         ResourcePool::Create(resource_provider_.get(), GL_TEXTURE_2D);
 
     *tile_task_worker_pool = GpuTileTaskWorkerPool::Create(
-        task_runner, task_graph_runner,
-        static_cast<GpuRasterizer*>(rasterizer_.get()));
+        task_runner, task_graph_runner, context_provider,
+        resource_provider_.get(), settings_.use_distance_field_text,
+        settings_.gpu_rasterization_msaa_sample_count);
     return;
   }
 
@@ -2116,12 +2107,25 @@ void LayerTreeHostImpl::CreateResourceAndTileTaskWorkerPool(
                                      settings_.renderer_settings.refresh_rate));
 }
 
+void LayerTreeHostImpl::RecordMainFrameTiming(
+    const BeginFrameArgs& start_of_main_frame_args,
+    const BeginFrameArgs& expected_next_main_frame_args) {
+  std::vector<int64_t> request_ids;
+  active_tree_->GatherFrameTimingRequestIds(&request_ids);
+  if (request_ids.empty())
+    return;
+
+  base::TimeTicks start_time = start_of_main_frame_args.frame_time;
+  base::TimeTicks end_time = expected_next_main_frame_args.frame_time;
+  frame_timing_tracker_->SaveMainFrameTimeStamps(
+      request_ids, start_time, end_time, active_tree_->source_frame_number());
+}
+
 void LayerTreeHostImpl::DestroyTileManager() {
   tile_manager_ = nullptr;
   resource_pool_ = nullptr;
   staging_resource_pool_ = nullptr;
   tile_task_worker_pool_ = nullptr;
-  rasterizer_ = nullptr;
   single_thread_synchronous_task_graph_runner_ = nullptr;
 }
 

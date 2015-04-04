@@ -326,7 +326,7 @@ def _PrintBenchmarkList(benchmarks, possible_browser, output_pipe=sys.stdout):
         'for %s ' %possible_browser.browser_type if possible_browser else '')
     for benchmark_class in sorted(filtered_benchmarks, key=lambda b: b.Name()):
       if possible_browser and not decorators.IsEnabled(benchmark_class,
-                                                       possible_browser):
+                                                       possible_browser)[0]:
         disabled_benchmarks.append(benchmark_class)
         continue
       print >> output_pipe, format_string % (
@@ -354,6 +354,11 @@ def main(environment):
     if not arg.startswith('-'):
       command_name = arg
       break
+
+  # TODO(eakuefner): Remove this hack after we port to argparse.
+  if command_name == 'help' and len(sys.argv) > 2 and sys.argv[2] == 'run':
+    command_name = 'run'
+    sys.argv[2] = '--help'
 
   # Validate and interpret the command name.
   commands = _MatchingCommands(command_name)

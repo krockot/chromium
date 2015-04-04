@@ -141,6 +141,9 @@ const char kDisableVoiceInput[] = "disable-voice-input";
 // Enabled sharing assets for installed default apps.
 const char kEnableExtensionAssetsSharing[]  = "enable-extension-assets-sharing";
 
+// Enables mtp write support.
+const char kEnableMtpWriteSupport[] = "enable-mtp-write-support";
+
 // Enables notifications about captive portals in session.
 const char kEnableNetworkPortalNotification[] =
     "enable-network-portal-notification";
@@ -335,6 +338,12 @@ const char kDisableWebviewSigninFlow[] = "disable-webview-signin-flow";
 
 // Enable Chrome OS firewall hole-punching for Chrome Apps.
 const char kEnableFirewallHolePunching[] = "enable-firewall-hole-punching";
+
+// Enables searching for an app that supports a plugged in USB printer. When a
+// user plugs in USB printer, they are shown a notification offering to search
+// Chroem Web Store for an app that has printerProvider permission and can
+// handle the plugged in printer.
+const char kEnablePrinterAppSearch[] = "enable-printer-app-search";
 
 bool WakeOnWifiEnabled() {
   return !base::CommandLine::ForCurrentProcess()->HasSwitch(kDisableWakeOnWifi);

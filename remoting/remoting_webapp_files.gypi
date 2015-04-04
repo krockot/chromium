@@ -163,6 +163,7 @@
       'webapp/base/js/app_capabilities.js',
       'webapp/base/js/application.js',
       'webapp/base/js/base.js',
+      'webapp/base/js/input_dialog.js',
       'webapp/base/js/ipc.js',
       'webapp/base/js/platform.js',
       'webapp/base/js/protocol_extension.js',
@@ -275,8 +276,8 @@
     'remoting_webapp_crd_main_html_all_js_files': [
       '<@(remoting_webapp_shared_main_html_js_files)',
       'webapp/crd/js/crd_auth_dialog.js',
-      'webapp/crd/js/crd_connect.js',
       'webapp/crd/js/crd_event_handlers.js',
+      'webapp/crd/js/crd_experimental.js',
       'webapp/crd/js/crd_main.js',
       'webapp/crd/js/desktop_remoting.js',
       'webapp/crd/js/it2me_connect_flow.js',

@@ -15,6 +15,7 @@
 #include "ui/base/resource/resource_bundle.h"
 #include "ui/compositor/compositor.h"
 #include "ui/compositor/layer.h"
+#include "ui/compositor/paint_context.h"
 #include "ui/events/event.h"
 #include "ui/events/event_utils.h"
 #include "ui/gfx/image/image_skia.h"
@@ -112,7 +113,7 @@ Widget::InitParams::InitParams()
       parent(NULL),
       native_widget(NULL),
       desktop_window_tree_host(NULL),
-      layer_type(aura::WINDOW_LAYER_TEXTURED),
+      layer_type(ui::LAYER_TEXTURED),
       context(NULL),
       force_show_in_taskbar(false) {
 }
@@ -135,7 +136,7 @@ Widget::InitParams::InitParams(Type type)
       parent(NULL),
       native_widget(NULL),
       desktop_window_tree_host(NULL),
-      layer_type(aura::WINDOW_LAYER_TEXTURED),
+      layer_type(ui::LAYER_TEXTURED),
       context(NULL),
       force_show_in_taskbar(false) {
 }
@@ -1179,12 +1180,12 @@ bool Widget::OnNativeWidgetPaintAccelerated(const gfx::Rect& dirty_region) {
   return true;
 }
 
-void Widget::OnNativeWidgetPaint(gfx::Canvas* canvas) {
+void Widget::OnNativeWidgetPaint(const ui::PaintContext& context) {
   // On Linux Aura, we can get here during Init() because of the
   // SetInitialBounds call.
   if (!native_widget_initialized_)
     return;
-  GetRootView()->Paint(View::PaintContext(canvas, GetLayer()->PaintRect()));
+  GetRootView()->Paint(context);
 }
 
 int Widget::GetNonClientComponent(const gfx::Point& point) {

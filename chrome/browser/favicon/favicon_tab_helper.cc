@@ -4,6 +4,8 @@
 
 #include "chrome/browser/favicon/favicon_tab_helper.h"
 
+#include "base/command_line.h"
+#include "base/metrics/field_trial.h"
 #include "base/strings/string_util.h"
 #include "chrome/browser/bookmarks/bookmark_model_factory.h"
 #include "chrome/browser/chrome_notification_types.h"
@@ -20,7 +22,6 @@
 #include "components/favicon/core/favicon_service.h"
 #include "components/favicon_base/favicon_types.h"
 #include "components/history/core/browser/history_service.h"
-#include "components/variations/variations_associated_data.h"
 #include "content/public/browser/favicon_status.h"
 #include "content/public/browser/invalidate_type.h"
 #include "content/public/browser/navigation_controller.h"
@@ -31,6 +32,7 @@
 #include "content/public/browser/web_contents.h"
 #include "content/public/browser/web_contents_delegate.h"
 #include "content/public/common/favicon_url.h"
+#include "ui/base/ui_base_switches.h"
 #include "ui/gfx/codec/png_codec.h"
 #include "ui/gfx/image/image.h"
 #include "ui/gfx/image/image_skia.h"
@@ -45,9 +47,19 @@ DEFINE_WEB_CONTENTS_USER_DATA_KEY(FaviconTabHelper);
 
 namespace {
 
-// Returns whether icon NTP is enabled.
+// Returns whether icon NTP is enabled by experiment.
+// TODO(huangs): Remove all 3 copies of this routine once Icon NTP launches.
 bool IsIconNTPEnabled() {
-  return variations::GetVariationParamValue("IconNTP", "state") == "enabled";
+  // Note: It's important to query the field trial state first, to ensure that
+  // UMA reports the correct group.
+  const std::string group_name = base::FieldTrialList::FindFullName("IconNTP");
+  using base::CommandLine;
+  if (CommandLine::ForCurrentProcess()->HasSwitch(switches::kDisableIconNtp))
+    return false;
+  if (CommandLine::ForCurrentProcess()->HasSwitch(switches::kEnableIconNtp))
+    return true;
+
+  return StartsWithASCII(group_name, "Enabled", true);
 }
 
 #if defined(OS_ANDROID) || defined(OS_IOS)
@@ -60,20 +72,46 @@ const bool kEnableTouchIcon = false;
 
 }  // namespace
 
-FaviconTabHelper::FaviconTabHelper(WebContents* web_contents)
+// static
+void FaviconTabHelper::CreateForWebContents(
+    content::WebContents* web_contents) {
+  DCHECK(web_contents);
+  if (FromWebContents(web_contents))
+    return;
+
+  Profile* original_profile =
+      Profile::FromBrowserContext(web_contents->GetBrowserContext())
+          ->GetOriginalProfile();
+  web_contents->SetUserData(
+      UserDataKey(),
+      new FaviconTabHelper(
+          web_contents,
+          FaviconServiceFactory::GetForProfile(
+              original_profile, ServiceAccessType::IMPLICIT_ACCESS),
+          HistoryServiceFactory::GetForProfile(
+              original_profile, ServiceAccessType::IMPLICIT_ACCESS),
+          BookmarkModelFactory::GetForProfileIfExists(original_profile)));
+}
+
+FaviconTabHelper::FaviconTabHelper(WebContents* web_contents,
+                                   favicon::FaviconService* favicon_service,
+                                   history::HistoryService* history_service,
+                                   bookmarks::BookmarkModel* bookmark_model)
     : content::WebContentsObserver(web_contents),
-      profile_(Profile::FromBrowserContext(web_contents->GetBrowserContext())) {
-  favicon::FaviconService* service = FaviconServiceFactory::GetForProfile(
-      profile_, ServiceAccessType::EXPLICIT_ACCESS);
+      favicon_service_(favicon_service),
+      history_service_(history_service),
+      bookmark_model_(bookmark_model) {
   favicon_handler_.reset(new favicon::FaviconHandler(
-      service, this, favicon::FaviconHandler::FAVICON, kDownloadLargestIcon));
+      favicon_service_, this, favicon::FaviconHandler::FAVICON,
+      kDownloadLargestIcon));
   if (kEnableTouchIcon) {
     touch_icon_handler_.reset(new favicon::FaviconHandler(
-        service, this, favicon::FaviconHandler::TOUCH, kDownloadLargestIcon));
+        favicon_service_, this, favicon::FaviconHandler::TOUCH,
+        kDownloadLargestIcon));
   }
   if (IsIconNTPEnabled()) {
     large_icon_handler_.reset(new favicon::FaviconHandler(
-        service, this, favicon::FaviconHandler::LARGE, true));
+        favicon_service_, this, favicon::FaviconHandler::LARGE, true));
   }
 }
 
@@ -135,29 +173,28 @@ bool FaviconTabHelper::ShouldDisplayFavicon() {
 }
 
 void FaviconTabHelper::SaveFavicon() {
-  NavigationEntry* entry = web_contents()->GetController().GetActiveEntry();
-  if (!entry || entry->GetURL().is_empty())
+  GURL active_url = GetActiveURL();
+  if (active_url.is_empty())
     return;
 
   // Make sure the page is in history, otherwise adding the favicon does
   // nothing.
-  history::HistoryService* history = HistoryServiceFactory::GetForProfile(
-      profile_->GetOriginalProfile(), ServiceAccessType::IMPLICIT_ACCESS);
-  if (!history)
+  if (!history_service_)
     return;
-  history->AddPageNoVisitForBookmark(entry->GetURL(), entry->GetTitle());
+  history_service_->AddPageNoVisitForBookmark(active_url, GetActiveTitle());
 
-  favicon::FaviconService* service = FaviconServiceFactory::GetForProfile(
-      profile_->GetOriginalProfile(), ServiceAccessType::IMPLICIT_ACCESS);
-  if (!service)
+  if (!favicon_service_)
     return;
-  const FaviconStatus& favicon(entry->GetFavicon());
-  if (!favicon.valid || favicon.url.is_empty() ||
-      favicon.image.IsEmpty()) {
+  if (!GetActiveFaviconValidity())
     return;
-  }
-  service->SetFavicons(
-      entry->GetURL(), favicon.url, favicon_base::FAVICON, favicon.image);
+  GURL favicon_url = GetActiveFaviconURL();
+  if (favicon_url.is_empty())
+    return;
+  gfx::Image image = GetActiveFaviconImage();
+  if (image.IsEmpty())
+    return;
+  favicon_service_->SetFavicons(active_url, favicon_url, favicon_base::FAVICON,
+                                image);
 }
 
 void FaviconTabHelper::AddObserver(favicon::FaviconDriverObserver* observer) {
@@ -170,10 +207,7 @@ void FaviconTabHelper::RemoveObserver(
 }
 
 int FaviconTabHelper::StartDownload(const GURL& url, int max_image_size) {
-  favicon::FaviconService* favicon_service =
-      FaviconServiceFactory::GetForProfile(profile_->GetOriginalProfile(),
-                                           ServiceAccessType::IMPLICIT_ACCESS);
-  if (favicon_service && favicon_service->WasUnableToDownloadFavicon(url)) {
+  if (favicon_service_ && favicon_service_->WasUnableToDownloadFavicon(url)) {
     DVLOG(1) << "Skip Failed FavIcon: " << url;
     return 0;
   }
@@ -193,41 +227,41 @@ bool FaviconTabHelper::IsOffTheRecord() {
 }
 
 bool FaviconTabHelper::IsBookmarked(const GURL& url) {
-  bookmarks::BookmarkModel* bookmark_model =
-      BookmarkModelFactory::GetForProfileIfExists(
-          profile_->GetOriginalProfile());
-  return bookmark_model && bookmark_model->IsBookmarked(url);
+  return bookmark_model_ && bookmark_model_->IsBookmarked(url);
 }
 
-const gfx::Image FaviconTabHelper::GetActiveFaviconImage() {
-  return GetFaviconStatus().image;
+GURL FaviconTabHelper::GetActiveURL() {
+  NavigationEntry* entry = web_contents()->GetController().GetActiveEntry();
+  return entry ? entry->GetURL() : GURL();
 }
 
-const GURL FaviconTabHelper::GetActiveFaviconURL() {
-  return GetFaviconStatus().url;
+base::string16 FaviconTabHelper::GetActiveTitle() {
+  NavigationEntry* entry = web_contents()->GetController().GetActiveEntry();
+  return entry ? entry->GetTitle() : base::string16();
 }
 
 bool FaviconTabHelper::GetActiveFaviconValidity() {
   return GetFaviconStatus().valid;
 }
 
-const GURL FaviconTabHelper::GetActiveURL() {
-  NavigationEntry* entry = web_contents()->GetController().GetActiveEntry();
-  if (!entry || entry->GetURL().is_empty())
-    return GURL();
-  return entry->GetURL();
+void FaviconTabHelper::SetActiveFaviconValidity(bool valid) {
+  GetFaviconStatus().valid = valid;
 }
 
-void FaviconTabHelper::SetActiveFaviconImage(gfx::Image image) {
-  GetFaviconStatus().image = image;
+GURL FaviconTabHelper::GetActiveFaviconURL() {
+  return GetFaviconStatus().url;
 }
 
-void FaviconTabHelper::SetActiveFaviconURL(GURL url) {
+void FaviconTabHelper::SetActiveFaviconURL(const GURL& url) {
   GetFaviconStatus().url = url;
 }
 
-void FaviconTabHelper::SetActiveFaviconValidity(bool validity) {
-  GetFaviconStatus().valid = validity;
+gfx::Image FaviconTabHelper::GetActiveFaviconImage() {
+  return GetFaviconStatus().image;
+}
+
+void FaviconTabHelper::SetActiveFaviconImage(const gfx::Image& image) {
+  GetFaviconStatus().image = image;
 }
 
 void FaviconTabHelper::OnFaviconAvailable(const gfx::Image& image,
@@ -255,6 +289,30 @@ void FaviconTabHelper::OnFaviconAvailable(const gfx::Image& image,
   }
 }
 
+void FaviconTabHelper::DidDownloadFavicon(
+    int id,
+    int http_status_code,
+    const GURL& image_url,
+    const std::vector<SkBitmap>& bitmaps,
+    const std::vector<gfx::Size>& original_bitmap_sizes) {
+  if (bitmaps.empty() && http_status_code == 404) {
+    DVLOG(1) << "Failed to Download Favicon:" << image_url;
+    if (favicon_service_)
+      favicon_service_->UnableToDownloadFavicon(image_url);
+  }
+
+  favicon_handler_->OnDidDownloadFavicon(id, image_url, bitmaps,
+                                         original_bitmap_sizes);
+  if (touch_icon_handler_.get()) {
+    touch_icon_handler_->OnDidDownloadFavicon(id, image_url, bitmaps,
+                                              original_bitmap_sizes);
+  }
+  if (large_icon_handler_.get()) {
+    large_icon_handler_->OnDidDownloadFavicon(id, image_url, bitmaps,
+                                              original_bitmap_sizes);
+  }
+}
+
 content::FaviconStatus& FaviconTabHelper::GetFaviconStatus() {
   DCHECK(web_contents()->GetController().GetActiveEntry());
   return web_contents()->GetController().GetActiveEntry()->GetFavicon();
@@ -263,18 +321,15 @@ content::FaviconStatus& FaviconTabHelper::GetFaviconStatus() {
 void FaviconTabHelper::DidStartNavigationToPendingEntry(
     const GURL& url,
     NavigationController::ReloadType reload_type) {
-  if (reload_type != NavigationController::NO_RELOAD &&
-      !profile_->IsOffTheRecord()) {
-    bypass_cache_page_url_ = url;
+  if (reload_type == NavigationController::NO_RELOAD || IsOffTheRecord())
+    return;
 
-    favicon::FaviconService* favicon_service =
-        FaviconServiceFactory::GetForProfile(
-            profile_, ServiceAccessType::IMPLICIT_ACCESS);
-    if (favicon_service) {
-      favicon_service->SetFaviconOutOfDateForPage(url);
-      if (reload_type == NavigationController::RELOAD_IGNORING_CACHE)
-        favicon_service->ClearUnableToDownloadFavicons();
-    }
+  bypass_cache_page_url_ = url;
+
+  if (favicon_service_) {
+    favicon_service_->SetFaviconOutOfDateForPage(url);
+    if (reload_type == NavigationController::RELOAD_IGNORING_CACHE)
+      favicon_service_->ClearUnableToDownloadFavicons();
   }
 }
 
@@ -309,32 +364,4 @@ void FaviconTabHelper::DidUpdateFaviconURL(
     touch_icon_handler_->OnUpdateFaviconURL(favicon_urls);
   if (large_icon_handler_.get())
     large_icon_handler_->OnUpdateFaviconURL(favicon_urls);
-}
-
-void FaviconTabHelper::DidDownloadFavicon(
-    int id,
-    int http_status_code,
-    const GURL& image_url,
-    const std::vector<SkBitmap>& bitmaps,
-    const std::vector<gfx::Size>& original_bitmap_sizes) {
-
-  if (bitmaps.empty() && http_status_code == 404) {
-    DVLOG(1) << "Failed to Download Favicon:" << image_url;
-    favicon::FaviconService* favicon_service =
-        FaviconServiceFactory::GetForProfile(
-            profile_->GetOriginalProfile(), ServiceAccessType::IMPLICIT_ACCESS);
-    if (favicon_service)
-      favicon_service->UnableToDownloadFavicon(image_url);
-  }
-
-  favicon_handler_->OnDidDownloadFavicon(
-      id, image_url, bitmaps, original_bitmap_sizes);
-  if (touch_icon_handler_.get()) {
-    touch_icon_handler_->OnDidDownloadFavicon(
-        id, image_url, bitmaps, original_bitmap_sizes);
-  }
-  if (large_icon_handler_.get()) {
-    large_icon_handler_->OnDidDownloadFavicon(
-        id, image_url, bitmaps, original_bitmap_sizes);
-  }
 }

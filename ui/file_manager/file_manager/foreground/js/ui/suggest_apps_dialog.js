@@ -65,9 +65,23 @@ function SuggestAppsDialog(parentNode, state) {
   this.webstoreButton_ = this.document_.createElement('div');
   this.webstoreButton_.hidden = true;
   this.webstoreButton_.id = 'webstore-button';
-  this.webstoreButton_.innerHTML = str('SUGGEST_DIALOG_LINK_TO_WEBSTORE');
+  this.webstoreButton_.setAttribute('role', 'button');
+  this.webstoreButton_.tabIndex = 0;
+
+  var webstoreButtonIcon = this.document_.createElement('span');
+  webstoreButtonIcon.id = 'webstore-button-icon';
+  this.webstoreButton_.appendChild(webstoreButtonIcon);
+
+  var webstoreButtonLabel = this.document_.createElement('span');
+  webstoreButtonLabel.id = 'webstore-button-label';
+  webstoreButtonLabel.textContent = str('SUGGEST_DIALOG_LINK_TO_WEBSTORE');
+  this.webstoreButton_.appendChild(webstoreButtonLabel);;
+
   this.webstoreButton_.addEventListener(
-      'click', this.onWebstoreLinkClicked_.bind(this));
+      'click', this.onWebstoreLinkActivated_.bind(this));
+  this.webstoreButton_.addEventListener(
+      'keydown', this.onWebstoreLinkKeyDown_.bind(this));
+
   this.buttons_.appendChild(this.webstoreButton_);
 
   this.initialFocusElement_ = this.webviewContainer_;
@@ -80,6 +94,7 @@ function SuggestAppsDialog(parentNode, state) {
 
   this.options_ = null;
   this.installingItemId_ = null;
+  this.installedItemId_ = null;
   this.state_ = SuggestAppsDialog.State.UNINITIALIZED;
 
   this.initializationTask_ = new AsyncUtil.Group();
@@ -178,9 +193,9 @@ SuggestAppsDialog.prototype.show = function() {
  *
  * @param {string} extension Extension of the file with a trailing dot.
  * @param {string} mime Mime of the file.
- * @param {function(boolean)} onDialogClosed Called when the dialog is closed.
- *     The argument is the result of installation: true if an app is installed,
- *     false otherwise.
+ * @param {function(SuggestAppsDialog.Result, ?string)} onDialogClosed Called
+ *     when the dialog is closed, with a result code and an optionally an
+ *     extension id, if an extension was installed.
  */
 SuggestAppsDialog.prototype.showByExtensionAndMime =
     function(extension, mime, onDialogClosed) {
@@ -197,9 +212,9 @@ SuggestAppsDialog.prototype.showByExtensionAndMime =
 
 /**
  * Shows suggest-apps dialog for FSP API
- * @param {function(boolean)} onDialogClosed Called when the dialog is closed.
- *     The argument is the result of installation: true if an app is installed,
- *     false otherwise.
+ * @param {function(SuggestAppsDialog.Result, ?string)} onDialogClosed Called
+ *     when the dialog is closed, with a result code and an optionally an
+ *     extension id, if an extension was installed.
  */
 SuggestAppsDialog.prototype.showProviders = function(onDialogClosed) {
   this.showInternal_(
@@ -218,10 +233,10 @@ SuggestAppsDialog.prototype.showProviders = function(onDialogClosed) {
  * @param {!Object<string, *>} options Map of options for the dialog.
  * @param {string} title Title of the dialog.
  * @param {?string} webStoreUrl Url for more results. Null if not supported.
- * @param {function(boolean)} onDialogClosed Called when the dialog is closed.
- *     The argument is the result of installation: true if an app is installed,
- *     false otherwise.
- *     @private
+ * @param {function(SuggestAppsDialog.Result, ?string)} onDialogClosed Called
+ *     when the dialog is closed, with a result code and an optionally an
+ *     extension id, if an extension was installed.
+ * @private
  */
 SuggestAppsDialog.prototype.showInternal_ =
     function(options, title, webStoreUrl, onDialogClosed) {
@@ -301,16 +316,29 @@ SuggestAppsDialog.prototype.showInternal_ =
 };
 
 /**
- * Called when the 'See more...' link is clicked to be navigated to Webstore.
- * @param {Event} e Event.
+ * Called when the 'See more...' link is activated to be navigated to Webstore.
+ * @param {Event} e The event that activated the link. Either mouse click or
+ *     key down event.
  * @private
  */
-SuggestAppsDialog.prototype.onWebstoreLinkClicked_ = function(e) {
+SuggestAppsDialog.prototype.onWebstoreLinkActivated_ = function(e) {
   if (!this.webStoreUrl_)
     return;
   util.visitURL(this.webStoreUrl_);
   this.state_ = SuggestAppsDialog.State.OPENING_WEBSTORE_CLOSING;
   this.hide();
+};
+
+/**
+ * Key down event handler for webstore link element. If the key is enter, it
+ * activates the link.
+ * @param {Event} e The event
+ * @private
+ */
+SuggestAppsDialog.prototype.onWebstoreLinkKeyDown_ = function(e) {
+  if (e.keyCode != 13 /* Enter */)
+    return;
+  this.onWebstoreLinkActivated_(e);
 };
 
 /**
@@ -387,6 +415,7 @@ SuggestAppsDialog.prototype.onInstallCompleted_ = function(result, error) {
                 SuggestAppsDialog.State.INSTALLED_CLOSING :
                 SuggestAppsDialog.State.INITIALIZED;  // Back to normal state.
   this.webviewClient_.onInstallCompleted(success, this.installingItemId_);
+  this.installedItemId_ = this.installingItemId_;
   this.installingItemId_ = null;
 
   switch (result) {
@@ -500,7 +529,7 @@ SuggestAppsDialog.prototype.onHide_ = function(opt_originalOnHide) {
   }
   this.state_ = SuggestAppsDialog.State.UNINITIALIZED;
 
-  this.onDialogClosed_(result);
+  this.onDialogClosed_(result, this.installedItemId_);
 };
 
 /**

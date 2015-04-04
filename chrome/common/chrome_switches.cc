@@ -271,9 +271,6 @@ const char kDisableExtensionsFileAccessCheck[] =
 const char kDisableExtensionsHttpThrottling[] =
     "disable-extensions-http-throttling";
 
-// Disables large icons on the New Tab page.
-const char kDisableIconNtp[]                = "disable-icon-ntp";
-
 // Don't resolve hostnames to IPv6 addresses. This can be used when debugging
 // issues relating to IPv6, but shouldn't otherwise be needed. Be sure to file
 // bugs if something isn't working properly in the presence of IPv6. This flag
@@ -465,12 +462,6 @@ const char kEnableExtensionActivityLogTesting[] =
 // running a tab's onunload js handler independently of the GUI -
 // crbug.com/142458 .
 const char kEnableFastUnload[]         = "enable-fast-unload";
-
-// Enables large icons on the New Tab page.
-const char kEnableIconNtp[]                 = "enable-icon-ntp";
-
-// Enable opt-in for the collection of invalid TLS/SSL certificate chains.
-const char kEnableInvalidCertCollection[] = "enable-invalid-cert-collection";
 
 // Enables IPv6 support, even if probes suggest that it may not be fully
 // supported. Some probes may require internet connections, and this flag will
@@ -1247,6 +1238,10 @@ const char kEnableAppInstallAlerts[]        = "enable-app-install-alerts";
 
 // Enables Contextual Search.
 const char kEnableContextualSearch[]        = "enable-contextual-search";
+
+// Enables the DOM distiller animated button UI for Android.
+const char kEnableDomDistillerButtonAnimation[] =
+    "enable-dom-distiller-button-animation";
 
 // Enables zero suggest functionality on Dev channel, showing most visited
 // sites as default suggestions.
