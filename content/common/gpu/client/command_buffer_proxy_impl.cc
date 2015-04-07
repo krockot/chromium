@@ -4,6 +4,8 @@
 
 #include "content/common/gpu/client/command_buffer_proxy_impl.h"
 
+#include <vector>
+
 #include "base/callback.h"
 #include "base/logging.h"
 #include "base/memory/shared_memory.h"
@@ -371,6 +373,8 @@ int32_t CommandBufferProxyImpl::CreateImage(ClientBuffer buffer,
       channel_->ShareGpuMemoryBufferToGpuProcess(gpu_memory_buffer->GetHandle(),
                                                  &requires_sync_point);
 
+  DCHECK(gpu::ImageFactory::IsGpuMemoryBufferFormatSupported(
+      gpu_memory_buffer->GetFormat(), capabilities_));
   DCHECK(gpu::ImageFactory::IsImageSizeValidForGpuMemoryBufferFormat(
       gfx::Size(width, height), gpu_memory_buffer->GetFormat()));
   DCHECK(gpu::ImageFactory::IsImageFormatCompatibleWithGpuMemoryBufferFormat(

@@ -13,7 +13,6 @@
 #include "base/lazy_instance.h"
 #include "base/memory/discardable_memory.h"
 #include "base/numerics/safe_math.h"
-#include "base/profiler/scoped_tracker.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/sys_info.h"
 #include "base/trace_event/trace_event.h"
@@ -190,11 +189,6 @@ void HostDiscardableSharedMemoryManager::AllocateLockedDiscardableSharedMemory(
     size_t size,
     DiscardableSharedMemoryId id,
     base::SharedMemoryHandle* shared_memory_handle) {
-  // TODO(erikchen): Remove ScopedTracker below once http://crbug.com/466405
-  // is fixed.
-  tracked_objects::ScopedTracker tracking_profile1(
-      FROM_HERE_WITH_EXPLICIT_FUNCTION(
-          "466405 AllocateLockedDiscardableSharedMemory::Start"));
   base::AutoLock lock(lock_);
 
   // Make sure |id| is not already in use.
@@ -216,19 +210,9 @@ void HostDiscardableSharedMemoryManager::AllocateLockedDiscardableSharedMemory(
   if (size < memory_limit_)
     limit = memory_limit_ - size;
 
-  // TODO(erikchen): Remove ScopedTracker below once http://crbug.com/466405
-  // is fixed.
-  tracked_objects::ScopedTracker tracking_profile2(
-      FROM_HERE_WITH_EXPLICIT_FUNCTION(
-          "466405 AllocateLockedDiscardableSharedMemory::ReduceMemoryUsage"));
   if (bytes_allocated_ > limit)
     ReduceMemoryUsageUntilWithinLimit(limit);
 
-  // TODO(erikchen): Remove ScopedTracker below once http://crbug.com/466405
-  // is fixed.
-  tracked_objects::ScopedTracker tracking_profile3(
-      FROM_HERE_WITH_EXPLICIT_FUNCTION(
-          "466405 AllocateLockedDiscardableSharedMemory::NewMemory"));
   scoped_ptr<base::DiscardableSharedMemory> memory(
       new base::DiscardableSharedMemory);
   if (!memory->CreateAndMap(size)) {
@@ -236,11 +220,6 @@ void HostDiscardableSharedMemoryManager::AllocateLockedDiscardableSharedMemory(
     return;
   }
 
-  // TODO(erikchen): Remove ScopedTracker below once http://crbug.com/466405
-  // is fixed.
-  tracked_objects::ScopedTracker tracking_profile4(
-      FROM_HERE_WITH_EXPLICIT_FUNCTION(
-          "466405 AllocateLockedDiscardableSharedMemory::ShareToProcess"));
   if (!memory->ShareToProcess(process_handle, shared_memory_handle)) {
     LOG(ERROR) << "Cannot share discardable memory segment";
     *shared_memory_handle = base::SharedMemory::NULLHandle();
@@ -254,12 +233,6 @@ void HostDiscardableSharedMemoryManager::AllocateLockedDiscardableSharedMemory(
     return;
   }
 
-  // TODO(erikchen): Remove ScopedTracker below once http://crbug.com/466405
-  // is fixed.
-  tracked_objects::ScopedTracker tracking_profile5(
-      FROM_HERE_WITH_EXPLICIT_FUNCTION(
-          "466405 "
-          "AllocateLockedDiscardableSharedMemory::BytesAllocatedChanged"));
   bytes_allocated_ = checked_bytes_allocated.ValueOrDie();
   BytesAllocatedChanged(bytes_allocated_);
 
@@ -268,13 +241,6 @@ void HostDiscardableSharedMemoryManager::AllocateLockedDiscardableSharedMemory(
   segments_.push_back(segment.get());
   std::push_heap(segments_.begin(), segments_.end(), CompareMemoryUsageTime);
 
-  // TODO(erikchen): Remove ScopedTracker below once http://crbug.com/466405
-  // is fixed.
-  tracked_objects::ScopedTracker tracking_profile6(
-      FROM_HERE_WITH_EXPLICIT_FUNCTION(
-          "466405 "
-          "AllocateLockedDiscardableSharedMemory::"
-          "ScheduleEnforceMemoryPolicy"));
   if (bytes_allocated_ > memory_limit_)
     ScheduleEnforceMemoryPolicy();
 }
@@ -359,12 +325,17 @@ void HostDiscardableSharedMemoryManager::ReduceMemoryUsageUntilWithinLimit(
     scoped_refptr<MemorySegment> segment = segments_.back();
     segments_.pop_back();
 
-    // Attempt to purge and truncate LRU segment. When successful, as much
-    // memory as possible will be released to the OS. How much memory is
-    // released depends on the platform. The child process should perform
-    // periodic cleanup to ensure that all memory is release within a
-    // reasonable amount of time.
-    if (segment->memory()->PurgeAndTruncate(current_time)) {
+    // Attempt to purge LRU segment. When successful, released the memory.
+    if (segment->memory()->Purge(current_time)) {
+#if defined(DISCARDABLE_SHARED_MEMORY_SHRINKING)
+      size_t size = segment->memory()->mapped_size();
+      DCHECK_GE(bytes_allocated_, size);
+      bytes_allocated_ -= size;
+      // Shrink memory segment. This will immediately release the memory to
+      // the OS.
+      segment->memory()->Shrink();
+      DCHECK_EQ(segment->memory()->mapped_size(), 0u);
+#endif
       ReleaseMemory(segment->memory());
       continue;
     }

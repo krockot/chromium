@@ -20200,6 +20200,16 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   </summary>
 </histogram>
 
+<histogram name="Net.QuicSession.TooManyOpenStream" enum="BooleanTooMany">
+  <owner>rch@chromium.org</owner>
+  <obsolete>
+    Deprecated 04/2015. Tracked as Net.QuicSession.TooManyOpenStreams.
+  </obsolete>
+  <summary>
+    True if more than 100 streams are open when a new stream is activated.
+  </summary>
+</histogram>
+
 <histogram name="Net.QuicSession.TooManyOpenStreams" enum="BooleanTooMany">
   <owner>rch@chromium.org</owner>
   <summary>
@@ -23356,6 +23366,15 @@ Therefore, the affected-histogram name has to have at least one dot in it.
     Chrome OS network performance metric that tracks the transmit bitrate in
     Mbps for the wifi device when it is connected to a network. The bitrate is
     reported once every minute after the wifi connection is established.
+  </summary>
+</histogram>
+
+<histogram name="Network.Shill.Wifi.UnreliableLinkSignalStrength">
+  <owner>zqiu@chromium.org</owner>
+  <summary>
+    Chrome OS network metric sampling the signal strength (0-100) of the wifi
+    network when it becomes unreliable (experiencing multiple link failures in a
+    short period of time).
   </summary>
 </histogram>
 
@@ -47239,6 +47258,7 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   <int value="9" label="SpringPowerSupply.Original.Low"/>
   <int value="10" label="SpringPowerSupply.ChargerIdle"/>
   <int value="11" label="TPM.NonZeroDictionaryAttackCounter"/>
+  <int value="12" label="TPM.EarlyResetDuringCommand"/>
 </enum>
 
 <enum name="CrosFirstRunTutorialCompletionType" type="int">
@@ -51281,6 +51301,9 @@ Therefore, the affected-histogram name has to have at least one dot in it.
   <int value="743" label="GlobalCacheStorage"/>
   <int value="744" label="NetInfo"/>
   <int value="745" label="BackgroundSync"/>
+  <int value="746" label="TabStopProperty"/>
+  <int value="747" label="TabStopAttribute"/>
+  <int value="748" label="LegacyConst"/>
 </enum>
 
 <enum name="FFmpegCodecs" type="int">
@@ -59108,6 +59131,10 @@ To add a new entry, add it with any value and run test to compute valid value.
   <int value="65" label="CRYPTO_UPDATE_BEFORE_HANDSHAKE_COMPLETE"/>
   <int value="66" label="TOO_MANY_UNFINISHED_STREAMS"/>
   <int value="67" label="CONNECTION_OVERALL_TIMED_OUT"/>
+  <int value="68" label="QUIC_TOO_MANY_OUTSTANDING_SENT_PACKETS"/>
+  <int value="69" label="QUIC_TOO_MANY_OUTSTANDING_RECEIVED_PACKETS"/>
+  <int value="70" label="QUIC_CONNECTION_CANCELLED"/>
+  <int value="71" label="QUIC_BAD_PACKET_LOSS_RATE"/>
 </enum>
 
 <enum name="QuicHandshakeFailureReason" type="int">

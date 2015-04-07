@@ -292,7 +292,8 @@
       <cr-menu-item command="#create-folder-shortcut"></cr-menu-item>
     </cr-menu>
 
-    <cr-menu id="gear-menu" class="chrome-menu" showShortcuts>
+    <cr-menu id="gear-menu" class="chrome-menu" showShortcuts
+             menu-item-selector="cr-menu-item, hr">
       <cr-menu-item id="gear-menu-newwindow" command="#new-window"></cr-menu-item>
       <cr-menu-item id="gear-menu-newfolder" command="#new-folder"></cr-menu-item>
       <hr>
@@ -313,7 +314,7 @@
       <div id="volume-space-info">
         <div id="volume-space-info-contents">
           <span id="volume-space-info-label"></span>
-          <div class="progress-bar">
+          <div class="progress-bar" aria-hidden="true">
             <div class="progress-track" id="volume-space-info-bar"></div>
           </div>
         </div>
@@ -497,9 +498,7 @@
           </paper-input-decorator>
         </div>
         <div class="preparing-label" i18n-content="PREPARING_LABEL"></div>
-        <div class="progress-bar" visibleif="saveas-file">
-          <div class="progress-track"></div>
-        </div>
+        <div class="progress-bar"><div class="progress-track"></div></div>
       </div>
       <div class="right buttonbar">
         <select class="file-type" hidden tabindex="-1"></select>
