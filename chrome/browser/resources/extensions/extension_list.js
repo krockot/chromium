@@ -146,8 +146,7 @@ cr.define('extensions', function() {
   function ExtensionList() {
     var div = document.createElement('div');
     div.__proto__ = ExtensionList.prototype;
-    /** @private {!Array<ExtensionInfo>} */
-    div.extensions_ = [];
+    div.initialize();
     return div;
   }
 
@@ -206,6 +205,39 @@ cr.define('extensions', function() {
     enableAppInfoDialog_: false,
 
     /**
+     * Initializes the list.
+     */
+    initialize: function() {
+      /** @private {!Array<ExtensionInfo>} */
+      this.extensions_ = [];
+
+      chrome.developerPrivate.onItemStateChanged.addListener(
+          function(eventData) {
+        var EventType = chrome.developerPrivate.EventType;
+        switch (eventData.event_type) {
+          case EventType.VIEW_REGISTERED:
+          case EventType.VIEW_UNREGISTERED:
+            // For now, view notifications are handled through the WebUI.
+            // TODO(devlin): Transition these.
+            break;
+          case EventType.INSTALLED:
+          case EventType.LOADED:
+          case EventType.UNLOADED:
+          case EventType.ERROR_ADDED:
+            if (eventData.extensionInfo)
+              this.updateExtension_(eventData.extensionInfo);
+            break;
+          case EventType.UNINSTALLED:
+            var childNode = $(eventData.item_id);
+            childNode.parentNode.removeChild(childNode);
+            break;
+          default:
+            assertNotReached();
+        }
+      }.bind(this));
+    },
+
+    /**
      * Updates the extensions on the page.
      * @param {boolean} incognitoAvailable Whether or not incognito is allowed.
      * @param {boolean} enableAppInfoDialog Whether or not the app info dialog
@@ -218,7 +250,8 @@ cr.define('extensions', function() {
       // consider passing in the full object from the ExtensionSettings.
       this.incognitoAvailable_ = incognitoAvailable;
       this.enableAppInfoDialog_ = enableAppInfoDialog;
-      return new Promise(function(resolve, reject) {
+      /** @private {Promise} */
+      this.extensionsUpdated_ = new Promise(function(resolve, reject) {
         chrome.developerPrivate.getExtensionsInfo(
             {includeDisabled: true, includeTerminated: true},
             function(extensions) {
@@ -241,6 +274,7 @@ cr.define('extensions', function() {
           resolve();
         }.bind(this));
       }.bind(this));
+      return this.extensionsUpdated_;
     },
 
     /** @return {number} The number of extensions being displayed. */
@@ -268,15 +302,9 @@ cr.define('extensions', function() {
       var seenIds = [];
 
       // Iterate over the extension data and add each item to the list.
-      this.extensions_.forEach(function(extension, i) {
-        var nextExt = this.extensions_[i + 1];
-        var node = $(extension.id);
+      this.extensions_.forEach(function(extension) {
         seenIds.push(extension.id);
-
-        if (node)
-          this.updateNode_(extension, node);
-        else
-          this.createNode_(extension, nextExt ? $(nextExt.id) : null);
+        this.updateExtension_(extension);
       }, this);
 
       // Remove extensions that are no longer installed.
@@ -982,6 +1010,22 @@ cr.define('extensions', function() {
       // after its showing animation? Makes very little sense to me.
       overlay.setInitialFocus();
     },
+
+    /**
+     * Updates the node for the extension.
+     * @param {!ExtensionInfo} extension The information about the extension to
+     *     update.
+     * @private
+     */
+    updateExtension_: function(extension) {
+      var node = /** @type {ExtensionFocusRow} */ ($(extension.id));
+      if (node) {
+        this.updateNode_(extension, node);
+      } else {
+        var nextExt = this.extensions_[this.extensions_.indexOf(extension) + 1];
+        this.createNode_(extension, nextExt ? $(nextExt.id) : null);
+      }
+    }
   };
 
   return {

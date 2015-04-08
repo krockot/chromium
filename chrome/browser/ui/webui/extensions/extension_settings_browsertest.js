@@ -56,6 +56,93 @@ TEST_F('ExtensionSettingsWebUITest', 'testChromeSendHandled', function() {
   assertTrue($('pack-extension-overlay').classList.contains('showing'));
 });
 
+function BasicExtensionSettingsWebUITest() {}
+
+BasicExtensionSettingsWebUITest.prototype = {
+  __proto__: ExtensionSettingsWebUITest.prototype,
+
+  /** @override */
+  isAsync: true,
+
+  /** @override */
+  testGenPreamble: function() {
+    // Install multiple types of extensions to ensure we handle each type.
+    // TODO(devlin): There are more types to add here.
+    GEN('  InstallGoodExtension();');
+    GEN('  InstallErrorsExtension();');
+    GEN('  InstallSharedModule();');
+    GEN('  InstallPackagedApp();');
+
+    GEN('  SetAutoConfirmUninstall();');
+  },
+
+  /** @protected {Array<!Function>} */
+  steps: [],
+
+  /** @protected */
+  nextStep: function() {
+    assertTrue(this.steps.length > 0);
+    this.steps.shift().call(this);
+  },
+
+  /** @protected */
+  waitForPageLoad: function() {
+    var extensionList = getRequiredElement('extension-settings-list');
+    extensionList.extensionsUpdated_.then(this.nextStep.bind(this));
+  },
+
+  /** @protected */
+  verifyDisabledWorks: function() {
+    chrome.management.setEnabled(GOOD_CRX_ID, false, function() {
+      var node = getRequiredElement(GOOD_CRX_ID);
+      assertTrue(node.classList.contains('inactive-extension'));
+      this.nextStep();
+    }.bind(this));
+  },
+
+  /** @protected */
+  verifyEnabledWorks: function() {
+    chrome.management.setEnabled(GOOD_CRX_ID, true, function() {
+      var node = getRequiredElement(GOOD_CRX_ID);
+      assertFalse(node.classList.contains('inactive-extension'));
+      this.nextStep();
+    }.bind(this));
+  },
+
+  /** @protected */
+  verifyUninstallWorks: function() {
+    var next = this.nextStep.bind(this);
+    chrome.test.runWithUserGesture(function() {
+      chrome.management.uninstall(GOOD_CRX_ID, function() {
+        assertEquals(null, $(GOOD_CRX_ID));
+        next();
+      });
+    });
+  },
+};
+
+TEST_F('BasicExtensionSettingsWebUITest', 'testDisable', function() {
+  this.steps = [this.waitForPageLoad,
+                this.verifyDisabledWorks,
+                testDone];
+  this.nextStep();
+});
+
+TEST_F('BasicExtensionSettingsWebUITest', 'testEnable', function() {
+  this.steps = [this.waitForPageLoad,
+                this.verifyDisabledWorks,
+                this.verifyEnabledWorks,
+                testDone];
+  this.nextStep();
+});
+
+TEST_F('BasicExtensionSettingsWebUITest', 'testUninstall', function() {
+  this.steps = [this.waitForPageLoad,
+                this.verifyUninstallWorks,
+                testDone];
+  this.nextStep();
+});
+
 function AsyncExtensionSettingsWebUITest() {}
 
 AsyncExtensionSettingsWebUITest.prototype = {

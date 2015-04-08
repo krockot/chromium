@@ -32,14 +32,12 @@
          disable_egl_khr_fence_sync)                         \
   GPU_OP(DISABLE_EGL_KHR_WAIT_SYNC,                          \
          disable_egl_khr_wait_sync)                          \
-  GPU_OP(DISABLE_EXT_DISCARD_FRAMEBUFFER,                    \
-         disable_ext_discard_framebuffer)                    \
+  GPU_OP(DISABLE_DISCARD_FRAMEBUFFER,                        \
+         disable_discard_framebuffer)                        \
   GPU_OP(DISABLE_EXT_DRAW_BUFFERS,                           \
          disable_ext_draw_buffers)                           \
   GPU_OP(DISABLE_EXT_OCCLUSION_QUERY,                        \
          disable_ext_occlusion_query)                        \
-  GPU_OP(DISABLE_FBO_INVALIDATIONS,                          \
-         disable_fbo_invalidations)                          \
   GPU_OP(DISABLE_MULTIMONITOR_MULTISAMPLING,                 \
          disable_multimonitor_multisampling)                 \
   GPU_OP(DISABLE_MULTISAMPLED_RENDER_TO_TEXTURE,             \
@@ -100,6 +98,8 @@
          scalarize_vec_and_mat_constructor_args)             \
   GPU_OP(SET_TEXTURE_FILTER_BEFORE_GENERATING_MIPMAP,        \
          set_texture_filter_before_generating_mipmap)        \
+  GPU_OP(SIMULATE_OUT_OF_MEMORY_ON_LARGE_TEXTURES,           \
+         simulate_out_of_memory_on_large_textures)           \
   GPU_OP(SWIZZLE_RGBA_FOR_ASYNC_READPIXELS,                  \
          swizzle_rgba_for_async_readpixels)                  \
   GPU_OP(TEXSUBIMAGE2D_FASTER_THAN_TEXIMAGE2D,               \

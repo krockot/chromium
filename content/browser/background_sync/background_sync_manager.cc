@@ -6,7 +6,6 @@
 
 #include "base/barrier_closure.h"
 #include "base/bind.h"
-#include "content/browser/background_sync/background_sync.pb.h"
 #include "content/browser/service_worker/service_worker_context_wrapper.h"
 #include "content/browser/service_worker/service_worker_storage.h"
 #include "content/public/browser/browser_thread.h"
@@ -194,12 +193,15 @@ void BackgroundSyncManager::InitDidGetDataFromBackend(
           break;
         }
 
-        BackgroundSyncRegistration registration(registration_proto.id(),
-                                                registration_proto.name());
-        if (registration_proto.has_min_period())
-          registration.min_period = registration_proto.min_period();
-        registrations->name_to_registration_map[registration_proto.name()] =
-            registration;
+        BackgroundSyncRegistration* registration =
+            &registrations->name_to_registration_map[registration_proto.name()];
+
+        registration->id = registration_proto.id();
+        registration->name = registration_proto.name();
+        registration->fire_once = registration_proto.fire_once();
+        registration->min_period = registration_proto.min_period();
+        registration->network_state = registration_proto.network_state();
+        registration->power_state = registration_proto.power_state();
       }
     }
 
@@ -342,8 +344,10 @@ void BackgroundSyncManager::StoreRegistrations(
         registrations_proto.add_registration();
     registration_proto->set_id(registration.id);
     registration_proto->set_name(registration.name);
-    if (registration.min_period != 0)
-      registration_proto->set_min_period(registration.min_period);
+    registration_proto->set_fire_once(registration.fire_once);
+    registration_proto->set_min_period(registration.min_period);
+    registration_proto->set_network_state(registration.network_state);
+    registration_proto->set_power_state(registration.power_state);
   }
   std::string serialized;
   bool success = registrations_proto.SerializeToString(&serialized);
@@ -382,20 +386,14 @@ void BackgroundSyncManager::RegisterDidStore(
 
 void BackgroundSyncManager::RemoveRegistrationFromMap(
     int64 sw_registration_id,
-    const std::string& sync_registration_name,
-    BackgroundSyncRegistration* old_registration) {
+    const std::string& sync_registration_name) {
   DCHECK(
       LookupRegistration(sw_registration_id, sync_registration_name, nullptr));
 
   BackgroundSyncRegistrations* registrations =
       &sw_to_registrations_map_[sw_registration_id];
 
-  const auto name_and_registration_iter =
-      registrations->name_to_registration_map.find(sync_registration_name);
-  if (old_registration)
-    *old_registration = name_and_registration_iter->second;
-
-  registrations->name_to_registration_map.erase(name_and_registration_iter);
+  registrations->name_to_registration_map.erase(sync_registration_name);
 }
 
 void BackgroundSyncManager::AddRegistrationToMap(
@@ -451,20 +449,16 @@ void BackgroundSyncManager::UnregisterImpl(
     return;
   }
 
-  BackgroundSyncRegistration old_sync_registration;
-  RemoveRegistrationFromMap(sw_registration_id, sync_registration_name,
-                            &old_sync_registration);
+  RemoveRegistrationFromMap(sw_registration_id, sync_registration_name);
 
   StoreRegistrations(
       origin, sw_registration_id,
       base::Bind(&BackgroundSyncManager::UnregisterDidStore,
-                 weak_ptr_factory_.GetWeakPtr(), sw_registration_id,
-                 old_sync_registration, callback));
+                 weak_ptr_factory_.GetWeakPtr(), sw_registration_id, callback));
 }
 
 void BackgroundSyncManager::UnregisterDidStore(
     int64 sw_registration_id,
-    const BackgroundSyncRegistration& old_sync_registration,
     const StatusCallback& callback,
     ServiceWorkerStatusCode status) {
   if (status == SERVICE_WORKER_ERROR_NOT_FOUND) {

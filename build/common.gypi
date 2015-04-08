@@ -1022,9 +1022,8 @@
           'optimize_jni_generation%': 0,
         }],
 
-        # TODO(rmcilroy): Enable v8_use_external_startup_data on ChromeOS
-        # http://crbug.com/421063
-        ['chromecast==0 and chromeos==0 and OS!="ios"', {
+        # TODO(rmcilroy): Remove ios check. http://crbug.com/421063.
+        ['OS!="ios"', {
           'v8_use_external_startup_data%': 1,
         }, {
           'v8_use_external_startup_data%': 0,
@@ -2690,6 +2689,9 @@
       }],
       ['enable_webrtc==1', {
         'defines': ['ENABLE_WEBRTC=1'],
+      }],
+      ['enable_media_router==1', {
+        'defines': ['ENABLE_MEDIA_ROUTER=1'],
       }],
       ['proprietary_codecs==1', {
         'defines': ['USE_PROPRIETARY_CODECS'],

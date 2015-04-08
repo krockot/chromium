@@ -615,6 +615,10 @@ const char kShowPlanNotifications[] =
 const char kShow3gPromoNotification[] =
     "settings.internet.mobile.show_3g_promo_notification";
 
+// An integer pref counting times Data Saver prompt has been shown.
+const char kDataSaverPromptsShown[] =
+    "settings.internet.mobile.datasaver_prompts_shown";
+
 // A string pref that contains version where "What's new" promo was shown.
 const char kChromeOSReleaseNotesVersion[] = "settings.release_notes.version";
 
@@ -2178,6 +2182,9 @@ const char kAppListEnableMethod[] = "app_list.how_enabled";
 
 // The time that the app launcher was enabled. Cleared when UMA is recorded.
 const char kAppListEnableTime[] = "app_list.when_enabled";
+
+// The last time the app list was launched.
+const char kAppListLastLaunchTime[] = "app_list.last_launch";
 
 // Integer representing the version of the app launcher shortcut installed on
 // the system. Incremented, e.g., when embedded icons change.

@@ -4522,7 +4522,7 @@ void GLES2DecoderImpl::DoDisableVertexAttribArray(GLuint index) {
 void GLES2DecoderImpl::DoDiscardFramebufferEXT(GLenum target,
                                                GLsizei numAttachments,
                                                const GLenum* attachments) {
-  if (workarounds().disable_fbo_invalidations)
+  if (workarounds().disable_discard_framebuffer)
     return;
 
   Framebuffer* framebuffer =
@@ -9070,6 +9070,15 @@ error::Error GLES2DecoderImpl::HandleTexImage2D(uint32 immediate_data_size,
     if (!pixels) {
       return error::kOutOfBounds;
     }
+  }
+
+  // For testing only. Allows us to stress the ability to respond to OOM errors.
+  if (workarounds().simulate_out_of_memory_on_large_textures &&
+      (width * height >= 4096 * 4096)) {
+    LOCAL_SET_GL_ERROR(
+        GL_OUT_OF_MEMORY,
+        "glTexImage2D", "synthetic out of memory");
+    return error::kNoError;
   }
 
   TextureManager::DoTextImage2DArguments args = {

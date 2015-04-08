@@ -109,7 +109,6 @@ class SSLClientSocketPoolTest
         http_proxy_socket_params_(
             new HttpProxySocketParams(proxy_transport_socket_params_,
                                       NULL,
-                                      GURL("http://host"),
                                       std::string(),
                                       HostPortPair("host", 80),
                                       session_->http_auth_cache(),
@@ -642,7 +641,7 @@ TEST_P(SSLClientSocketPoolTest, HttpProxyBasic) {
   MockWrite writes[] = {
       MockWrite(SYNCHRONOUS,
                 "CONNECT host:80 HTTP/1.1\r\n"
-                "Host: host\r\n"
+                "Host: host:80\r\n"
                 "Proxy-Connection: keep-alive\r\n"
                 "Proxy-Authorization: Basic Zm9vOmJhcg==\r\n\r\n"),
   };
@@ -677,7 +676,7 @@ TEST_P(SSLClientSocketPoolTest, SetTransportPriorityOnInitHTTP) {
   MockWrite writes[] = {
       MockWrite(SYNCHRONOUS,
                 "CONNECT host:80 HTTP/1.1\r\n"
-                "Host: host\r\n"
+                "Host: host:80\r\n"
                 "Proxy-Connection: keep-alive\r\n"
                 "Proxy-Authorization: Basic Zm9vOmJhcg==\r\n\r\n"),
   };
@@ -705,10 +704,11 @@ TEST_P(SSLClientSocketPoolTest, SetTransportPriorityOnInitHTTP) {
 
 TEST_P(SSLClientSocketPoolTest, HttpProxyBasicAsync) {
   MockWrite writes[] = {
-      MockWrite("CONNECT host:80 HTTP/1.1\r\n"
-                "Host: host\r\n"
-                "Proxy-Connection: keep-alive\r\n"
-                "Proxy-Authorization: Basic Zm9vOmJhcg==\r\n\r\n"),
+      MockWrite(
+          "CONNECT host:80 HTTP/1.1\r\n"
+          "Host: host:80\r\n"
+          "Proxy-Connection: keep-alive\r\n"
+          "Proxy-Authorization: Basic Zm9vOmJhcg==\r\n\r\n"),
   };
   MockRead reads[] = {
       MockRead("HTTP/1.1 200 Connection Established\r\n\r\n"),
@@ -740,9 +740,10 @@ TEST_P(SSLClientSocketPoolTest, HttpProxyBasicAsync) {
 
 TEST_P(SSLClientSocketPoolTest, NeedProxyAuth) {
   MockWrite writes[] = {
-      MockWrite("CONNECT host:80 HTTP/1.1\r\n"
-                "Host: host\r\n"
-                "Proxy-Connection: keep-alive\r\n\r\n"),
+      MockWrite(
+          "CONNECT host:80 HTTP/1.1\r\n"
+          "Host: host:80\r\n"
+          "Proxy-Connection: keep-alive\r\n\r\n"),
   };
   MockRead reads[] = {
       MockRead("HTTP/1.1 407 Proxy Authentication Required\r\n"),

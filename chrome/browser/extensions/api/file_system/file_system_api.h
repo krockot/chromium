@@ -48,8 +48,8 @@ std::vector<base::FilePath> GetGrayListedDirectories();
 #if defined(OS_CHROMEOS)
 // Requests consent for the chrome.fileSystem.requestFileSystem() method.
 // Interaction with UI and environmental checks (kiosk mode, whitelist) are
-// provided by a delegate: FileSystemRequestFileSystemFunction. For testing,
-// it is TestingConsentProviderDelegate.
+// provided by a delegate: ConsentProviderDelegate. For testing, it is
+// TestingConsentProviderDelegate.
 class ConsentProvider {
  public:
   enum Consent { CONSENT_GRANTED, CONSENT_REJECTED, CONSENT_IMPOSSIBLE };
@@ -61,9 +61,15 @@ class ConsentProvider {
    public:
     // Shows a dialog for granting permissions.
     virtual void ShowDialog(const extensions::Extension& extension,
-                            base::WeakPtr<file_manager::Volume> volume,
+                            const base::WeakPtr<file_manager::Volume>& volume,
                             bool writable,
                             const ShowDialogCallback& callback) = 0;
+
+    // Shows a notification about permissions automatically granted access.
+    virtual void ShowNotification(
+        const extensions::Extension& extension,
+        const base::WeakPtr<file_manager::Volume>& volume,
+        bool writable) = 0;
 
     // Checks if the extension was launched in auto-launch kiosk mode.
     virtual bool IsAutoLaunched(const extensions::Extension& extension) = 0;
@@ -80,7 +86,7 @@ class ConsentProvider {
   // volume by the |extension|. Must be called only if the extension is
   // grantable, which can be checked with IsGrantable().
   void RequestConsent(const extensions::Extension& extension,
-                      base::WeakPtr<file_manager::Volume> volume,
+                      const base::WeakPtr<file_manager::Volume>& volume,
                       bool writable,
                       const ConsentCallback& callback);
 
@@ -96,6 +102,38 @@ class ConsentProvider {
                              ui::DialogButton button);
 
   DISALLOW_COPY_AND_ASSIGN(ConsentProvider);
+};
+
+// Handles interaction with user as well as environment checks (whitelists,
+// context of running extensions) for ConsentProvider.
+class ConsentProviderDelegate : public ConsentProvider::DelegateInterface {
+ public:
+  ConsentProviderDelegate(Profile* profile, content::RenderViewHost* host);
+  ~ConsentProviderDelegate();
+
+ private:
+  friend ScopedSkipRequestFileSystemDialog;
+
+  // Sets a fake result for the user consent dialog. If ui::DIALOG_BUTTON_NONE
+  // then disabled.
+  static void SetAutoDialogButtonForTest(ui::DialogButton button);
+
+  // ConsentProvider::DelegateInterface overrides:
+  void ShowDialog(const extensions::Extension& extension,
+                  const base::WeakPtr<file_manager::Volume>& volume,
+                  bool writable,
+                  const file_system_api::ConsentProvider::ShowDialogCallback&
+                      callback) override;
+  void ShowNotification(const extensions::Extension& extension,
+                        const base::WeakPtr<file_manager::Volume>& volume,
+                        bool writable) override;
+  bool IsAutoLaunched(const extensions::Extension& extension) override;
+  bool IsWhitelistedComponent(const extensions::Extension& extension) override;
+
+  Profile* const profile_;
+  content::RenderViewHost* const host_;
+
+  DISALLOW_COPY_AND_ASSIGN(ConsentProviderDelegate);
 };
 #endif
 
@@ -315,15 +353,26 @@ class FileSystemRequestFileSystemFunction : public UIThreadExtensionFunction {
  protected:
   ~FileSystemRequestFileSystemFunction() override {}
 
-  // AsyncExtensionFunction overrides.
+  // UIThreadExtensionFunction overrides.
+  ExtensionFunction::ResponseAction Run() override;
+};
+
+// Stub for non Chrome OS operating systems.
+class FileSystemGetVolumeListFunction : public UIThreadExtensionFunction {
+ public:
+  DECLARE_EXTENSION_FUNCTION("fileSystem.getVolumeList",
+                             FILESYSTEM_GETVOLUMELIST);
+
+ protected:
+  ~FileSystemGetVolumeListFunction() override {}
+
+  // UIThreadExtensionFunction overrides.
   ExtensionFunction::ResponseAction Run() override;
 };
 
 #else
 // Requests a file system for the specified volume id.
-class FileSystemRequestFileSystemFunction
-    : public UIThreadExtensionFunction,
-      public file_system_api::ConsentProvider::DelegateInterface {
+class FileSystemRequestFileSystemFunction : public UIThreadExtensionFunction {
  public:
   DECLARE_EXTENSION_FUNCTION("fileSystem.requestFileSystem",
                              FILESYSTEM_REQUESTFILESYSTEM)
@@ -332,33 +381,34 @@ class FileSystemRequestFileSystemFunction
  protected:
   ~FileSystemRequestFileSystemFunction() override;
 
-  // AsyncExtensionFunction overrides.
+  // UIThreadExtensionFunction overrides.
   ExtensionFunction::ResponseAction Run() override;
 
  private:
-  friend ScopedSkipRequestFileSystemDialog;
-
-  // Sets a fake result for the user consent dialog. If ui::DIALOG_BUTTON_NONE
-  // then disabled.
-  static void SetAutoDialogButtonForTest(ui::DialogButton button);
-
-  // ConsentProvider::DelegateInterface overrides:
-  void ShowDialog(const extensions::Extension& extension,
-                  base::WeakPtr<file_manager::Volume> volume,
-                  bool writable,
-                  const file_system_api::ConsentProvider::ShowDialogCallback&
-                      callback) override;
-  bool IsAutoLaunched(const extensions::Extension& extension) override;
-  bool IsWhitelistedComponent(const extensions::Extension& extension) override;
-
   // Called when a user grants or rejects permissions for the file system
   // access.
-  void OnConsentReceived(base::WeakPtr<file_manager::Volume> volume,
+  void OnConsentReceived(const base::WeakPtr<file_manager::Volume>& volume,
                          bool writable,
                          file_system_api::ConsentProvider::Consent result);
 
   ChromeExtensionFunctionDetails chrome_details_;
-  file_system_api::ConsentProvider consent_provider_;
+};
+
+// Requests a list of available volumes.
+class FileSystemGetVolumeListFunction : public UIThreadExtensionFunction {
+ public:
+  DECLARE_EXTENSION_FUNCTION("fileSystem.getVolumeList",
+                             FILESYSTEM_GETVOLUMELIST);
+  FileSystemGetVolumeListFunction();
+
+ protected:
+  ~FileSystemGetVolumeListFunction() override;
+
+  // UIThreadExtensionFunction overrides.
+  ExtensionFunction::ResponseAction Run() override;
+
+ private:
+  ChromeExtensionFunctionDetails chrome_details_;
 };
 #endif
 

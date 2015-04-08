@@ -35,17 +35,13 @@ remoting.ACCESS_TOKEN_RESEND_INTERVAL_MS = 15 * 60 * 1000;
  * @param {remoting.ClientPlugin} plugin
  * @param {remoting.Host} host The host to connect to.
  * @param {remoting.SignalStrategy} signalStrategy Signal strategy.
- * @param {function(string, string):boolean} onExtensionMessage The handler for
- *     protocol extension messages. Returns true if a message is recognized;
- *     false otherwise.
  *
  * @constructor
  * @extends {base.EventSourceImpl}
  * @implements {base.Disposable}
  * @implements {remoting.ClientPlugin.ConnectionEventHandler}
  */
-remoting.ClientSession = function(plugin, host, signalStrategy,
-                                  onExtensionMessage) {
+remoting.ClientSession = function(plugin, host, signalStrategy) {
   base.inherits(this, base.EventSourceImpl);
 
   /** @private */
@@ -80,9 +76,6 @@ remoting.ClientSession = function(plugin, host, signalStrategy,
    */
   this.logHostOfflineErrors_ = true;
 
-  /** @private {function(string, string):boolean} */
-  this.onExtensionMessageHandler_ = onExtensionMessage;
-
   /** @private {remoting.ClientPlugin} */
   this.plugin_ = plugin;
   plugin.setConnectionEventHandler(this);
@@ -92,9 +85,47 @@ remoting.ClientSession = function(plugin, host, signalStrategy,
 
 /** @enum {string} */
 remoting.ClientSession.Events = {
-  stateChanged: 'stateChanged',
+  stateChanged: 'stateChanged', // deprecated.
   videoChannelStateChanged: 'videoChannelStateChanged',
 };
+
+/**
+ * @interface
+ * [START]-------> [onConnected] ------> [onDisconnected]
+ *    |                              |
+ *    |-----> [OnConnectionFailed]   |----> [onError]
+ *
+ * TODO(kelvinp): Route session state changes through this interface.
+ */
+remoting.ClientSession.EventHandler = function() {};
+
+/**
+ * Called when the connection failed before it is connected.
+ *
+ * @param {!remoting.Error} error
+ */
+remoting.ClientSession.EventHandler.prototype.onConnectionFailed =
+    function(error) {};
+
+/**
+ * Called when a new session has been connected.  The |connectionInfo| will be
+ * valid until onDisconnected() or onError() is called.
+ *
+ * @param {!remoting.ConnectionInfo} connectionInfo
+ */
+remoting.ClientSession.EventHandler.prototype.onConnected =
+    function(connectionInfo) {};
+
+/**
+ * Called when the current session has been disconnected.
+ */
+remoting.ClientSession.EventHandler.prototype.onDisconnected = function() {};
+
+/**
+ * Called when an error needs to be displayed to the user.
+ * @param {!remoting.Error} error
+ */
+remoting.ClientSession.EventHandler.prototype.onError = function(error) {};
 
 // Note that the positive values in both of these enums are copied directly
 // from connection_to_host.h and must be kept in sync. Code in
@@ -474,14 +505,6 @@ remoting.ClientSession.prototype.onSetCapabilities = function(capabilities) {
 };
 
 /**
- * @param {string} type
- * @param {string} data
- */
-remoting.ClientSession.prototype.onExtensionMessage = function(type, data) {
-  this.onExtensionMessageHandler_(type, data);
-};
-
-/**
  * @param {remoting.ClientSession.State} newState The new state for the session.
  * @return {void} Nothing.
  * @private
@@ -541,19 +564,6 @@ remoting.ClientSession.prototype.logStatistics = function(stats) {
  */
 remoting.ClientSession.prototype.logHostOfflineErrors = function(enable) {
   this.logHostOfflineErrors_ = enable;
-};
-
-/**
- * Request pairing with the host for PIN-less authentication.
- *
- * @param {string} clientName The human-readable name of the client.
- * @param {function(string, string):void} onDone Callback to receive the
- *     client id and shared secret when they are available.
- */
-remoting.ClientSession.prototype.requestPairing = function(clientName, onDone) {
-  if (this.plugin_) {
-    this.plugin_.requestPairing(clientName, onDone);
-  }
 };
 
 /**

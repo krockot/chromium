@@ -34,7 +34,7 @@ vars = {
   'llvm_url': 'http://src.chromium.org/llvm-project',
   'llvm_git': 'https://llvm.googlesource.com',
   'webkit_trunk': 'http://src.chromium.org/blink/trunk',
-  'webkit_revision': '55028d3ef13f86be77b9a353255aae8c6e8c3976', # from svn revision 193235
+  'webkit_revision': '489c5487ed8eb843229b4cbc43aa09493408863f', # from svn revision 193320
   'chromium_git': 'https://chromium.googlesource.com',
   'chromiumos_git': 'https://chromium.googlesource.com/chromiumos',
   'pdfium_git': 'https://pdfium.googlesource.com',
@@ -42,12 +42,12 @@ vars = {
   'boringssl_git': 'https://boringssl.googlesource.com',
   'libvpx_revision': '861f35b01c87a021540aace739cb7415c08e987b',
   'sfntly_revision': '1bdaae8fc788a5ac8936d68bf24f37d977a13dac',
-  'skia_revision': 'ff271c29a64f59d538e644210b0f207666f856b5',
+  'skia_revision': 'c654e9016a15985ebeb24f94f819d113ad48a251',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
   'v8_branch': 'trunk',
-  'v8_revision': 'd073ccb05861e4e561cd6bad6fc7e207752583f9',
+  'v8_revision': 'c817f6989574b4d80e4c68980e3de46acacaade0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
@@ -58,7 +58,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '51a1db16d7c7ea92686a16ee324f7fc0687ad095',
+  'angle_revision': 'ae2d8a3af25edcad837e3f5bdf084e1a39a38c66',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling build tools
   # and whatever else without interference from each other.
@@ -132,7 +132,7 @@ deps = {
    Var('chromium_git') + '/crashpad/crashpad.git' + '@' + 'e1347a740c051d9a44aa2dd0b9d11067a53e0447',
 
   'src/third_party/trace-viewer':
-   Var('chromium_git') + '/external/trace-viewer.git' + '@' + 'ff20313e37892c3c7f20c88bb22ab6f6e65659ae',
+   Var('chromium_git') + '/external/trace-viewer.git' + '@' + '07909fe53e549b42634142ef07d1eb970d94b3d3',
 
   'src/third_party/WebKit':
    Var('chromium_git') + '/chromium/blink.git' + '@' +  Var('webkit_revision'),
@@ -210,7 +210,7 @@ deps = {
    Var('chromium_git') + '/chromium/third_party/ffmpeg.git' + '@' + '104f872faf2cd809cdada885a1e39be85e5b3316',
 
   'src/third_party/libjingle/source/talk':
-    Var('chromium_git') + '/external/webrtc/trunk/talk.git' + '@' + 'b2811ad328c429a40b71642ca9ea9f426ee5ff9f', # commit position 8923
+    Var('chromium_git') + '/external/webrtc/trunk/talk.git' + '@' + 'e9dbaf89fd1fbce930e46ed18277c3b49e761dbe',
 
   'src/third_party/usrsctp/usrsctplib':
     Var('chromium_git') + '/external/usrsctplib.git' + '@' + '36444a999739e9e408f8f587cb4c3ffeef2e50ac', # from svn revision 9215
@@ -234,16 +234,13 @@ deps = {
    Var('chromium_git') + '/native_client/src/third_party/scons-2.0.1.git' + '@' + '1c1550e17fc26355d08627fbdec13d8291227067',
 
   'src/third_party/webrtc':
-    Var('chromium_git') + '/external/webrtc/trunk/webrtc.git' + '@' + '5727038f572c517204e1642b8bc69b25381c4e9f', # commit position 8926
+    Var('chromium_git') + '/external/webrtc/trunk/webrtc.git' + '@' + '6f9fcb2ba5dcd4a8d1c3e74a5d20ee2d5c00212b',
 
   'src/third_party/openmax_dl':
     Var('chromium_git') + '/external/webrtc/deps/third_party/openmax.git' + '@' +  Var('openmax_dl_revision'),
 
-  'src/third_party/jsoncpp/source/include':
-    Var('chromium_git') + '/external/jsoncpp/jsoncpp/include.git' + '@' + 'b0dd48e02b6e6248328db78a65b5c601f150c349',
-
-  'src/third_party/jsoncpp/source/src/lib_json':
-    Var('chromium_git') + '/external/jsoncpp/jsoncpp/src/lib_json.git' + '@' + 'a8caa51ba2f80971a45880425bf2ae864a786784',
+  'src/third_party/jsoncpp/source':
+    Var('chromium_git') + '/external/jsoncpp/jsoncpp.git' + '@' + 'ab1e40f3bce061ea6f9bdc60351d6cde2a4f872b', # from svn 248
 
   'src/third_party/libyuv':
     Var('chromium_git') + '/external/libyuv.git' + '@' + 'd204db647e591ccf0e2589236ecea90330d65a66', # from svn revision 1171

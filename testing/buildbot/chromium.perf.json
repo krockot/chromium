@@ -90,6 +90,10 @@
   "Android Nexus6 Perf": {
     "scripts": [
       {
+        "name": "host_info",
+        "script": "host_info.py"
+      },
+      {
         "args": [
           "cc_perftests"
         ],
@@ -123,6 +127,10 @@
   "Android Nexus9 Perf": {
     "scripts": [
       {
+        "name": "host_info",
+        "script": "host_info.py"
+      },
+      {
         "args": [
           "gpu_perftests"
         ],
@@ -139,7 +147,12 @@
     ]
   },
   "Android One Perf": {
-    "scripts": []
+    "scripts": [
+      {
+        "name": "host_info",
+        "script": "host_info.py"
+      }
+    ]
   },
   "Linux Perf (3)": {
     "scripts": [
@@ -234,6 +247,20 @@
           "--enable-gpu"
         ],
         "name": "performance_browser_tests",
+        "script": "gtest_perf_test.py"
+      }
+    ]
+  },
+  "Win 7 Nvidia GPU Perf": {
+    "scripts": [
+      {
+        "args": [
+          "angle_perftests",
+          "--test-launcher-print-test-stdio=always",
+          "--gtest_filter=DrawCallPerf*",
+          "--test-launcher-jobs=1"
+        ],
+        "name": "angle_perftests",
         "script": "gtest_perf_test.py"
       }
     ]

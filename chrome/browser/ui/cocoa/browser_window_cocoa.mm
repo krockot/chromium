@@ -363,7 +363,10 @@ gfx::Rect BrowserWindowCocoa::GetBounds() const {
 }
 
 bool BrowserWindowCocoa::IsMaximized() const {
-  return [window() isZoomed];
+  // -isZoomed returns YES if the window's frame equals the rect returned by
+  // -windowWillUseStandardFrame:defaultFrame:, even if the window is in the
+  // dock, so have to explicitly check for miniaturization state first.
+  return ![window() isMiniaturized] && [window() isZoomed];
 }
 
 bool BrowserWindowCocoa::IsMinimized() const {
@@ -473,6 +476,10 @@ void BrowserWindowCocoa::ResetToolbarTabState(content::WebContents* contents) {
 }
 
 void BrowserWindowCocoa::FocusToolbar() {
+  // Not needed on the Mac.
+}
+
+void BrowserWindowCocoa::ToolbarSizeChanged(bool is_animating) {
   // Not needed on the Mac.
 }
 

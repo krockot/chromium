@@ -330,9 +330,6 @@ const char kDisableCaptivePortalBypassProxy[] =
 const char kDisableTimeZoneTrackingOption[] =
     "disable-timezone-tracking-option";
 
-// Enable OAuth token validation on sign in screen.
-const char kEnableOAuthTokenHandlers[] = "enable-oauth-token-handlers";
-
 // Disable new GAIA sign-in flow.
 const char kDisableWebviewSigninFlow[] = "disable-webview-signin-flow";
 
@@ -344,6 +341,11 @@ const char kEnableFirewallHolePunching[] = "enable-firewall-hole-punching";
 // Chroem Web Store for an app that has printerProvider permission and can
 // handle the plugged in printer.
 const char kEnablePrinterAppSearch[] = "enable-printer-app-search";
+
+// Switches and optional value for Data Saver prompt on cellular networks.
+const char kDisableDataSaverPrompt[] = "disable-datasaver-prompt";
+const char kEnableDataSaverPrompt[] = "enable-datasaver-prompt";
+const char kDataSaverPromptDemoMode[] = "demo";
 
 bool WakeOnWifiEnabled() {
   return !base::CommandLine::ForCurrentProcess()->HasSwitch(kDisableWakeOnWifi);

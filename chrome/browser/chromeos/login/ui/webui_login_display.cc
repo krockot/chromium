@@ -80,6 +80,10 @@ const user_manager::UserList& WebUILoginDisplay::GetUsers() const {
   return SignInScreenController::Get()->GetUsers();
 }
 
+void WebUILoginDisplay::CheckUserStatus(const std::string& user_id) {
+  SignInScreenController::Get()->CheckUserStatus(user_id);
+}
+
 // ---- Gaia screen methods
 
 // ---- Not yet classified methods
@@ -96,8 +100,7 @@ void WebUILoginDisplay::SetUIEnabled(bool is_enabled) {
   // If this call is made after new user signs in but login screen is still
   // around that would trigger a sign in extension refresh.
   if (is_enabled && (!user_manager::UserManager::Get()->IsUserLoggedIn() ||
-                     ScreenLocker::default_screen_locker()) &&
-      !StartupUtils::IsWebviewSigninEnabled()) {
+                     ScreenLocker::default_screen_locker())) {
     ClearAndEnablePassword();
   }
 
