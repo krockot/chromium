@@ -1,0 +1,26 @@
+# Copyright 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+source_set("application_host") {
+  sources = [
+    "application_host_impl.cc",
+    "application_host_impl.h",
+    "in_thread_application_runner.cc",
+    "in_thread_application_runner.h",
+    "static_application_loader.cc",
+    "static_application_loader.h",
+  ]
+
+  deps = [
+    "//url",
+  ]
+
+  public_deps = [
+    "//base",
+    "//core/public/application",
+    "//core/public/interfaces",
+    "//third_party/mojo/src/mojo/public/cpp/bindings",
+    "//third_party/mojo/src/mojo/public/interfaces/application",
+  ]
+}

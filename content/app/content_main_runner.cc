@@ -42,6 +42,7 @@
 #include "content/public/common/sandbox_init.h"
 #include "content/renderer/in_process_renderer_thread.h"
 #include "content/utility/in_process_utility_thread.h"
+#include "core/public/common/core_client.h"
 #include "crypto/nss_util.h"
 #include "ipc/ipc_descriptors.h"
 #include "ipc/ipc_switches.h"
@@ -249,6 +250,8 @@ class ContentClientInitializer {
         content_client->utility_ = &g_empty_content_utility_client.Get();
     }
 #endif  // !OS_IOS && !CHROME_MULTIPLE_DLL_BROWSER
+
+    core::CoreClient::Set(delegate->CreateCoreClient());
   }
 };
 

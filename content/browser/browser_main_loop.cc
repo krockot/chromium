@@ -50,6 +50,7 @@
 #include "content/public/common/content_switches.h"
 #include "content/public/common/main_function_params.h"
 #include "content/public/common/result_codes.h"
+#include "core/public/shell/shell.h"
 #include "crypto/nss_util.h"
 #include "device/battery/battery_status_service.h"
 #include "media/audio/audio_manager.h"
@@ -1026,6 +1027,8 @@ int BrowserMainLoop::BrowserThreadsStarted() {
   indexed_db_thread_.reset(new base::Thread("IndexedDB"));
   indexed_db_thread_->Start();
 #endif
+
+  shell_ = core::Shell::Create();
 
 #if !defined(OS_IOS)
   HistogramSynchronizer::GetInstance();

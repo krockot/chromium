@@ -4,6 +4,7 @@ include_rules = [
   "+athena/content/public",
   "+chrome/app",
   "+chrome/chrome_watcher",
+  "+chrome/core",
   "+chrome/grit",  # For generated headers
   "+chrome/installer",
   "+chrome_elf/blacklist",

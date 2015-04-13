@@ -1,0 +1,26 @@
+// Copyright 2015 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+module core;
+
+import "mojo/public/interfaces/application/application.mojom";
+
+enum LaunchError {
+  // You may have problems, but this launch isn't one of them.
+  OK,
+
+  // The application resource could not be loaded.
+  NOT_FOUND,
+
+  // The Application resource was loaded but is malformed in some way.
+  INVAILD_APPLICATION,
+};
+
+interface ApplicationHost {
+  // Requests that the host launch a new instance of the Application identified
+  // by |url|. The lifetime of this instance within the host is strongly bound
+  // to the lifetime of the |application| request.
+  LaunchApplication(string url, mojo.Application& application)
+      => (LaunchError result);
+};

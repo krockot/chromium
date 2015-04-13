@@ -1,6 +1,7 @@
 include_rules = [
   "+content/app/strings/grit",  # For generated headers
   "+content/public/browser",
+  "+core/public/shell",
   "+device/battery",  # For battery status service.
   "+device/vibration",  # For Vibration API
   "+media/audio",  # For audio input for speech input feature.

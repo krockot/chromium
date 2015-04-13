@@ -244,6 +244,7 @@ group("browser_dependencies") {
   deps = [
     "//chrome/browser",
     "//chrome/common",
+    "//chrome/core/common",
     "//sync",
   ]
   if (!is_ios) {
@@ -708,6 +709,7 @@ if (is_android) {
       "//chrome/browser",
       "//chrome/browser/ui",
       "//chrome/child",
+      "//chrome/core/common",
       "//chrome/plugin",
       "//chrome/renderer",
       "//chrome/utility",

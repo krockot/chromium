@@ -28,6 +28,7 @@ source_set("browser") {
     "//content/browser/service_worker:service_worker_proto",
     "//content/browser/speech/proto",
     "//content/public/common:common_sources",
+    "//core/public/shell",
     "//crypto",
     "//device/battery",
     "//device/vibration",

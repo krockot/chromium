@@ -13,6 +13,10 @@
 template <typename>
 class ScopedVector;
 
+namespace core {
+class CoreClient;
+}
+
 namespace content {
 
 class ContentBrowserClient;
@@ -91,6 +95,9 @@ class CONTENT_EXPORT ContentMainDelegate {
   virtual ContentPluginClient* CreateContentPluginClient();
   virtual ContentRendererClient* CreateContentRendererClient();
   virtual ContentUtilityClient* CreateContentUtilityClient();
+
+  // Called once per process to allow the embedder to customize the core module.
+  virtual core::CoreClient* CreateCoreClient();
 };
 
 }  // namespace content
