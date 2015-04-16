@@ -6,6 +6,8 @@ source_set("shell") {
   visibility = [ "//core/public/shell/*" ]
 
   sources = [
+    "application_manager.cc",
+    "application_manager.h",
     "shell_impl.cc",
     "shell_impl.h",
   ]

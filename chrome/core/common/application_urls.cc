@@ -6,7 +6,6 @@
 
 namespace application_urls {
 
-const char kBrowser[] = "system:browser";
 const char kProxyResolver[] = "system:proxy_resolver";
 
 }  // namespace application_urls

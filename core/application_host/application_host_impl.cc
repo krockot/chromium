@@ -48,7 +48,6 @@ ApplicationHostImpl::ApplicationHostImpl()
           core::CoreApplicationHostClient::Get()->CreateApplicationRegistry()),
       next_container_id_(0),
       weak_factory_(this) {
-
 }
 
 ApplicationHostImpl::~ApplicationHostImpl() {

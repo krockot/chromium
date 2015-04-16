@@ -20,10 +20,11 @@ class Shell {
 
   static scoped_ptr<Shell> Create();
 
-  // TODO(rockot): Remove this once all browser code belongs to one or more
-  // real Applications. This serves as a global Shell proxy for the implicit
-  // monolithic application. Please DO NOT USE THIS without first consulting
-  // OWNERS of //core.
+  // DO NOT USE THIS without first consulting OWNERS. Also probably don't use
+  // after that either.
+  //
+  // TODO(CORE): Remove this once it's no longer needed, i.e., once all code
+  // which connects to an app also lives in an app.
   static mojo::Shell* GetProxy();
 
  private:

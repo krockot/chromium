@@ -7,7 +7,6 @@
 
 namespace application_urls {
 
-extern const char kBrowser[];
 extern const char kProxyResolver[];
 
 }  // namespace application_urls
