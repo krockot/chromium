@@ -37,6 +37,10 @@ class CommandLine;
 class SequencedTaskRunner;
 }
 
+namespace core {
+class Shell;
+}
+
 namespace extensions {
 class ExtensionsBrowserClient;
 }
@@ -300,6 +304,8 @@ class BrowserProcessImpl : public BrowserProcess,
   scoped_ptr<network_time::NetworkTimeTracker> network_time_tracker_;
 
   scoped_ptr<gcm::GCMDriver> gcm_driver_;
+
+  scoped_ptr<core::Shell> core_shell_;
 
 #if !defined(OS_ANDROID)
   scoped_ptr<ChromeDeviceClient> device_client_;

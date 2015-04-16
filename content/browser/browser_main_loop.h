@@ -29,10 +29,6 @@ class TraceEventSystemStatsMonitor;
 }  // namespace trace_event
 }  // namespace base
 
-namespace core {
-class Shell;
-}  // namespace core
-
 namespace media {
 class AudioManager;
 class MidiManager;
@@ -200,7 +196,6 @@ class CONTENT_EXPORT BrowserMainLoop {
   scoped_ptr<ResourceDispatcherHostImpl> resource_dispatcher_host_;
   scoped_ptr<SpeechRecognitionManagerImpl> speech_recognition_manager_;
   scoped_ptr<TimeZoneMonitor> time_zone_monitor_;
-  scoped_ptr<core::Shell> shell_;
 
   // Members initialized in |RunMainMessageLoopParts()| ------------------------
   scoped_ptr<BrowserProcessSubThread> db_thread_;

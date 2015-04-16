@@ -306,7 +306,6 @@ source_set("test_support") {
     "//chrome/browser",
     "//chrome/child",
     "//chrome/common",
-    "//chrome/core/common",
     "//chrome/plugin",
     "//chrome/renderer",
     "//chrome/utility",

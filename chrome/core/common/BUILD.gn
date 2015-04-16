@@ -6,16 +6,5 @@ source_set("common") {
   sources = [
     "application_urls.cc",
     "application_urls.h",
-    "chrome_core_client.cc",
-    "chrome_core_client.h",
-  ]
-
-  deps = [
-    "//chrome/core/application_host",
-  ]
-
-  public_deps = [
-    "//base",
-    "//core/public/common",
   ]
 }

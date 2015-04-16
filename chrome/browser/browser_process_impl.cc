@@ -71,6 +71,7 @@
 #include "chrome/common/pref_names.h"
 #include "chrome/common/switch_utils.h"
 #include "chrome/common/url_constants.h"
+#include "chrome/core/application_host/chrome_application_registry.h"
 #include "chrome/installer/util/google_update_constants.h"
 #include "chrome/installer/util/google_update_settings.h"
 #include "components/component_updater/component_updater_service.h"
@@ -90,6 +91,8 @@
 #include "content/public/browser/resource_dispatcher_host.h"
 #include "content/public/browser/service_worker_context.h"
 #include "content/public/browser/storage_partition.h"
+#include "core/public/shell/shell.h"
+#include "core/public/application_host/application_registry.h"
 #include "extensions/common/constants.h"
 #include "net/socket/client_socket_pool_manager.h"
 #include "net/url_request/url_request_context_getter.h"
@@ -223,6 +226,9 @@ BrowserProcessImpl::BrowserProcessImpl(
 
   update_client::UpdateQueryParams::SetDelegate(
       ChromeUpdateQueryParamsDelegate::GetInstance());
+
+  core::ApplicationRegistry::Set(new ChromeApplicationRegistry);
+  core_shell_ = core::Shell::Create();
 }
 
 BrowserProcessImpl::~BrowserProcessImpl() {
@@ -299,6 +305,8 @@ void BrowserProcessImpl::StartTearDown() {
   if (browser_policy_connector_)
     browser_policy_connector_->Shutdown();
 #endif
+
+  core_shell_.reset();
 
   // The |gcm_driver_| must shut down while the IO thread is still alive.
   if (gcm_driver_)

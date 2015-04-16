@@ -15,14 +15,12 @@ source_set("shell") {
   deps = [
     "//core/application_host",
     "//core/common",
-    "//core/process",
     "//core/public/common",
     "//url",
   ]
 
   public_deps = [
     "//base",
-    "//core/public/application_host",
     "//core/public/interfaces",
     "//third_party/mojo/src/mojo/public/cpp/bindings",
     "//third_party/mojo/src/mojo/public/interfaces/application",

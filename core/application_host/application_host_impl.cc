@@ -10,7 +10,6 @@
 #include "core/public/application_host/application_loader.h"
 #include "core/public/application_host/application_registry.h"
 #include "core/public/application_host/application_runner.h"
-#include "core/public/application_host/core_application_host_client.h"
 #include "url/gurl.h"
 
 namespace core {
@@ -44,8 +43,7 @@ void ApplicationHostImpl::ApplicationContainer::Start(
 }
 
 ApplicationHostImpl::ApplicationHostImpl()
-    : registry_(
-          core::CoreApplicationHostClient::Get()->CreateApplicationRegistry()),
+    : registry_(core::ApplicationRegistry::Get()),
       next_container_id_(0),
       weak_factory_(this) {
 }

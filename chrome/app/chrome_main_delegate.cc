@@ -39,7 +39,6 @@
 #include "components/startup_metric_utils/startup_metric_utils.h"
 #include "content/public/common/content_client.h"
 #include "content/public/common/content_paths.h"
-#include "chrome/core/common/chrome_core_client.h"
 #include "extensions/common/constants.h"
 #include "ui/base/ui_base_switches.h"
 
@@ -143,9 +142,6 @@ base::LazyInstance<chrome::ChromeContentBrowserClient>
 base::LazyInstance<chrome::ChromeCrashReporterClient>::Leaky
     g_chrome_crash_client = LAZY_INSTANCE_INITIALIZER;
 #endif
-
-base::LazyInstance<ChromeCoreClient> g_chrome_core_client =
-    LAZY_INSTANCE_INITIALIZER;
 
 extern int NaClMain(const content::MainFunctionParams&);
 extern int ServiceProcessMain(const content::MainFunctionParams&);
@@ -973,10 +969,6 @@ ChromeMainDelegate::CreateContentUtilityClient() {
 #else
   return g_chrome_content_utility_client.Pointer();
 #endif
-}
-
-core::CoreClient* ChromeMainDelegate::CreateCoreClient() {
-  return g_chrome_core_client.Pointer();
 }
 
 bool ChromeMainDelegate::ShouldEnableProfilerRecording() {

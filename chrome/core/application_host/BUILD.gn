@@ -6,17 +6,16 @@ source_set("application_host") {
   sources = [
     "chrome_application_registry.cc",
     "chrome_application_registry.h",
-    "chrome_core_application_host_client.cc",
-    "chrome_core_application_host_client.h",
   ]
 
   deps = [
     "//applications/proxy_resolver/public",
+    "//chrome/core/common",
   ]
 
   public_deps = [
     "//base",
-    "//core/public/common",
+    "//core/public/application_host",
     "//url",
   ]
 }

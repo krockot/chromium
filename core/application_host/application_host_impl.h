@@ -45,7 +45,7 @@ class ApplicationHostImpl : public ApplicationHost {
 
   void PurgeApplicationContainer(int64_t id);
 
-  scoped_ptr<ApplicationRegistry> registry_;
+  ApplicationRegistry* registry_;
 
   int64_t next_container_id_;
   base::hash_map<int64_t, ApplicationContainer*> running_applications_;

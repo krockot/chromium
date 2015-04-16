@@ -5,10 +5,9 @@
 source_set("application_host") {
   sources = [
     "application_loader.h",
+    "application_registry.cc",
     "application_registry.h",
     "application_runner.h",
-    "core_application_host_client.cc",
-    "core_application_host_client.h",
   ]
 
   deps = [

@@ -48,8 +48,6 @@ class ChromeMainDelegate : public content::ContentMainDelegate {
   content::ContentRendererClient* CreateContentRendererClient() override;
   content::ContentUtilityClient* CreateContentUtilityClient() override;
 
-  core::CoreClient* CreateCoreClient() override;
-
 #if defined(OS_MACOSX)
   void InitMacCrashReporter(const base::CommandLine& command_line,
                             const std::string& process_type);

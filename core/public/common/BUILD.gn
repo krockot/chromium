@@ -7,8 +7,6 @@ source_set("common") {
     "application_connection.h",
     "application_urls.cc",
     "application_urls.h",
-    "core_client.cc",
-    "core_client.h",
     "service_provider.h",
   ]
 
