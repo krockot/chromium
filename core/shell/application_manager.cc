@@ -7,6 +7,7 @@
 #include "base/bind.h"
 #include "base/callback.h"
 #include "base/memory/weak_ptr.h"
+#include "base/stl_util.h"
 #include "core/shell/shell_impl.h"
 #include "third_party/mojo/src/mojo/public/cpp/bindings/string.h"
 #include "url/gurl.h"
@@ -87,6 +88,7 @@ ApplicationManager::ApplicationManager(ShellImpl* shell)
 }
 
 ApplicationManager::~ApplicationManager() {
+  STLDeleteContainerPairSecondPointers(apps_.begin(), apps_.end());
 }
 
 void ApplicationManager::ConnectApplications(
