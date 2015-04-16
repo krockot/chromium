@@ -10,16 +10,9 @@ namespace {
 
 static CoreClient* g_client;
 
-static CoreShellClient* g_shell_client_for_test;
 static CoreApplicationHostClient* g_application_host_client_for_test;
 
 }  // namespace
-
-CoreShellClient* CoreClient::shell() const {
-  if (g_shell_client_for_test)
-    return g_shell_client_for_test;
-  return shell_client_;
-}
 
 CoreApplicationHostClient* CoreClient::application_host() const {
   if (g_application_host_client_for_test)
@@ -42,18 +35,9 @@ void CoreClient::SetForTest(CoreClient* client) {
 }
 
 // static
-void CoreClient::SetShellClientForTest(CoreShellClient* shell_client) {
-  g_shell_client_for_test = shell_client;
-}
-
-// static
 void CoreClient::SetApplicationHostClientForTest(
     CoreApplicationHostClient* application_host_client) {
   g_application_host_client_for_test = application_host_client;
-}
-
-void CoreClient::SetShellClient(CoreShellClient* shell_client) {
-  shell_client_ = shell_client;
 }
 
 void CoreClient::SetApplicationHostClient(

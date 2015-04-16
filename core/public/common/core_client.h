@@ -10,31 +10,26 @@
 namespace core {
 
 class CoreApplicationHostClient;
-class CoreShellClient;
 
 class CoreClient {
  public:
   CoreClient() {}
   virtual ~CoreClient() {}
 
-  CoreShellClient* shell() const;
   CoreApplicationHostClient* application_host() const;
 
   static CoreClient* Get();
   static void Set(CoreClient* client);
   static void SetForTest(CoreClient* client);
 
-  static void SetShellClientForTest(CoreShellClient* shell_client);
   static void SetApplicationHostClientForTest(
       CoreApplicationHostClient* application_host_client);
 
  protected:
-  void SetShellClient(CoreShellClient* shell_client);
   void SetApplicationHostClient(
       CoreApplicationHostClient* application_host_client);
 
  private:
-  CoreShellClient* shell_client_;
   CoreApplicationHostClient* application_host_client_;
 
   DISALLOW_COPY_AND_ASSIGN(CoreClient);

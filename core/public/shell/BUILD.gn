@@ -4,8 +4,6 @@
 
 source_set("shell") {
   sources = [
-    "core_shell_client.cc",
-    "core_shell_client.h",
     "shell.h"
   ]
 
