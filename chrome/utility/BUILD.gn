@@ -22,6 +22,8 @@ static_library("utility") {
     "//components/url_fixer",
     "//content/public/common",
     "//content/public/utility",
+    "//core/public/application_host",
+    "//core/public/interfaces",
     "//media",
     "//skia",
     "//third_party/libxml",
@@ -36,7 +38,9 @@ static_library("utility") {
       defines += [ "USE_SECCOMP_BPF" ]
     }
   } else {
-    deps += [ "//net:net_utility_services" ]
+    deps += [
+      "//applications/proxy_resolver/public",
+    ]
     sources +=
         rebase_path(gypi_values.chrome_utility_importer_sources, ".", "..")
   }

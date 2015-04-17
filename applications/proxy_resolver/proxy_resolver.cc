@@ -5,26 +5,26 @@
 #include "applications/proxy_resolver/proxy_resolver.h"
 
 #include "base/logging.h"
+#include "net/proxy/mojo_proxy_resolver_factory_impl.h"
 #include "third_party/mojo/src/mojo/public/cpp/bindings/binding.h"
+#include "third_party/mojo/src/mojo/public/cpp/bindings/interface_request.h"
 
 namespace proxy_resolver {
 
-class ProxyResolver::DummyService : public core::Dummy {
- public:
-  DummyService(mojo::InterfaceRequest<core::Dummy> request)
-      : binding_(this, request.Pass()) {}
+namespace {
 
-  ~DummyService() override {}
+void CreateProxyResolverFactory(
+    mojo::InterfaceRequest<net::interfaces::ProxyResolverFactory> request) {
+  // MojoProxyResolverFactoryImpl is strongly bound to the Mojo message pipe it
+  // is connected to. When that message pipe is closed, either explicitly on the
+  // other end (in the browser process), or by a connection error, this object
+  // will be destroyed.
+  new net::MojoProxyResolverFactoryImpl(request.Pass());
+}
 
- private:
-  void DoSomething(const DoSomethingCallback& callback) override {
-    callback.Run();
-  }
+}  // namespace
 
-  mojo::Binding<core::Dummy> binding_;
-};
-
-ProxyResolver::ProxyResolver() : weak_factory_(this) {
+ProxyResolver::ProxyResolver() {
 }
 
 ProxyResolver::~ProxyResolver() {
@@ -38,18 +38,11 @@ void ProxyResolver::InitializeApplication(
 void ProxyResolver::AcceptConnection(const GURL& requestor_url,
                                      core::ApplicationConnection* connection,
                                      const GURL& resolved_url) {
-  connection->AddService(base::Bind(&ProxyResolver::CreateDummyService,
-                                    weak_factory_.GetWeakPtr()));
+  connection->AddService(base::Bind(&CreateProxyResolverFactory));
   connection->ExposeServices();
 }
 
 void ProxyResolver::Quit() {
-}
-
-void ProxyResolver::CreateDummyService(
-    mojo::InterfaceRequest<core::Dummy> request) {
-  DCHECK(!dummy_service_);
-  dummy_service_.reset(new DummyService(request.Pass()));
 }
 
 }  // namespace proxy_resolver

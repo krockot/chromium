@@ -9,6 +9,8 @@
       'utility/chrome_content_utility_client.h',
       'utility/chrome_content_utility_ipc_whitelist.cc',
       'utility/chrome_content_utility_ipc_whitelist.h',
+      'utility/chrome_utility_application_registry.cc',
+      'utility/chrome_utility_application_registry.h',
       'utility/cloud_print/bitmap_image.cc',
       'utility/cloud_print/bitmap_image.h',
       'utility/cloud_print/pwg_encoder.cc',

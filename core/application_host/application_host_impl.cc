@@ -42,10 +42,9 @@ void ApplicationHostImpl::ApplicationContainer::Start(
   runner_->Start(exit_callback);
 }
 
-ApplicationHostImpl::ApplicationHostImpl()
-    : registry_(core::ApplicationRegistry::Get()),
-      next_container_id_(0),
-      weak_factory_(this) {
+ApplicationHostImpl::ApplicationHostImpl(
+    scoped_ptr<ApplicationRegistry> registry)
+    : registry_(registry.Pass()), next_container_id_(0), weak_factory_(this) {
 }
 
 ApplicationHostImpl::~ApplicationHostImpl() {
@@ -61,7 +60,7 @@ void ApplicationHostImpl::LaunchApplication(
   ApplicationLoader* loader = registry_->GetApplicationLoader(url);
   if (!loader) {
     LOG(ERROR) << "Unable to launch unregistered application: " << url.spec();
-    callback.Run(LAUNCH_ERROR_NOT_FOUND);
+    callback.Run(interfaces::LAUNCH_ERROR_NOT_FOUND);
     return;
   }
   loader->Load(application.Pass(),
@@ -79,7 +78,7 @@ void ApplicationHostImpl::OnApplicationLoadSuccess(
   ApplicationContainer* container =
       new ApplicationContainer(url, runner.Pass());
   running_applications_.insert(std::make_pair(id, container));
-  response_callback.Run(LAUNCH_ERROR_OK);
+  response_callback.Run(interfaces::LAUNCH_ERROR_OK);
   container->Start(base::Bind(&ApplicationHostImpl::PurgeApplicationContainer,
                               weak_factory_.GetWeakPtr(), id));
 }
@@ -88,7 +87,7 @@ void ApplicationHostImpl::OnApplicationLoadFailure(
     const GURL& url,
     const LaunchApplicationCallback& response_callback,
     mojo::InterfaceRequest<mojo::Application> application) {
-  response_callback.Run(LAUNCH_ERROR_NOT_FOUND);
+  response_callback.Run(interfaces::LAUNCH_ERROR_NOT_FOUND);
 }
 
 void ApplicationHostImpl::PurgeApplicationContainer(int64_t id) {

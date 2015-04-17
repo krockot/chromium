@@ -10,8 +10,13 @@
 #include <vector>
 
 #include "base/compiler_specific.h"
+#include "base/memory/scoped_ptr.h"
 #include "base/memory/scoped_vector.h"
+#include "base/memory/weak_ptr.h"
 #include "content/public/utility/content_utility_client.h"
+#include "core/public/application_host/application_host.h"
+#include "core/public/interfaces/application_host.mojom.h"
+#include "mojo/common/weak_binding_set.h"
 #include "ipc/ipc_platform_file.h"
 
 namespace base {
@@ -81,6 +86,9 @@ class ChromeContentUtilityClient : public content::ContentUtilityClient {
                             bool get_attached_images);
 #endif
 
+  void BindApplicationHostRequest(
+      mojo::InterfaceRequest<core::interfaces::ApplicationHost> request);
+
   typedef ScopedVector<UtilityMessageHandler> Handlers;
   Handlers handlers_;
 
@@ -90,6 +98,16 @@ class ChromeContentUtilityClient : public content::ContentUtilityClient {
   std::set<int> message_id_whitelist_;
   // Maximum IPC msg size (default to kMaximumMessageSize; override for testing)
   static int64_t max_ipc_message_size_;
+
+  // The ApplicationHost for this utility process. Any mojo applications started
+  // in this process will be loaded and run by this object.
+  scoped_ptr<core::ApplicationHost> application_host_;
+
+  // Set of weak bindings to the ApplicationHost.
+  mojo::WeakBindingSet<core::interfaces::ApplicationHost>
+      application_host_bindings_;
+
+  base::WeakPtrFactory<ChromeContentUtilityClient> weak_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(ChromeContentUtilityClient);
 };

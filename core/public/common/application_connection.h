@@ -45,11 +45,9 @@ class ApplicationConnection {
   }
 
   template <typename Interface>
-  mojo::InterfacePtr<Interface> ConnectToService() {
-    mojo::InterfacePtr<Interface> service;
+  void ConnectToService(mojo::InterfacePtr<Interface>* proxy) {
     ConnectToService(Interface::Name_,
-                     mojo::GetProxy(&service).PassMessagePipe());
-    return service.Pass();
+                     mojo::GetProxy(proxy).PassMessagePipe());
   }
 
  private:

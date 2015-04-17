@@ -13,6 +13,7 @@
 #include "chrome/common/safe_browsing/zip_analyzer.h"
 #include "chrome/common/safe_browsing/zip_analyzer_results.h"
 #include "chrome/utility/chrome_content_utility_ipc_whitelist.h"
+#include "chrome/utility/chrome_utility_application_registry.h"
 #include "chrome/utility/utility_message_handler.h"
 #include "content/public/child/image_decoder_utils.h"
 #include "content/public/common/content_switches.h"
@@ -78,24 +79,13 @@ void FinishParseMediaMetadata(
 }
 #endif
 
-#if !defined(OS_ANDROID)
-void CreateProxyResolverFactory(
-    mojo::InterfaceRequest<net::interfaces::ProxyResolverFactory> request) {
-  // MojoProxyResolverFactoryImpl is strongly bound to the Mojo message pipe it
-  // is connected to. When that message pipe is closed, either explicitly on the
-  // other end (in the browser process), or by a connection error, this object
-  // will be destroyed.
-  new net::MojoProxyResolverFactoryImpl(request.Pass());
-}
-#endif  // OS_ANDROID
-
 }  // namespace
 
 int64_t ChromeContentUtilityClient::max_ipc_message_size_ =
     IPC::Channel::kMaximumMessageSize;
 
 ChromeContentUtilityClient::ChromeContentUtilityClient()
-    : filter_messages_(false) {
+    : filter_messages_(false), weak_factory_(this) {
 #if !defined(OS_ANDROID)
   handlers_.push_back(new ProfileImportHandler());
 #endif
@@ -184,10 +174,15 @@ bool ChromeContentUtilityClient::OnMessageReceived(
 
 void ChromeContentUtilityClient::RegisterMojoServices(
     content::ServiceRegistry* registry) {
-#if !defined(OS_ANDROID)
-  registry->AddService<net::interfaces::ProxyResolverFactory>(
-      base::Bind(CreateProxyResolverFactory));
-#endif
+  if (!application_host_) {
+    application_host_ = core::ApplicationHost::Create(
+        scoped_ptr<core::ApplicationRegistry>(
+            new ChromeUtilityApplicationRegistry()));
+  }
+
+  registry->AddService<core::interfaces::ApplicationHost>(base::Bind(
+      &ChromeContentUtilityClient::BindApplicationHostRequest,
+      weak_factory_.GetWeakPtr()));
 }
 
 // static
@@ -406,3 +401,9 @@ void ChromeContentUtilityClient::OnParseMediaMetadata(
   parser->Start(base::Bind(&FinishParseMediaMetadata, base::Owned(parser)));
 }
 #endif
+
+void ChromeContentUtilityClient::BindApplicationHostRequest(
+      mojo::InterfaceRequest<core::interfaces::ApplicationHost> request) {
+  application_host_bindings_.AddBinding(
+      application_host_.get(), request.Pass());
+}

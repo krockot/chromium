@@ -6,7 +6,9 @@
 #define CORE_PUBLIC_SHELL_SHELL_H_
 
 #include "base/macros.h"
+#include "base/memory/ref_counted.h"
 #include "base/memory/scoped_ptr.h"
+#include "base/task_runner.h"
 #include "third_party/mojo/src/mojo/public/interfaces/application/shell.mojom.h"
 
 class GURL;
@@ -18,7 +20,8 @@ class Shell {
   Shell() {}
   virtual ~Shell() {}
 
-  static scoped_ptr<Shell> Create();
+  static scoped_ptr<Shell> Create(
+      scoped_refptr<base::TaskRunner> io_task_runner);
 
   // DO NOT USE THIS without first consulting OWNERS. Also probably don't use
   // after that either.

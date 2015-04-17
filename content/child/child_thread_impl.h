@@ -18,6 +18,7 @@
 #include "content/common/content_export.h"
 #include "content/common/message_router.h"
 #include "content/public/child/child_thread.h"
+#include "core/public/application_host/application_host.h"
 #include "ipc/ipc_message.h"  // For IPC_MESSAGE_LOG_ENABLED.
 
 namespace base {
@@ -236,6 +237,8 @@ class CONTENT_EXPORT ChildThreadImpl
   void EnsureConnected();
 
   scoped_ptr<MojoApplication> mojo_application_;
+
+  scoped_ptr<core::ApplicationHost> application_host_;
 
   std::string channel_name_;
   scoped_ptr<IPC::SyncChannel> channel_;

@@ -10,6 +10,10 @@ source_set("proxy_resolver") {
     "proxy_resolver.h",
   ]
 
+  deps = [
+    "//net:net_utility_services"
+  ]
+
   public_deps = [
     "//base",
     "//core/public/application",

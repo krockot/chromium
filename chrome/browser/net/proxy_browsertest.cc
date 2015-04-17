@@ -15,7 +15,6 @@
 #include "chrome/test/base/in_process_browser_test.h"
 #include "chrome/test/base/ui_test_utils.h"
 #include "core/public/common/application_connection.h"
-#include "core/public/interfaces/dummy.mojom.h"
 #include "core/public/shell/shell.h"
 #include "content/public/browser/notification_details.h"
 #include "content/public/browser/notification_source.h"
@@ -275,13 +274,6 @@ class OutOfProcessProxyResolverBrowserTest : public InProcessBrowserTest {
 };
 
 IN_PROC_BROWSER_TEST_F(OutOfProcessProxyResolverBrowserTest, Verify) {
-  auto dummy_app = core::ApplicationConnection::Create(
-      core::Shell::GetProxy(), GURL("system:proxy_resolver"));
-  core::DummyPtr dummy = dummy_app->ConnectToService<core::Dummy>();
-  base::RunLoop run_loop;
-  dummy->DoSomething(run_loop.QuitClosure());
-  run_loop.Run();
-
   VerifyProxyScript(browser());
 }
 

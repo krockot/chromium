@@ -8,11 +8,12 @@
 #include "base/memory/singleton.h"
 #include "chrome/grit/generated_resources.h"
 #include "content/public/browser/browser_thread.h"
-#include "content/public/browser/utility_process_host.h"
-#include "content/public/browser/utility_process_host_client.h"
-#include "content/public/common/service_registry.h"
+#include "core/public/common/application_connection.h"
+#include "core/public/common/application_urls.h"
+#include "core/public/shell/shell.h"
 #include "net/proxy/mojo_proxy_resolver_factory.h"
 #include "ui/base/l10n/l10n_util.h"
+#include "url/gurl.h"
 
 // static
 UtilityProcessMojoProxyResolverFactory*
@@ -33,37 +34,17 @@ UtilityProcessMojoProxyResolverFactory::
   DCHECK_CURRENTLY_ON(content::BrowserThread::IO);
 }
 
-void UtilityProcessMojoProxyResolverFactory::CreateProcessAndConnect() {
-  DVLOG(1) << "Attempting to create utility process for proxy resolver";
-  content::UtilityProcessHost* utility_process_host =
-      content::UtilityProcessHost::Create(
-          scoped_refptr<content::UtilityProcessHostClient>(),
-          base::MessageLoopProxy::current().get());
-  utility_process_host->SetName(l10n_util::GetStringUTF16(
-      IDS_UTILITY_PROCESS_PROXY_RESOLVER_NAME));
-  bool process_started = utility_process_host->StartMojoMode();
-  if (process_started) {
-    content::ServiceRegistry* service_registry =
-        utility_process_host->GetServiceRegistry();
-    service_registry->ConnectToRemoteService(&resolver_factory_);
-    resolver_factory_.set_error_handler(this);
-  } else {
-    LOG(ERROR) << "Unable to connect to utility process";
-  }
-}
-
 void UtilityProcessMojoProxyResolverFactory::Create(
     mojo::InterfaceRequest<net::interfaces::ProxyResolver> req,
     net::interfaces::HostResolverPtr host_resolver) {
   DCHECK_CURRENTLY_ON(content::BrowserThread::IO);
-  if (!resolver_factory_)
-    CreateProcessAndConnect();
-
   if (!resolver_factory_) {
-    // If there's still no factory, then utility process creation failed so
-    // close |req|'s message pipe, which should cause a connection error.
-    req = nullptr;
-    return;
+    application_connection_ = core::ApplicationConnection::Create(
+        core::Shell::GetProxy(), GURL(core::kSystemProxyResolverUrl));
+    application_connection_
+        ->ConnectToService<net::interfaces::ProxyResolverFactory>(
+            &resolver_factory_);
+    resolver_factory_.set_error_handler(this);
   }
   resolver_factory_->CreateResolver(req.Pass(), host_resolver.Pass());
 }

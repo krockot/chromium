@@ -4,6 +4,8 @@
 
 source_set("application_host") {
   sources = [
+    "application_host.cc",
+    "application_host.h",
     "application_loader.h",
     "application_registry.cc",
     "application_registry.h",

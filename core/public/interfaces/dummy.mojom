@@ -1,6 +1,0 @@
-module core;
-
-interface Dummy {
-  DoSomething() => ();
-};
-

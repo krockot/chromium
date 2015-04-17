@@ -48,16 +48,16 @@ mojo::Shell* Shell::GetProxy() {
   return g_shell->browser_shell_proxy();
 }
 
-scoped_ptr<Shell> Shell::Create() {
-  g_shell = new ShellImpl;
+scoped_ptr<Shell> Shell::Create(
+    scoped_refptr<base::TaskRunner> io_task_runner) {
+  g_shell = new ShellImpl(io_task_runner);
   return scoped_ptr<Shell>(g_shell);
 }
 
-ShellImpl::ShellImpl()
-    : in_process_application_host_(new ApplicationHostImpl),
-      browser_shell_(
+ShellImpl::ShellImpl(scoped_refptr<base::TaskRunner> io_task_runner)
+    : browser_shell_(
           new BrowserShell(this, mojo::GetProxy(&browser_shell_proxy_))),
-      application_manager_(new ApplicationManager(this)),
+      application_manager_(new ApplicationManager(this, io_task_runner)),
       weak_factory_(this) {
 }
 

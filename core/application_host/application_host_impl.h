@@ -11,7 +11,7 @@
 #include "base/macros.h"
 #include "base/memory/scoped_ptr.h"
 #include "base/memory/weak_ptr.h"
-#include "core/public/interfaces/application_host.mojom.h"
+#include "core/public/application_host/application_host.h"
 #include "third_party/mojo/src/mojo/public/cpp/bindings/interface_request.h"
 
 class GURL;
@@ -23,10 +23,10 @@ class ApplicationRunner;
 
 class ApplicationHostImpl : public ApplicationHost {
  public:
-  ApplicationHostImpl();
+  explicit ApplicationHostImpl(scoped_ptr<ApplicationRegistry> registry);
   ~ApplicationHostImpl() override;
 
-  // ApplicationHost:
+  // interfaces::ApplicationHost:
   void LaunchApplication(const mojo::String& application_url,
                          mojo::InterfaceRequest<mojo::Application> application,
                          const LaunchApplicationCallback& callback) override;
@@ -45,7 +45,7 @@ class ApplicationHostImpl : public ApplicationHost {
 
   void PurgeApplicationContainer(int64_t id);
 
-  ApplicationRegistry* registry_;
+  scoped_ptr<ApplicationRegistry> registry_;
 
   int64_t next_container_id_;
   base::hash_map<int64_t, ApplicationContainer*> running_applications_;

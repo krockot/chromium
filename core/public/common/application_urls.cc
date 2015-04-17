@@ -7,5 +7,6 @@
 namespace core {
 
 const char kSystemBrowserUrl[] = "system:browser";
+const char kSystemProxyResolverUrl[] = "system:proxy_resolver";
 
 }  // namespace core

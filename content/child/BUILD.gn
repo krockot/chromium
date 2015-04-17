@@ -24,6 +24,7 @@ source_set("child") {
     "//base",
     "//components/tracing",
     "//content/common:mojo_bindings",
+    "//core/public/application_host",
     "//mojo/common",
     "//mojo/environment:chromium",
     "//skia",

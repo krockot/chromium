@@ -2,24 +2,28 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "chrome/core/application_host/chrome_application_registry.h"
+#include "chrome/utility/chrome_utility_application_registry.h"
 
-#include "applications/proxy_resolver/public/factory.h"
 #include "base/stl_util.h"
-#include "chrome/core/common/application_urls.h"
+#include "build/build_config.h"
 #include "core/public/application_host/application_loader.h"
+#include "core/public/common/application_urls.h"
 #include "url/gurl.h"
 
-ChromeApplicationRegistry::ChromeApplicationRegistry() {
+#if !defined(OS_ANDROID)
+#include "applications/proxy_resolver/public/factory.h"
+#endif
+
+ChromeUtilityApplicationRegistry::ChromeUtilityApplicationRegistry() {
   PopulateApplicationMap();
 }
 
-ChromeApplicationRegistry::~ChromeApplicationRegistry() {
+ChromeUtilityApplicationRegistry::~ChromeUtilityApplicationRegistry() {
   STLDeleteContainerPairSecondPointers(application_map_.begin(),
                                        application_map_.end());
 }
 
-core::ApplicationLoader* ChromeApplicationRegistry::GetApplicationLoader(
+core::ApplicationLoader* ChromeUtilityApplicationRegistry::GetApplicationLoader(
     const GURL& url) {
   auto iter = application_map_.find(url);
   if (iter == application_map_.end())
@@ -27,16 +31,18 @@ core::ApplicationLoader* ChromeApplicationRegistry::GetApplicationLoader(
   return iter->second;
 }
 
-void ChromeApplicationRegistry::AddApplication(
+void ChromeUtilityApplicationRegistry::AddApplication(
     const GURL& url,
     scoped_ptr<core::ApplicationLoader> loader) {
   auto result = application_map_.insert(std::make_pair(url, loader.release()));
   DCHECK(result.second);
 }
 
-void ChromeApplicationRegistry::PopulateApplicationMap() {
+void ChromeUtilityApplicationRegistry::PopulateApplicationMap() {
+#if !defined(OS_ANDROID)
   // Proxy Auto-Config application.
-  AddApplication(GURL(application_urls::kProxyResolver),
+  AddApplication(GURL(core::kSystemProxyResolverUrl),
                  core::ApplicationLoader::CreateForFactory(
                      proxy_resolver::CreateFactory()));
+#endif
 }

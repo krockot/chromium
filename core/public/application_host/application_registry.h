@@ -6,7 +6,6 @@
 #define CORE_PUBLIC_COMMON_APPLICATION_REGISTRY_H_
 
 #include "base/macros.h"
-#include "base/memory/scoped_ptr.h"
 
 class GURL;
 
@@ -16,15 +15,12 @@ class ApplicationLoader;
 
 // This object acts as a mapping between raw system application URLs and
 // ApplicationLoaders which can be used to launch new instances of the
-// corresponding application. A global instance of this should be |Set| by
-// the embedder within any process that will create ApplicationHosts.
+// corresponding application. Every ApplicationHost must be provided with its
+// own ApplicationRegistry instance by the embedder.
 class ApplicationRegistry {
  public:
   ApplicationRegistry();
   virtual ~ApplicationRegistry();
-
-  static ApplicationRegistry* Get();
-  static void Set(ApplicationRegistry* registry);
 
   virtual ApplicationLoader* GetApplicationLoader(const GURL& url) = 0;
 

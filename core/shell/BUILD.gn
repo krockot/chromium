@@ -13,6 +13,7 @@ source_set("shell") {
   ]
 
   deps = [
+    "//content/public/browser",
     "//core/application_host",
     "//core/common",
     "//core/public/common",

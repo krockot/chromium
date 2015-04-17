@@ -6,10 +6,15 @@
 #define CHROME_BROWSER_NET_UTILITY_PROCESS_MOJO_PROXY_RESOLVER_FACTORY_H_
 
 #include "base/macros.h"
+#include "base/memory/scoped_ptr.h"
 #include "net/proxy/mojo_proxy_resolver_factory.h"
 
 template <typename Type>
 struct DefaultSingletonTraits;
+
+namespace core {
+class ApplicationConnection;
+}
 
 // A factory used to create connections to Mojo proxy resolver services run in a
 // utility process. All Mojo proxy resolver services will be run in the same
@@ -33,10 +38,7 @@ class UtilityProcessMojoProxyResolverFactory
   // Overridden from mojo::ErrorHandler:
   void OnConnectionError() override;
 
-  // Creates a new utility process and connects to its Mojo proxy resolver
-  // factory.
-  void CreateProcessAndConnect();
-
+  scoped_ptr<core::ApplicationConnection> application_connection_;
   net::interfaces::ProxyResolverFactoryPtr resolver_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(UtilityProcessMojoProxyResolverFactory);

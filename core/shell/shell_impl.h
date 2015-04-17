@@ -5,9 +5,15 @@
 #ifndef CORE_SHELL_SHELL_IMPL_H_
 #define CORE_SHELL_SHELL_IMPL_H_
 
+#include <stdint.h>
+
+#include <map>
+
 #include "base/macros.h"
+#include "base/memory/ref_counted.h"
 #include "base/memory/scoped_ptr.h"
 #include "base/memory/weak_ptr.h"
+#include "base/task_runner.h"
 #include "core/public/interfaces/application_host.mojom.h"
 #include "core/public/shell/shell.h"
 #include "third_party/mojo/src/mojo/public/cpp/bindings/interface_request.h"
@@ -26,7 +32,7 @@ class ApplicationManager;
 
 class ShellImpl : public Shell {
  public:
-  ShellImpl();
+  explicit ShellImpl(scoped_refptr<base::TaskRunner> io_task_runner);
   ~ShellImpl() override;
 
   void ConnectApplications(
@@ -39,13 +45,7 @@ class ShellImpl : public Shell {
     return browser_shell_proxy_.get();
   }
 
-  ApplicationHost* in_process_application_host() const {
-    return in_process_application_host_.get();
-  }
-
  private:
-  scoped_ptr<ApplicationHost> in_process_application_host_;
-
   mojo::ShellPtr browser_shell_proxy_;
   scoped_ptr<mojo::Shell> browser_shell_;
 

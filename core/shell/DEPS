@@ -1,0 +1,9 @@
+include_rules [
+  # This should only ever be used for utility process hosting. Do not introduce
+  # additional dependencies on //content.
+  # TODO(rockot): Remove this someday when process management is handled
+  # directly by //core code.
+  "+content/public/browser",
+  "+content/public/common",
+]
+

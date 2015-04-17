@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef CHROME_CORE_APPLICATION_HOST_APPLICATION_REGISTRY_H_
-#define CHROME_CORE_APPLICATION_HOST_APPLICATION_REGISTRY_H_
+#ifndef CHROME_UTILITY_CHROME_UTILITY_APPLICATION_REGISTRY_
+#define CHROME_UTILITY_CHROME_UTILITY_APPLICATION_REGISTRY_
 
 #include <map>
 
@@ -12,10 +12,10 @@
 #include "core/public/application_host/application_registry.h"
 #include "url/gurl.h"
 
-class ChromeApplicationRegistry : public core::ApplicationRegistry {
+class ChromeUtilityApplicationRegistry : public core::ApplicationRegistry {
  public:
-  ChromeApplicationRegistry();
-  ~ChromeApplicationRegistry() override;
+  ChromeUtilityApplicationRegistry();
+  ~ChromeUtilityApplicationRegistry() override;
 
   core::ApplicationLoader* GetApplicationLoader(const GURL& url) override;
 
@@ -26,7 +26,7 @@ class ChromeApplicationRegistry : public core::ApplicationRegistry {
 
   std::map<GURL, core::ApplicationLoader*> application_map_;
 
-  DISALLOW_COPY_AND_ASSIGN(ChromeApplicationRegistry);
+  DISALLOW_COPY_AND_ASSIGN(ChromeUtilityApplicationRegistry);
 };
 
-#endif
+#endif  // CHROME_UTILITY_CHROME_UTILITY_APPLICATION_REGISTRY_

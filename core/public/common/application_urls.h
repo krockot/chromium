@@ -8,6 +8,7 @@
 namespace core {
 
 extern const char kSystemBrowserUrl[];
+extern const char kSystemProxyResolverUrl[];
 
 }  // namespace core
 

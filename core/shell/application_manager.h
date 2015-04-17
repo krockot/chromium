@@ -12,8 +12,10 @@
 
 #include "base/callback_forward.h"
 #include "base/macros.h"
+#include "base/memory/ref_counted.h"
 #include "base/memory/scoped_ptr.h"
 #include "base/memory/weak_ptr.h"
+#include "base/task_runner.h"
 #include "core/public/interfaces/application_host.mojom.h"
 #include "third_party/mojo/src/mojo/public/cpp/bindings/interface_request.h"
 #include "third_party/mojo/src/mojo/public/interfaces/application/application.mojom.h"
@@ -27,7 +29,8 @@ class ShellImpl;
 
 class ApplicationManager {
  public:
-  explicit ApplicationManager(ShellImpl* shell);
+  ApplicationManager(ShellImpl* shell,
+                     scoped_refptr<base::TaskRunner> io_task_runner);
   ~ApplicationManager();
 
   void ConnectApplications(
@@ -43,7 +46,16 @@ class ApplicationManager {
   using LaunchCallback =
       base::Callback<void(base::WeakPtr<RunningApplication>)>;
 
-  void LaunchApplication(const GURL& url, const LaunchCallback& callback);
+  void LaunchApplicationInNewProcess(const GURL& url,
+                                     const LaunchCallback& callback);
+  static void LaunchNewUtilityProcessOnIOThread(
+      base::WeakPtr<ApplicationManager> self,
+      const GURL& url,
+      const LaunchCallback& callback,
+      scoped_refptr<base::TaskRunner> response_task_runner);
+  void OnUtilityProcessLaunched(const GURL& url,
+                                const LaunchCallback& callback,
+                                interfaces::ApplicationHostPtr host);
   void ConnectToRunningApplication(
       const GURL& from_url,
       mojo::InterfaceRequest<mojo::ServiceProvider> services,
@@ -52,10 +64,11 @@ class ApplicationManager {
   void OnApplicationLaunched(const LaunchCallback& callback,
                              const GURL& url,
                              mojo::ApplicationPtr,
-                             LaunchError result);
+                             interfaces::LaunchError result);
   void OnApplicationExited(int32_t app_id, int32_t exit_code);
 
   ShellImpl* shell_;
+  scoped_refptr<base::TaskRunner> io_task_runner_;
 
   int32_t next_app_id_;
   RunningApplicationMap apps_;
